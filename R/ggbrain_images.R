@@ -1,6 +1,6 @@
 #' R6 class for compiling images to render in ggplot
 #' @importFrom RNifti voxelToWorld readNifti
-#' @importFrom abind abind
+#' @importFrom rlang flatten
 #' @export
 ggbrain_images <- R6::R6Class(
   classname = "ggbrain_images",
@@ -138,7 +138,7 @@ ggbrain_images <- R6::R6Class(
       }) %>% setNames(c("i", "j", "k"))
     },
     get_slices = function(slices, img_names = NULL, make_square = TRUE, remove_null_space = TRUE, as_data_frame=TRUE) {
-      slice_df <- lookup_slices(slices, self) # defaults to ignoring null space
+      slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       coords <- slice_df %>%
         group_by(slice_index) %>%
         group_split()
@@ -148,12 +148,34 @@ ggbrain_images <- R6::R6Class(
       })
 
       if (isTRUE(make_square)) {
-        browser()
         slc_dims <- sapply(flatten(slc), dim)
         square_dims <- apply(slc_dims, 1, max)
-        square_mat <- array(NA_real_, dim = square_dims)
-        square_melt <- reshape2::melt(square_mat, varnames = c("dim1", "dim2"), value.name = "dummy")
+        # for each slice and image within slice, center the matrix in the target output dims
+        slc <- lapply(slc, function(ilist) {
+          lapply(ilist, function(mat) {
+            center_matrix(square_dims, mat)
+          })
+        })
+      }
 
+      # remove blank space from matrices if requested
+      # this approach 
+      if (isTRUE(remove_null_space)) {
+        # find voxels in each image that are different from zero
+        img_nz <- lapply(rlang::flatten(slc), function(img) {
+          abs(img) > private$pvt_zero_tol
+        })
+
+        img_any <- Reduce("|", img_nz)
+        good_rows <- rowSums(img_any, na.rm = T) > 0L
+        good_cols <- colSums(img_any, na.rm = T) > 0L
+
+        # subset all images to the non-zero slices
+        slc <- lapply(slc, function(ilist) {
+          lapply(ilist, function(mat) {
+            mat[good_rows, good_cols]
+          })
+        })
       }
 
       if (isTRUE(as_data_frame)) {

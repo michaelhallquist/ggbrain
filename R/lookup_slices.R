@@ -1,14 +1,12 @@
 #' internal function to lookup which slices to display along each axis based on their quantile,
 #'   xyz coordinate, or ijk coordinate
 #' @param slices A character vector of coordinates for slices to display
-#' @param ggimg_obj A ggbrain_images object containing images to be sliced
 #' @param ignore_null_space If TRUE, any coordinates specified as quantiles (e.g., x = 50%)
 #'   use the quantiles of only the non-zero slices (ignoring blank sliaces)
 #' @keywords internal
-lookup_slices <- function(slices, ggimg_obj, ignore_null_space = TRUE) {
+lookup_slices <- function(slices, ignore_null_space = TRUE) {
   checkmate::assert_character(slices)
-  checkmate::assert_class(ggimg_obj, "ggbrain_images")
-  img_dims <- ggimg_obj$dim()
+  img_dims <- self$dim()
 
   slc_range_full <- list(
     i = seq_len(img_dims[1]),
@@ -17,13 +15,13 @@ lookup_slices <- function(slices, ggimg_obj, ignore_null_space = TRUE) {
   )
 
   if (isTRUE(ignore_null_space)) {
-    slc_range <- ggimg_obj$get_nz_indices()
+    slc_range <- self$get_nz_indices()
   } else {
     slc_range <- slc_range_full
   }
 
   # get nifti header for first image for voxel -> world transformations
-  nii_head <- ggimg_obj$get_headers(drop=FALSE)[[1L]]
+  nii_head <- self$get_headers(drop=FALSE)[[1L]]
 
   # translate ijk to xyz for each axis
   xcoords <- RNifti::voxelToWorld(cbind(slc_range_full$i, 1, 1), nii_head)[, 1]
@@ -138,3 +136,5 @@ lookup_slices <- function(slices, ggimg_obj, ignore_null_space = TRUE) {
   return(slice_df)
 }
 
+# add lookup_slices as method
+ggbrain_images$set("public", "lookup_slices", lookup_slices)
