@@ -109,7 +109,7 @@ lookup_slices <- function(slices, ignore_null_space = TRUE) {
         slc_num <- number
       }
     }
-    
+
     # slc_num is the slice number in the plane of interest
     if (axis_label == "x") {
       slc_coords <- xcoords[slc_num]

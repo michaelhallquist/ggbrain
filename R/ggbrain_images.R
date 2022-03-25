@@ -6,6 +6,7 @@ ggbrain_images <- R6::R6Class(
   classname = "ggbrain_images",
   private = list(
     pvt_imgs = list(), # image data
+    pvt_img_names = NULL, # names of images
     pvt_dims = NULL, # x, y, z extent
     pvt_zero_tol = 1e-6, # threshold for what constitutes a non-zero voxel
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
@@ -23,11 +24,21 @@ ggbrain_images <- R6::R6Class(
         names(images)[which_empty] <- make.unique(basename(images[which_empty]))
       }
 
-      if (!"underlay" %in% c(names(private$pvt_imgs), names(images))) {
+      if (!"underlay" %in% c(private$pvt_img_names, names(images))) {
         warning("'underlay' is not among the images provided. This may lead to weirdness downstream.")
       }
 
-      img_list <- sapply(images, RNifti::readNifti, simplify = FALSE)
+      img_list <- sapply(images, function(ff) {
+        img <- RNifti::readNifti(ff)
+
+        # round very small values to zero
+        if (!is.null(private$pvt_zero_tol) && private$pvt_zero_tol > 0) {
+          img[img > -1 * private$pvt_zero_tol & img < private$pvt_zero_tol] <- 0
+        }
+
+        return(img)
+      }, simplify = FALSE)
+
       img_dims <- cbind(sapply(img_list, dim), extant=private$pvt_dims) # xyz x images matrix augmented by stored dims
       dim_match <- apply(img_dims, 1, function(row) {
         length(unique(row)) == 1L
@@ -41,6 +52,7 @@ ggbrain_images <- R6::R6Class(
       }
 
       private$pvt_imgs[names(img_list)] <- img_list
+      private$pvt_img_names <- names(private$pvt_imgs)
       private$pvt_nz_range <- self$get_nz_indices()
     }
   ),
@@ -54,12 +66,15 @@ ggbrain_images <- R6::R6Class(
     dim = function() {
       private$pvt_dims
     },
+    get_image_names = function() {
+      private$pvt_img_names
+    },
     get_images = function(img_names = NULL, drop = TRUE) {
       checkmate::assert_logical(drop, len=1L)
       if (is.null(img_names)) {
         ret <- private$pvt_imgs
       } else {
-        checkmate::assert_subset(img_names, names(private$pvt_imgs))
+        checkmate::assert_subset(img_names, private$pvt_img_names)
         ret <- private$pvt_imgs[img_names]
       }
 
@@ -74,7 +89,7 @@ ggbrain_images <- R6::R6Class(
       if (is.null(img_names)) {
         ret <- private$pvt_imgs
       } else {
-        checkmate::assert_subset(img_names, names(private$pvt_imgs))
+        checkmate::assert_subset(img_names, private$pvt_img_names)
         ret <- private$pvt_imgs[img_names]
       }
 
@@ -86,10 +101,13 @@ ggbrain_images <- R6::R6Class(
 
       return(ret)
     },
+
+    #' @description method for removing one or more images from the ggbrain_images object
+    #' @param img_names 
     remove_images = function(img_names) {
       checkmate::assert_character(img_names)
-      good_imgs <- intersect(names(private$pvt_imgs), img_names)
-      bad_imgs <- setdiff(img_names, names(private$pvt_imgs))
+      good_imgs <- intersect(private$pvt_img_names, img_names)
+      bad_imgs <- setdiff(img_names, private$pvt_img_names)
 
       if (length(good_imgs) > 0L) {
         message(glue("Removing images: {paste(good_imgs, collapse=', ')}"))
@@ -101,6 +119,44 @@ ggbrain_images <- R6::R6Class(
       }
 
     },
+    #' @description winsorize the tails of a set of images to pull in extreme values
+    #' @param img_names The names of images in the ggbrain_images object to be winsorized
+    #' @param quantiles The lower and upper quantiles used to define the thresholds for winsorizing.
+    winsorize_images = function(img_names, quantiles = c(.001, .999)) {
+      checkmate::assert_numeric(quantiles, lower = 0, upper = 1, len = 2)
+      stopifnot(quantiles[1] < quantiles[2])
+      checkmate::assert_character(img_names)
+      checkmate::assert_subset(img_names, private$pvt_img_names)
+      private$pvt_imgs[img_names] <- lapply(private$pvt_imgs[img_names], function(img) {
+        if (quantiles[1] > 0) {
+          lthresh <- quantile(img[img > 0], quantiles[1])
+          img[img < lthresh & img > 0] <- lthresh
+        }
+
+        if (quantiles[2] < 1) {
+          uthresh <- quantile(img[img > 0], quantiles[2])
+          img[img > uthresh] <- uthresh
+        }
+
+        return(img)
+      })
+      return(self)
+    },
+
+    #' @description method to set values less than \code{threshold} to NA
+    na_images = function(img_names, threshold = NULL) {
+      if (is.null(threshold)) {
+        threshold <- private$pvt_zero_tol
+      }
+
+      private$pvt_imgs[img_names] <- lapply(private$pvt_imgs[img_names], function(img) {
+        img[abs(img) < threshold] <- NA
+        return(img)
+      })
+
+    },
+
+    #' @description print a summary of the ggbrain_images object
     summary = function() {
       cat("\nImage dimensions:\n")
       print(private$pvt_dims)
@@ -113,10 +169,10 @@ ggbrain_images <- R6::R6Class(
         if (!is.null(private$pvt_nz_range)) {
           return(private$pvt_nz_range) # return pre-cached dims (reflects all images), if available
         } else {
-          img_names <- names(private$pvt_imgs)
+          img_names <- private$pvt_img_names
         }
       } else {
-        checkmate::assert_subset(img_names, names(private$pvt_imgs))
+        checkmate::assert_subset(img_names, private$pvt_img_names)
       }
 
       # find voxels in each image that are different from zero
@@ -137,6 +193,10 @@ ggbrain_images <- R6::R6Class(
         range(nz_pos[, j])
       }) %>% setNames(c("i", "j", "k"))
     },
+
+    #' @description get slice data for one or more slices based on their coordinates
+    #' @param slices a vector of slice positions
+    #' @param img_names a character vector of images contained in the ggbrain_images object to be sliced
     get_slices = function(slices, img_names = NULL, make_square = TRUE, remove_null_space = TRUE, as_data_frame=TRUE) {
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       coords <- slice_df %>%
@@ -200,9 +260,9 @@ ggbrain_images <- R6::R6Class(
     },
     get_slices_inplane = function(imgs = NULL, slice_numbers, plane, drop=FALSE) {
       if (is.null(imgs)) {
-        imgs <- names(private$pvt_imgs)
-      } else if (!checkmate::test_subset(imgs, names(private$pvt_imgs))) {
-        stop(glue("The img input to $get_slice() must be one of: {paste(names(private$pvt_imgs), collapse=', ')}"))
+        imgs <- private$pvt_img_names
+      } else if (!checkmate::test_subset(imgs, private$pvt_img_names)) {
+        stop(glue("The img input to $get_slice() must be one of: {paste(private$pvt_img_names, collapse=', ')}"))
       }
 
       checkmate::assert_integerish(slice_numbers, lower = 1)
