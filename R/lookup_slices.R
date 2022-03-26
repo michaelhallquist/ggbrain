@@ -1,9 +1,8 @@
-#' internal function to lookup which slices to display along each axis based on their quantile,
+#' @description internal function to lookup which slices to display along each axis based on their quantile,
 #'   xyz coordinate, or ijk coordinate
 #' @param slices A character vector of coordinates for slices to display
 #' @param ignore_null_space If TRUE, any coordinates specified as quantiles (e.g., x = 50%)
 #'   use the quantiles of only the non-zero slices (ignoring blank sliaces)
-#' @keywords internal
 lookup_slices <- function(slices, ignore_null_space = TRUE) {
   checkmate::assert_character(slices)
   img_dims <- self$dim()

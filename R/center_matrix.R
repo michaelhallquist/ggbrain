@@ -9,7 +9,6 @@
 #'   within it.
 #' @keywords internal
 center_matrix <- function(output_dim, mat, default_value = NA_real_, drop_zeros = TRUE) {
-  #checkmate::assert_matrix(lg_mat)
   checkmate::assert_matrix(mat)
 
   # if there are blank slices, drop them out before centering (in case original is asymmetric)

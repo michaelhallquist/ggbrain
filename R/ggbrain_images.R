@@ -57,18 +57,33 @@ ggbrain_images <- R6::R6Class(
     }
   ),
   public = list(
+    #' @description create ggbrain_images object consisting of one or more NIfTI images
+    #' @param images a character vector of file names containing NIfTI images to read 
     initialize = function(images) {
       private$set_images(images)
     },
+    
+    #' @description add one or more images to this ggbrain_images object
+    #' @param images a character vector of file names containing NIfTI images to read 
     add_images = function(images) {
       private$set_images(images)
     },
+    
+    #' @description return the 3D dimensions of the images contained in this object
     dim = function() {
       private$pvt_dims
     },
+    
+    #' @description return the names of the images contained in this object
     get_image_names = function() {
       private$pvt_img_names
     },
+    
+    #' @description return the RNifti objects of one or more images contained in this object
+    #' @param img_names The names of images to return. Use \code{$get_image_names()} if you're uncertain
+    #'   about what is available.
+    #' @param drop If TRUE, a single image is returned as an RNifti object, rather than a single-element list 
+    #'   containing that object.
     get_images = function(img_names = NULL, drop = TRUE) {
       checkmate::assert_logical(drop, len=1L)
       if (is.null(img_names)) {
@@ -84,6 +99,12 @@ ggbrain_images <- R6::R6Class(
 
       return(ret)
     },
+    
+    #' @description return the NIfTI headers for one or more images contained in this object
+    #' @param img_names The names of images whose header are returned. Use \code{$get_image_names()} if you're uncertain
+    #'   about what is available.
+    #' @param drop If TRUE, a single header is returned as an niftiHeader object, rather than a single-element list 
+    #'   containing that object.
     get_headers = function(img_names = NULL, drop = TRUE) {
       checkmate::assert_logical(drop, len=1L)
       if (is.null(img_names)) {
@@ -119,6 +140,7 @@ ggbrain_images <- R6::R6Class(
       }
 
     },
+    
     #' @description winsorize the tails of a set of images to pull in extreme values
     #' @param img_names The names of images in the ggbrain_images object to be winsorized
     #' @param quantiles The lower and upper quantiles used to define the thresholds for winsorizing.
@@ -144,6 +166,9 @@ ggbrain_images <- R6::R6Class(
     },
 
     #' @description method to set values less than \code{threshold} to NA
+    #' @param img_names The names of images in the ggbrain_images object whose values should be set to NA
+    #' @param threshold The threshold value whose absolute value used to determine which voxels to set to NA.
+    #'   If \code{NULL}, use the pvt_zero_tol field (default 1e-6).
     na_images = function(img_names, threshold = NULL) {
       if (is.null(threshold)) {
         threshold <- private$pvt_zero_tol
@@ -162,8 +187,12 @@ ggbrain_images <- R6::R6Class(
       print(private$pvt_dims)
       cat("\nImages in object:\n")
       print(private$pvt_imgs)
-
     },
+    
+    #' @description return the indices of non-zero voxels
+    #' @param img_names The names of images in the ggbrain_images object whose non-zero indices should be looked up
+    #' @details Note that this function looks for non-zero voxels in any of the images specified by \code{img_names}.
+    #'   Or in more technical terms, 
     get_nz_indices = function(img_names = NULL) {
       if (is.null(img_names)) {
         if (!is.null(private$pvt_nz_range)) {
@@ -197,6 +226,9 @@ ggbrain_images <- R6::R6Class(
     #' @description get slice data for one or more slices based on their coordinates
     #' @param slices a vector of slice positions
     #' @param img_names a character vector of images contained in the ggbrain_images object to be sliced
+    #' @param make_square If TRUE, make all images square and of the same size
+    #' @param remove_null_space If TRUE, remove slices where all values are approximately zero
+    #' @param as_data_frame If TRUE, return slices as a data.frame indexed by slice, image layer, and the image matrix
     get_slices = function(slices, img_names = NULL, make_square = TRUE, remove_null_space = TRUE, as_data_frame=TRUE) {
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       coords <- slice_df %>%
@@ -258,6 +290,13 @@ ggbrain_images <- R6::R6Class(
       return(slice_df)
 
     },
+    
+    #' @description get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane
+    #' @param imgs The names of images to slice
+    #' @param slice_numbers The numbers of slices in the specified plant to grab
+    #' @param plane The image plane to slice. Must be "coronal", "sagittal", or "axial"
+    #' @param drop if TRUE, a single slice is returned as a 2D matrix instead of a 3D matrix with a singleton first dimension
+    #' @return A 3D matrix of slices x dim1 x dim2
     get_slices_inplane = function(imgs = NULL, slice_numbers, plane, drop=FALSE) {
       if (is.null(imgs)) {
         imgs <- private$pvt_img_names
@@ -291,7 +330,7 @@ ggbrain_images <- R6::R6Class(
 )
 
 
-ggbrain <- R6::R6Class(
+ggbrain_r6 <- R6::R6Class(
   classname = "ggbrain",
   private = list(
     layer_imgs = list(), # keep original data?
@@ -307,7 +346,7 @@ ggbrain <- R6::R6Class(
     }
   ),
   active = list(
-    #' @field sided Whether to clusterize 1-sided ('one'), two-sided ('two'), or bi-sided ('bi')
+    #' @field panels The ggplot panels
     panels = function(val) {
       if (missing(val)) {
         return(private$pvt_panels)
@@ -317,6 +356,7 @@ ggbrain <- R6::R6Class(
     }
   ),
   public = list(
+    #' @description generate empty ggbrain object
     initialize = function(panels = NULL) {
       if (is.null(panels)) {
         stop("Cannot create a ggbrain object without panels!")
@@ -324,14 +364,18 @@ ggbrain <- R6::R6Class(
         self$set_panels(panels)
       }
     },
+    
+    #' @description plot the composite plot
     plot = function() {
       plot(private$composite_plot)
     },
+    
+    #' @description return the composite plot
     get_composite_plot = function() {
       private$composite_plot
     },
 
-    # future idea? -- multiple views based on cached data
+    #' @description future idea? -- multiple views based on cached data
     create_view = function(slices) {
       private$views <- c(private$views, "VIEW HERE")
     }
