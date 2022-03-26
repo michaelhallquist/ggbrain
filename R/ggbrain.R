@@ -16,13 +16,13 @@
 #' @importFrom checkmate assert_numeric
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom cowplot plot_grid add_sub
-#' @importFrom ggplot2 geom_raster scale_fill_gradient theme
+#' @importFrom ggplot2 geom_raster scale_fill_gradient theme_void ggplot coord_fixed
 #' @export
 ggbrain <- function(underlay=NULL, overlay=NULL, 
                     color_col=NULL, alpha_col=NULL,
-                    underlay_colorscale = scale_fill_gradient(low="grey8", high="grey92", na.value = "transparent"),
-                    negative_colorscale = scale_fill_distiller(palette="Blues", direction = 1, na.value = "transparent"),
-                    positive_colorscale = scale_fill_distiller(palette="Reds", na.value = "transparent"),
+                    underlay_colorscale = scale_fill_gradient(low="grey8", high="grey92"),
+                    negative_colorscale = scale_fill_distiller(palette="Blues", direction = 1),
+                    positive_colorscale = scale_fill_distiller(palette="Reds"),
                     slices = data.frame(
                       coord = c("x = 25%", "x = 50%", "x = 75%",
                                 "y = 25%", "y = 50%", "y = 75%",
@@ -36,6 +36,24 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
                     panel_labels = NULL, underlay_contrast = "none", panel_borders = TRUE,
                     theme_custom = NULL, base_size = 14
 ) {
+  
+  checkmate::assert_class(underlay_colorscale, "ScaleContinuous")
+  checkmate::assert_class(negative_colorscale, "ScaleContinuous")
+  checkmate::assert_class(positive_colorscale, "ScaleContinuous")
+  
+  # force transparency for NA values on each layer to make things visible
+  if (underlay_colorscale$na.value != "transparent") { 
+    underlay_colorscale$na.value <- "transparent"
+  }
+  
+  if (positive_colorscale$na.value != "transparent") { 
+    positive_colorscale$na.value <- "transparent"
+  }
+  
+  if (negative_colorscale$na.value != "transparent") { 
+    negative_colorscale$na.value <- "transparent"
+  }
+  
   
   # slices <- data.frame(
   #   coord = c("x = 55.4", "x = 50%", "y = 10", "k = 20"),
@@ -71,7 +89,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   #   underlay[underlay > -1*zero_underlay & underlay < zero_underlay] <- 0
   # }
 
-  
   # winsorize extreme values in underlay based on quantiles of non-zero voxels
   gg_imgs$winsorize_images("underlay", trim_underlay)
 
@@ -87,8 +104,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   # }
 
   gg_imgs$na_images("underlay", 1e-8)
-  
-  # underlay[abs(underlay) < 1e-8] <- NA
   
   # sigmoid transform
   #underlay2 <- underlay + underlay*underlay_contrast*(1/(1+exp(-underlay)))
@@ -127,60 +142,10 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   # need grouping variables to be factors to maintain order in group_by %>% group_split
   # coords_df <- lookup_slices(slices$coord, underlay, remove_null_space)
   
-  
   # split into row-wise list for lapply inside slice lookup
   # coords <- coords_df %>% group_by(slice_index) %>% group_split()
   
-  # helper subfunction to extract specific slices from 3d image
-  # get_slice <- function(img, slice_number, plane) {
-  #   checkmate::assert_number(slice_number)
-  #   if (plane == "sagittal") {
-  #     slc_mat <- aperm(img[slice_number, , , drop=FALSE], c(1, 2, 3))
-  #   } else if (plane == "coronal") {
-  #     slc_mat <- aperm(img[, slice_number, , drop=FALSE], c(2, 1, 3))
-  #   } else if (plane == "axial") {
-  #     slc_mat <- aperm(img[, , slice_number, drop=FALSE], c(3, 1, 2))
-  #   }
-    
-  #   return(slc_mat)
-  # }
-  
-  # get_all_slices <- function(img) {
-  #   arg_name <- as.character(match.call())[-1]
-  #   slc <- lapply(coords, function(slc) { get_slice(img, slc$slice_number, slc$plane)})
-  #   # add numeric slice number on the front so that the levels of the factor that are created below follow the proper slice order
-  #   names(slc) <- paste0(sprintf("%03d", seq_along(slc)), coords_df$plane, coords_df$slice_number)
-
-  #   # use the max x and y sizes across slices to create a uniform plot size
-  #   size_x <- max(sapply(slc, function(s) dim(s)[2]))
-  #   size_y <- max(sapply(slc, function(s) dim(s)[3]))
-  #   square_mat <- matrix(NA_real_, nrow=size_x, ncol=size_y)
-  #   square_melt <- reshape2::melt(square_mat, varnames=c("dim1", "dim2"), value.name="dummy")
-    
-  #   slc <- dplyr::bind_rows(lapply(seq_along(slc), function(ll) {
-  #     df <- reshape2::melt(slc[[ll]], varnames=c("slice", "dim1", "dim2"))
-  #     dim1_diff <- size_x - max(df$dim1)
-  #     dim2_diff <- size_y - max(df$dim2)
-
-  #     if (dim1_diff > 1) { df$dim1 <- df$dim1 + round(dim1_diff/2) } # center in x
-  #     if (dim2_diff > 1) { df$dim2 <- df$dim2 + round(dim2_diff/2) } # center in y
-
-  #     # place image onto shared square matrix
-  #     df <- square_melt %>% left_join(df, by=c("dim1", "dim2"))
-
-  #     #uniquely identify slices by number and type
-  #     df$slice <- names(slc)[ll]
-  #     return(df)
-  #   }))
-
-  #   slc <- slc %>% mutate(
-  #     image = arg_name,
-  #     slice = factor(slice) # store as factor so that if a slice drops in the filter, we still get an empty list
-  #   )
-  #   return(slc)
-  # }
-
-  slice_data <- gg_imgs$get_slices(slices$coord)
+  slice_data <- gg_imgs$get_slices(slices$coord, make_square = TRUE, remove_null_space = TRUE)
 
   # anat_slices <- get_all_slices(underlay) #%>% rename(uval = value) # for fill scale to work properly with overlay, need different variable names
   # overlay_slices <- get_all_slices(overlay) #%>% rename(oval = value)
@@ -216,26 +181,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   pos_limits <- round(c(pos_thresh, h_stat), stat_decimals)
   neg_limits <- round(c(l_stat, neg_thresh), stat_decimals)
 
-  # remove empty space across images, if requested
-
-  # comb_df <- bind_rows(anat_slices, pos_plot, neg_plot) 
-  # nz_df <- comb_df %>% filter(abs(value) > 1e-5) # find voxels on any layer that are not zero
-  # empty_d1 <- setdiff(comb_df$dim1, nz_df$dim1)
-  # empty_d2 <- setdiff(comb_df$dim2, nz_df$dim2)
-  
-  # rm(comb_df)
-  # if (length(empty_d1) > 0L && isTRUE(remove_null_space)) {
-  #   anat_slices <- anat_slices %>% filter(!dim1 %in% !!empty_d1)
-  #   pos_plot <- pos_plot %>% filter(!dim1 %in% !!empty_d1)
-  #   neg_plot <- neg_plot %>% filter(!dim1 %in% !!empty_d1)
-  # }
-  
-  # if (length(empty_d2) > 0L && isTRUE(remove_null_space)) {
-  #   anat_slices <- anat_slices %>% filter(!dim2 %in% !!empty_d2)
-  #   pos_plot <- pos_plot %>% filter(!dim2 %in% !!empty_d2)
-  #   neg_plot <- neg_plot %>% filter(!dim2 %in% !!empty_d2)
-  # }
-
   # go to split approach, rather than dealing with facet_wrap issues -- need drop = FALSE to keep lengths the same if some slices blank
   anat_slices <- anat_slices %>% group_by(slice_index, .drop = FALSE) %>% group_split()
   pos_plot <- pos_plot %>% group_by(slice_index, .drop = FALSE) %>% group_split()
@@ -262,7 +207,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       bnames[2:(length(bnames) - 1)] <- "" # don't label interior breaks
       names(breaks) <- bnames
       breaks
-      print(breaks)
+      #print(breaks)
     }
     return(fxn)
   }
@@ -272,28 +217,10 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     p_df <- pos_plot[[i]]
     n_df <- neg_plot[[i]]
 
-    # combine voxels to plot and look for empty/zero rows/columns to trim out
-    # comb_df <- bind_rows(anat_slices[[i]], pos_plot[[i]], neg_plot[[i]]) 
-    # nz_df <- comb_df %>% filter(abs(value) > 1e-5)
-    # empty_d1 <- setdiff(comb_df$dim1, nz_df$dim1)
-    # empty_d2 <- setdiff(comb_df$dim2, nz_df$dim2)
-    
     # rename columns to ensure that the multiple fill scales in the plot have unique variable names
     a_df <- a_df %>% dplyr::rename(uval = value)
     p_df <- p_df %>% dplyr::rename(pos = value)
     n_df <- n_df %>% dplyr::rename(neg = value)
-    
-    # if (length(empty_d1) > 0L && isTRUE(remove_null_space)) {
-    #   a_df <- a_df %>% filter(!dim1 %in% !!empty_d1)
-    #   p_df <- p_df %>% filter(!dim1 %in% !!empty_d1)
-    #   n_df <- n_df %>% filter(!dim1 %in% !!empty_d1)
-    # }
-    
-    # if (length(empty_d2) > 0L && isTRUE(remove_null_space)) {
-    #   a_df <- a_df %>% filter(!dim2 %in% !!empty_d2)
-    #   p_df <- p_df %>% filter(!dim2 %in% !!empty_d2)
-    #   n_df <- n_df %>% filter(!dim2 %in% !!empty_d2)
-    # }
     
     g <- ggplot(mapping = aes(x=dim1, y=dim2)) +
       #geom_tile(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE, color = NA, height = 1.01, width = 1.01) +
@@ -301,7 +228,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       geom_raster(data = a_df, mapping = aes(fill=uval), show.legend = FALSE, interpolate = FALSE) +
       underlay_colorscale # scales[[1]]
     
-    browser()
     # negative overlay values
     if (has_neg) {
       g <- g +
@@ -423,74 +349,3 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   #+theme(plot.margin = unit(c(1, 1, 1, 1), "lines"))
   plot(g_all)
 }
-
-
-
-
-## layer(
-#   geom = "raster",
-#   data = anat_slices,
-#   stat = "identity",
-#   position = "identity",
-#   
-# )
-# 
-# pal_extreme <- max(abs(overlay_slices$oval))
-# pal <- c(viridis_pal(begin=0, end=0.5)(2), "grey90", "grey90", viridis_pal(begin=0.5, end=1)(2))
-# val <- scales::rescale(c(-1*pal_extreme, neg_thresh+.01, neg_thresh+.011, pos_thresh-.011, pos_thresh-.01, pal_extreme))
-# 
-# slice_plots <- ggplot(mapping = aes(x=dim1, y=dim2)) +
-#   geom_tile(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE) +
-#   scale_fill_gradient(low="grey10", high="grey90") +
-#   #guides(fill="none") +
-#   new_scale_fill() + 
-#   geom_tile(data = overlay_slices %>% filter(oval >= !!pos_thresh | oval <= !!neg_thresh), mapping = aes(fill=oval)) + 
-#   #scale_fill_viridis_c() +
-#   #scale_fill_gradientn(colors = c(viridis_pal(begin=0, end=0.5)(2), "grey90", viridis_pal(begin=0.5, end=1)(2)), 
-#   #                                 values=scales::rescale(c(-1, -0.2, 0, 0.2, 1))) +
-#                        
-#   scale_fill_gradientn(colors = pal, values=val) +
-#   
-#   coord_fixed() + theme_void() + facet_wrap(~slice)
-
-
-
-# slice_plots <- ggplot(mapping = aes(x=dim1, y=dim2)) +
-#   #geom_tile(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE, color = NA, height = 1.01, width = 1.01) +
-#   #geom_tile(data = anat_slices, mapping = aes(fill=uval, color=uval), show.legend = FALSE) +
-#   geom_raster(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE, interpolate = FALSE) +
-#   scale_fill_gradient(low=background_color, high="grey90") +
-#   scale_color_gradient(low=background_color, high="grey90") +
-#   #guides(fill="none") +
-#   
-#   # negative overlay values
-#   new_scale_fill() + 
-#   new_scale_color() + 
-#   #geom_tile(data = neg_plot, mapping = aes(fill=neg, color = neg)) + 
-#   geom_raster(data = neg_plot, mapping = aes(fill=neg), interpolate = FALSE) +
-#   #scale_fill_viridis_c(begin = .48, end=0) +
-#   scale_fill_distiller("", palette="Blues", direction = 1, guide = guide_colorbar(order = 2)) + 
-#   scale_color_distiller("", palette="Blues", direction = 1, guide = guide_colorbar(order = 2)) + 
-#   
-#   # positive overlay values
-#   new_scale_fill() + 
-#   new_scale_color() + 
-#   #geom_tile(data = pos_plot, mapping = aes(fill=pos, color = pos)) + 
-#   geom_raster(data = pos_plot, mapping = aes(fill=pos), interpolate = FALSE) +
-#   #scale_fill_viridis_c(begin = 0.52, end=1) +
-#   scale_fill_distiller(legend_label, palette="Reds", guide = guide_colorbar(order = 1)) +
-#   scale_color_distiller(legend_label, palette="Reds", guide = guide_colorbar(order = 1)) +
-#   geom_text(data = coords_df, mapping = aes(label = coord_label, x = Inf, y = -Inf), 
-#             color="white", vjust = 0.5, hjust = 1, size=1) +
-#   theme_void() + facet_wrap(~slice, drop=T) + coord_fixed() + 
-#   theme(panel.spacing = unit(-1, "lines"), strip.background = element_blank(),
-#         strip.text.x = element_blank(), plot.background = element_rect(fill=background_color, color=NA),
-#         text = element_text(color = text_color)
-#   )
-# 
-# # handle the need to extend the background color beyond the coord_fixed borders using cowplot
-# # https://stackoverflow.com/questions/23349181/how-to-color-entire-background-in-ggplot2-when-using-coord-fixed
-# cowplot::ggdraw(slice_plots) + 
-#   theme(plot.background = element_rect(fill=background_color, color = NA))
-# 
-#plot(slice_plots)
