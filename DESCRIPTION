@@ -7,10 +7,13 @@ Authors@R:
 Description: What the package does (one paragraph).
 Depends: R (>= 3.5.0)
 Imports:
-    rlang,
+    RNifti,
+    checkmate,
+    cowplot,
     dplyr,
     ggplot2,
     ggnewscale,
+    rlang,
     tidyr
 License: `use_gpl3_license()`
 Encoding: UTF-8

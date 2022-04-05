@@ -246,18 +246,7 @@ ggbrain_images <- R6::R6Class(
         self$get_slices_inplane(img_names, slc$slice_number, slc$plane, drop = TRUE)
       })
       
-      if (isTRUE(make_square)) {
-        slc_dims <- sapply(flatten(slc), dim)
-        square_dims <- apply(slc_dims, 1, max)
-        # for each slice and image within slice, center the matrix in the target output dims
-        slc <- lapply(slc, function(ilist) {
-          lapply(ilist, function(mat) {
-            center_matrix(square_dims, mat, drop_zeros = FALSE) # at present, drop_zeros = TRUE will lead to offsets across images...
-          })
-        })
-      }
-
-      # remove blank space from matrices if requested
+      # remove blank space from matrices if requested (this must come before making the slices square)
       if (isTRUE(remove_null_space)) {
         # find voxels in each image that are different from zero
         slc <- lapply(slc, function(ilist) {
@@ -274,7 +263,20 @@ ggbrain_images <- R6::R6Class(
           })
         })
       }
+      
+      # whether to make all images have the same square dimensions
+      if (isTRUE(make_square)) {
+        slc_dims <- sapply(flatten(slc), dim)
+        square_dims <- apply(slc_dims, 1, max)
+        # for each slice and image within slice, center the matrix in the target output dims
+        slc <- lapply(slc, function(ilist) {
+          lapply(ilist, function(mat) {
+            center_matrix(square_dims, mat, drop_zeros = FALSE) # at present, drop_zeros = TRUE will lead to offsets across images...
+          })
+        })
+      }
 
+      by_slice <- slice_df # retain lookup as attribute
       if (isTRUE(as_data_frame)) {
         slc <- lapply(slc, function(dd) {
           # each element of dd is a sqaure matrix for a given image
@@ -291,6 +293,8 @@ ggbrain_images <- R6::R6Class(
         # add list column for slice data
         slice_df$slice_data <- slc
       }
+      
+      attr(slice_df, "slice_info") <- by_slice
 
       return(slice_df)
 
@@ -329,6 +333,7 @@ ggbrain_images <- R6::R6Class(
         return(slc_mat)
       }, simplify = FALSE)
     },
+    
     #' @description internal function to lookup which slices to display along each axis based on their quantile,
     #'   xyz coordinate, or ijk coordinate
     #' @param slices A character vector of coordinates for slices to display

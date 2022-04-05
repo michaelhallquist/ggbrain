@@ -1,9 +1,14 @@
+#' R6 class for a single panel of a ggbrain image
+#' @importFrom checkmate assert_class
+#' @export
 ggbrain_panel <- R6::R6Class(
   classname = "ggbrain_panel",
   private = list(
     pos_limits = c(),
     neg_limits = c(),
-    img_df = NULL,
+    pvt_img_df = NULL, # data.frame of data for panel, layer indicates bottom-top order
+    pvt_layer_scales = list(),
+    pvt_layer_limits = list(),
     ggobj = NULL
   ),
   public = list(
@@ -17,6 +22,9 @@ ggbrain_panel <- R6::R6Class(
     },
     get = function() {
       private$ggobj
+    },
+    get_data = function() {
+      private$pvt_img_df
     },
     set = function(ggobj) {
       checkmate::assert_class(ggobj, "gg")

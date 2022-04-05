@@ -9,12 +9,9 @@ ggbrain(
   overlay = NULL,
   color_col = NULL,
   alpha_col = NULL,
-  underlay_colorscale = scale_fill_gradient(low = "grey8", high = "grey92", na.value =
-    "transparent"),
-  negative_colorscale = scale_fill_distiller(palette = "Blues", direction = 1, na.value
-    = "transparent"),
-  positive_colorscale = scale_fill_distiller(palette = "Reds", na.value =
-    "transparent"),
+  underlay_colorscale = scale_fill_gradient(low = "grey8", high = "grey92"),
+  negative_colorscale = scale_fill_distiller(palette = "Blues", direction = 1),
+  positive_colorscale = scale_fill_distiller(palette = "Reds"),
   slices = data.frame(coord = c("x = 25\%", "x = 50\%", "x = 75\%", "y = 25\%",
     "y = 50\%", "y = 75\%", "z = 25\%", "z = 50\%", "z = 75\%")),
   remove_null_space = TRUE,
@@ -30,7 +27,9 @@ ggbrain(
   underlay_contrast = "none",
   panel_borders = TRUE,
   theme_custom = NULL,
-  base_size = 14
+  base_size = 14,
+  nrow = NULL,
+  ncol = NULL
 )
 }
 \arguments{
@@ -44,18 +43,27 @@ ggbrain(
 
 \item{underlay_colorscale}{A ggplot scale_fill_* function call used for coloration of underlay}
 
+\item{negative_colorscale}{A ggplot scale_fill_* function call used for coloration of negative overlay values}
+
+\item{positive_colorscale}{A ggplot scale_fill_* function call used for coloration of positive overlay values}
+
 \item{remove_null_space}{If TRUE, quantiles are computed on the non-zero slices and plots are trimmed for
 empty space.}
 
-\item{pos_thresh}{The positive threshold to be applied to the \code{overlay} image. Any voxel that exceeds
-the}
+\item{pos_thresh}{The positive threshold to be applied to the \code{overlay} image. Any positive voxel less than
+this threshold will be removed from the map.}
+
+\item{neg_thresh}{The negative threshold to be applied to the \code{overlay} image. Any negative voxel greater than
+this threshold will be removed from the map.}
 
 \item{trim_underlay}{Winsorize the extreme values of the underlay based on the low and high quantiles provided}
 
 \item{zero_underlay}{Any voxels in the underlay image whose absolute values are less than \code{zero_underlay}
 are set to precisely zero. This helps with small color variation in black/empty space.}
 
-\item{overlay_colorscale}{A ggplot scale_fill_* function call used for coloration of overlay}
+\item{nrow}{Passed to cowplot::plot_grid, controls number of rows in multi-panel plot}
+
+\item{ncol}{Passed to cowplot::plot_grid, controls number of columns in multi-panel plot}
 }
 \description{
 Plot fMRI data on an underlay image

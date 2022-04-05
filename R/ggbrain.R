@@ -5,18 +5,27 @@
 #' @param color_col a position in the 4th dim of overlay use to color plots
 #' @param alpha_col a position in the 4th dim of overlay use to set alpha transparency of plots
 #' @param underlay_colorscale A ggplot scale_fill_* function call used for coloration of underlay
-#' @param overlay_colorscale A ggplot scale_fill_* function call used for coloration of overlay
+#' @param positive_colorscale A ggplot scale_fill_* function call used for coloration of positive overlay values
+#' @param negative_colorscale A ggplot scale_fill_* function call used for coloration of negative overlay values
 #' @param remove_null_space If TRUE, quantiles are computed on the non-zero slices and plots are trimmed for
 #'   empty space.
-#' @param pos_thresh The positive threshold to be applied to the \code{overlay} image. Any voxel that exceeds
-#'   the 
+#' @param pos_thresh The positive threshold to be applied to the \code{overlay} image. Any positive voxel less than
+#'   this threshold will be removed from the map.
+#' @param neg_thresh The negative threshold to be applied to the \code{overlay} image. Any negative voxel greater than
+#'   this threshold will be removed from the map.
 #' @param zero_underlay Any voxels in the underlay image whose absolute values are less than \code{zero_underlay}
 #'   are set to precisely zero. This helps with small color variation in black/empty space.
 #' @param trim_underlay Winsorize the extreme values of the underlay based on the low and high quantiles provided
+#' @param nrow Passed to cowplot::plot_grid, controls number of rows in multi-panel plot
+#' @param ncol Passed to cowplot::plot_grid, controls number of columns in multi-panel plot
 #' @importFrom checkmate assert_numeric
+#' @importFrom cowplot add_sub get_legend plot_grid
+#' @importFrom dplyr bind_rows filter mutate if_else group_by group_split %>%
 #' @importFrom ggnewscale new_scale_fill
-#' @importFrom cowplot plot_grid add_sub
-#' @importFrom ggplot2 geom_raster scale_fill_gradient theme_void ggplot coord_fixed
+#' @importFrom ggplot2 aes coord_fixed element_blank element_rect element_text
+#'   geom_raster ggplot guide_colorbar labs scale_fill_gradient scale_fill_distiller
+#'   theme_void xlab ylab
+#' @importFrom stats sd
 #' @export
 ggbrain <- function(underlay=NULL, overlay=NULL, 
                     color_col=NULL, alpha_col=NULL,
@@ -34,7 +43,8 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
                     background_color = "gray10", text_color = "white",
                     trim_underlay = c(.01, .99), zero_underlay = 1e-3, symmetric_legend = TRUE,
                     panel_labels = NULL, underlay_contrast = "none", panel_borders = TRUE,
-                    theme_custom = NULL, base_size = 14
+                    theme_custom = NULL, base_size = 14,
+                    nrow = NULL, ncol = NULL
 ) {
   
   checkmate::assert_class(underlay_colorscale, "ScaleContinuous")
@@ -54,15 +64,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     negative_colorscale$na.value <- "transparent"
   }
   
-  
-  # slices <- data.frame(
-  #   coord = c("x = 55.4", "x = 50%", "y = 10", "k = 20"),
-  #   panel_title = c("entropy", "value", "test", "test1"),
-  #   xlab = c("xx1", "xx2", "xx3", "xx4"),
-  #   ylab = c("gg", "gg", "gg", "gg"),
-  #   coord_label = c(TRUE, TRUE, TRUE, FALSE)
-  # )
-  
   # handle data.frame
   if (is.list(slices)) {
     slices <- bind_rows(slices)
@@ -74,11 +75,11 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   
   max_bg <- "gray95" # brightest value on underlay
   
-  require(ggnewscale)
-  require(cowplot)
   checkmate::assert_file_exists(underlay)
   checkmate::assert_file_exists(overlay)
   checkmate::assert_class(theme_custom, "theme", null.ok = TRUE)
+  checkmate::assert_integerish(nrow, lower = 1, len = 1L, null.ok = TRUE)
+  checkmate::assert_integerish(ncol, lower = 1, len = 1L, null.ok = TRUE)
   
   stat_decimals <- 2 # rounding for overlay
 
@@ -91,17 +92,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
 
   # winsorize extreme values in underlay based on quantiles of non-zero voxels
   gg_imgs$winsorize_images("underlay", trim_underlay)
-
-  # checkmate::assert_numeric(trim_underlay, lower=0, upper=1, len = 2)
-  # if (trim_underlay[1] > 0) {
-  #   lthresh <- quantile(underlay[underlay > 0], trim_underlay[1])
-  #   underlay[underlay < lthresh & underlay > 0] <- lthresh
-  # }
-  
-  # if (trim_underlay[2] < 1) {
-  #   uthresh <- quantile(underlay[underlay > 0], trim_underlay[2])
-  #   underlay[underlay > uthresh] <- uthresh
-  # }
 
   gg_imgs$na_images("underlay", 1e-8)
   
@@ -145,15 +135,8 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   # split into row-wise list for lapply inside slice lookup
   # coords <- coords_df %>% group_by(slice_index) %>% group_split()
   
-  slice_data <- gg_imgs$get_slices(slices$coord, make_square = TRUE, remove_null_space = TRUE)
-
-  # anat_slices <- get_all_slices(underlay) #%>% rename(uval = value) # for fill scale to work properly with overlay, need different variable names
-  # overlay_slices <- get_all_slices(overlay) #%>% rename(oval = value)
-
-  # separate layers for pos and neg
-  # pos_plot <- slice_data %>% filter(image == "overlay" & value >= !!pos_thresh) # %>% rename(pos = oval)
-  # neg_plot <- overlay_slices %>% filter(value <= !!neg_thresh) # %>% rename(neg = oval)
-
+  slice_data <- gg_imgs$get_slices(slices$coord, make_square = TRUE, remove_null_space = remove_null_space)
+  
   anat_slices <- slice_data %>%
     filter(image == "underlay")
 
@@ -165,12 +148,13 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   neg_plot <- slice_data %>% 
     filter(image == "overlay") %>%
     mutate(value = if_else(value > !!neg_thresh, NA_real_, value))
-
-  has_pos <- sum(is.na(pos_plot$value)) > 0L
-  has_neg <- sum(is.na(neg_plot$value)) > 0L
+  
+  has_pos <- sum(!is.na(pos_plot$value)) > 0L
+  has_neg <- sum(!is.na(neg_plot$value)) > 0L
 
   h_stat <- ifelse(has_pos, max(pos_plot$value, na.rm=TRUE), 0)
   l_stat <- ifelse(has_neg, min(neg_plot$value, na.rm=TRUE), 0)
+  
   if (isTRUE(symmetric_legend)) {
     biggest <- max(abs(c(h_stat, l_stat)))
     h_stat <- biggest
@@ -186,47 +170,31 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   pos_plot <- pos_plot %>% group_by(slice_index, .drop = FALSE) %>% group_split()
   neg_plot <- neg_plot %>% group_by(slice_index, .drop = FALSE) %>% group_split()
 
-  # from here: https://joshuacook.netlify.app/post/integer-values-ggplot-axis/
-  integer_breaks <- function(n = 5, ...) {
-    fxn <- function(x) {
-      breaks <- floor(pretty(x, n, ...))
-      names(breaks) <- attr(breaks, "labels")
-      breaks
-    }
-    return(fxn)
-  }
-
-  # breaks function for including min + max with labels, and a few unlabeled ticks in between
-  range_breaks <- function(n=3, ...) {
-    fxn <- function(x) {
-      breaks <- round(seq(from = min(x, na.rm = T), to = max(x, na.rm = T), length.out = n + 2), ...)
-      # breaks <- signif(c(min(x, na.rm = T), max(x, na.rm = T)), 2)
-
-      # names(breaks) <- attr(breaks, "labels")
-      bnames <- as.character(breaks)
-      bnames[2:(length(bnames) - 1)] <- "" # don't label interior breaks
-      names(breaks) <- bnames
-      breaks
-      #print(breaks)
-    }
-    return(fxn)
-  }
-  
   make_slice_plot <- function(i) {
     a_df <- anat_slices[[i]]
     p_df <- pos_plot[[i]]
     n_df <- neg_plot[[i]]
 
+    a_layer <- ggbrain_layer$new(layer_df = a_df, layer_scale = underlay_colorscale, show_scale=FALSE)
+    p_layer <- ggbrain_layer$new(layer_df = p_df, layer_scale = positive_colorscale, show_scale=TRUE)
+    n_layer <- ggbrain_layer$new(layer_df = n_df, layer_scale = negative_colorscale, show_scale=TRUE)
+    
+    browser()
+    # add layers to plot (bottom to top)
+    g <- ggplot(mapping = aes(x=dim1, y=dim2)) +
+      a_layer + n_layer + p_layer
+    
     # rename columns to ensure that the multiple fill scales in the plot have unique variable names
     a_df <- a_df %>% dplyr::rename(uval = value)
     p_df <- p_df %>% dplyr::rename(pos = value)
     n_df <- n_df %>% dplyr::rename(neg = value)
     
-    g <- ggplot(mapping = aes(x=dim1, y=dim2)) +
-      #geom_tile(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE, color = NA, height = 1.01, width = 1.01) +
-      #geom_tile(data = anat_slices, mapping = aes(fill=uval, color=uval), show.legend = FALSE) +
-      geom_raster(data = a_df, mapping = aes(fill=uval), show.legend = FALSE, interpolate = FALSE) +
-      underlay_colorscale # scales[[1]]
+    
+    #g <- ggplot(mapping = aes(x=dim1, y=dim2)) +
+    #  #geom_tile(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE, color = NA, height = 1.01, width = 1.01) +
+    #  #geom_tile(data = anat_slices, mapping = aes(fill=uval, color=uval), show.legend = FALSE) +
+    #  geom_raster(data = a_df, mapping = aes(fill=uval), show.legend = FALSE, interpolate = FALSE) +
+    #  underlay_colorscale # scales[[1]]
     
     # negative overlay values
     if (has_neg) {
@@ -241,6 +209,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       #                      guide = guide_colorbar(order = 2))
     }
     
+    #browser()
     # positive overlay values
     if (has_pos) {
       g <- g +
@@ -299,9 +268,22 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     # add subcaption with cowplot -- note that this makes the object a gtable, not a ggplot object
     # g <- g %>% add_sub(coords_df$coord_label[i], x = 0.9, hjust = 1, color = text_color) # right justified
     
-    # new approach in ggplot 3+: use caption for label since that maintains this as a ggplot object
+    slice_info <- attr(slice_data, "slice_info")
+    
     if (isTRUE(slices$coord_label[i])) {
-      g <- g + theme(plot.caption = element_text(hjust = 0.8, vjust = 8)) + labs(caption = slice_data$coord_label[i])  
+      # new approach in ggplot 3+: use caption for label since that maintains this as a ggplot object
+      #g <- g + theme(plot.caption = element_text(hjust = 0.8, vjust = 8)) + labs(caption = slice_info$coord_label[i])  
+      #g <- g + annotate(geom = "text", x = Inf, y = -Inf, label = slice_info$coord_label[i], hjust = 1, vjust = 0)
+      
+      # final decision: annotate gives us fine control over positioning and doesn't expand panel into plot margin areas
+      # label_x_pos <- quantile(a_df$dim1, .95, na.rm=TRUE) # 90% right
+      # label_y_pos <- quantile(a_df$dim2, 0, na.rm=TRUE) # 10% off the bottom
+      
+      # annotate will expand the coordinates of the plot, if needed
+      label_x_pos <- max(a_df$dim1, na.rm=T) + 2  # place slightly to the right of the furthest point
+      label_y_pos <- min(a_df$dim2, na.rm=T) - 6  # place slightly below the lowest point
+      
+      g <- g + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], hjust = 1, vjust = 0)
     }
 
     # add x axis label if requested
@@ -343,7 +325,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   glist <- lapply(seq_along(anat_slices), make_slice_plot)
   #leg <- get_legend(glist[[1]] + theme(legend.position="right"))
   
-  g_all <- plot_grid(plotlist = glist, labels = panel_labels) #, labels = "AUTO", label_colour = text_color)
+  g_all <- plot_grid(plotlist = glist, labels = panel_labels, nrow = nrow, ncol = ncol) #, labels = "AUTO", label_colour = text_color)
   g_all <- plot_grid(g_all, attr(glist[[1]], "legend"), rel_widths=c(1, 0.2)) +
     theme(plot.background = element_rect(fill=background_color, color = NA))
   #+theme(plot.margin = unit(c(1, 1, 1, 1), "lines"))

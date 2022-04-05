@@ -278,10 +278,22 @@ A 3D matrix of slices x dim1 x dim2
 \if{html}{\out{<a id="method-lookup_slices"></a>}}
 \if{latex}{\out{\hypertarget{method-lookup_slices}{}}}
 \subsection{Method \code{lookup_slices()}}{
+internal function to lookup which slices to display along each axis based on their quantile,
+xyz coordinate, or ijk coordinate
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$lookup_slices(slices, ignore_null_space = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{slices}}{A character vector of coordinates for slices to display}
+
+\item{\code{ignore_null_space}}{If TRUE, any coordinates specified as quantiles (e.g., x = 50\%)
+use the quantiles of only the non-zero slices (ignoring blank sliaces)}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
