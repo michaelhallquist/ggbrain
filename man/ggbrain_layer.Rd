@@ -13,8 +13,12 @@ R6 class for a single layer of a ggbrain panel
 \itemize{
 \item \href{#method-new}{\code{ggbrain_layer$new()}}
 \item \href{#method-set_limits}{\code{ggbrain_layer$set_limits()}}
+\item \href{#method-set_breaks}{\code{ggbrain_layer$set_breaks()}}
+\item \href{#method-set_name}{\code{ggbrain_layer$set_name()}}
 \item \href{#method-plot}{\code{ggbrain_layer$plot()}}
-\item \href{#method-add_layer}{\code{ggbrain_layer$add_layer()}}
+\item \href{#method-add_to_gg}{\code{ggbrain_layer$add_to_gg()}}
+\item \href{#method-get_data}{\code{ggbrain_layer$get_data()}}
+\item \href{#method-get_name}{\code{ggbrain_layer$get_name()}}
 \item \href{#method-clone}{\code{ggbrain_layer$clone()}}
 }
 }
@@ -25,25 +29,32 @@ R6 class for a single layer of a ggbrain panel
 create a new ggbrain_layer object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$new(
-  layer_df = NULL,
+  name = NULL,
+  data = NULL,
   layer_scale = NULL,
-  layer_limits = NULL,
-  show_scale = TRUE
+  limits = NULL,
+  breaks = NULL,
+  show_scale = TRUE,
+  interpolate = NULL
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{layer_df}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
+\item{\code{name}}{the name of this layer, used for referencing in layer and panel modifications}
+
+\item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
 and "value" as columns}
 
 \item{\code{layer_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
 layer.}
 
-\item{\code{layer_limits}}{if provided, sets the upper and lower bounds on the scale}
+\item{\code{limits}}{if provided, sets the upper and lower bounds on the scale}
 
 \item{\code{show_scale}}{if TRUE, show the scale on the plot legend}
+
+\item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
 }
 \if{html}{\out{</div>}}
 }
@@ -66,6 +77,40 @@ set the limits for this layer's scale
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_breaks"></a>}}
+\if{latex}{\out{\hypertarget{method-set_breaks}{}}}
+\subsection{Method \code{set_breaks()}}{
+set the breaks element of this layer's scale
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_breaks(breaks)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{breaks}}{a function used to label the breaks}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_name"></a>}}
+\if{latex}{\out{\hypertarget{method-set_name}{}}}
+\subsection{Method \code{set_name()}}{
+set the layer name
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_name(name)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{a character string defining the layer's name}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-plot}{}}}
 \subsection{Method \code{plot()}}{
@@ -76,12 +121,12 @@ plot this layer alone (mostly for debugging)
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-add_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-add_layer}{}}}
-\subsection{Method \code{add_layer()}}{
+\if{html}{\out{<a id="method-add_to_gg"></a>}}
+\if{latex}{\out{\hypertarget{method-add_to_gg}{}}}
+\subsection{Method \code{add_to_gg()}}{
 method to add this layer to an existing ggplot object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$add_layer(base_gg)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$add_to_gg(base_gg)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -91,6 +136,34 @@ method to add this layer to an existing ggplot object
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_data"></a>}}
+\if{latex}{\out{\hypertarget{method-get_data}{}}}
+\subsection{Method \code{get_data()}}{
+return the data.frame associated with this layer
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$get_data(add_layer_name = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{add_layer_name}}{if TRUE, adds a \code{layer_name} column to the data.frame for record-keeping.
+Default: FALSE.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_name"></a>}}
+\if{latex}{\out{\hypertarget{method-get_name}{}}}
+\subsection{Method \code{get_name()}}{
+return the layer name
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$get_name()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}

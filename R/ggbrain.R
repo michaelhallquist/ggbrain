@@ -125,16 +125,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     underlay <- sigmoid(underlay, beta)
   }
 
-
-  # verify that i,j,k (1,2,3) dimensions of underlay match dimensions of overlay
-  # stopifnot(identical(dim(underlay)[1:3], dim(overlay)[1:3]))
-
-  # need grouping variables to be factors to maintain order in group_by %>% group_split
-  # coords_df <- lookup_slices(slices$coord, underlay, remove_null_space)
-  
-  # split into row-wise list for lapply inside slice lookup
-  # coords <- coords_df %>% group_by(slice_index) %>% group_split()
-  
   slice_data <- gg_imgs$get_slices(slices$coord, make_square = TRUE, remove_null_space = remove_null_space)
   
   anat_slices <- slice_data %>%
@@ -175,60 +165,16 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     p_df <- pos_plot[[i]]
     n_df <- neg_plot[[i]]
 
-    a_layer <- ggbrain_layer$new(layer_df = a_df, layer_scale = underlay_colorscale, show_scale=FALSE)
-    p_layer <- ggbrain_layer$new(layer_df = p_df, layer_scale = positive_colorscale, show_scale=TRUE)
-    n_layer <- ggbrain_layer$new(layer_df = n_df, layer_scale = negative_colorscale, show_scale=TRUE)
+    a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, layer_scale = underlay_colorscale, show_scale=FALSE)
+    n_layer <- ggbrain_layer$new(name = "negative", data = n_df, layer_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
+    p_layer <- ggbrain_layer$new(name = "positive", data = p_df, layer_scale = positive_colorscale, limits = pos_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
+    panel_obj <- ggbrain_panel$new(layers = list(a_layer, n_layer, p_layer))
     
-    browser()
-    # add layers to plot (bottom to top)
-    g <- ggplot(mapping = aes(x=dim1, y=dim2)) +
-      a_layer + n_layer + p_layer
-    
-    # rename columns to ensure that the multiple fill scales in the plot have unique variable names
-    a_df <- a_df %>% dplyr::rename(uval = value)
-    p_df <- p_df %>% dplyr::rename(pos = value)
-    n_df <- n_df %>% dplyr::rename(neg = value)
-    
-    
-    #g <- ggplot(mapping = aes(x=dim1, y=dim2)) +
-    #  #geom_tile(data = anat_slices, mapping = aes(fill=uval), show.legend = FALSE, color = NA, height = 1.01, width = 1.01) +
-    #  #geom_tile(data = anat_slices, mapping = aes(fill=uval, color=uval), show.legend = FALSE) +
-    #  geom_raster(data = a_df, mapping = aes(fill=uval), show.legend = FALSE, interpolate = FALSE) +
-    #  underlay_colorscale # scales[[1]]
-    
-    # negative overlay values
-    if (has_neg) {
-      g <- g +
-        new_scale_fill() +
-        geom_raster(data = n_df, mapping = aes(fill=neg), interpolate = FALSE) +
-        negative_colorscale # scales [[2]]
-    
-      # examples
-      # scale_fill_viridis_c(begin = .48, end=0) +
-      # scale_fill_distiller("", palette="Blues", direction = 1,  breaks = integer_breaks(), limits = neg_limits,
-      #                      guide = guide_colorbar(order = 2))
-    }
-    
-    #browser()
-    # positive overlay values
-    if (has_pos) {
-      g <- g +
-        new_scale_fill() + 
-        geom_raster(data = p_df, mapping = aes(fill=pos), interpolate = FALSE) +
-        positive_colorscale # scales[[3]]
-
-      #scale_fill_viridis_c(begin = 0.52, end=1) +
-      # scale_fill_distiller(legend_label, palette="Reds", breaks = integer_breaks(), limits = pos_limits, 
-      #                       guide = guide_colorbar(order = 1))  
-    }
+    g <- panel_obj$get_gg()
     
     # modify scale breaks, limits, and guide order -- need to hack this from the existing scale since adding a new scale
     # overrides all of the information, rather than keeping what we want
     if (has_neg) {
-      # g$scales$scales[[2]]$breaks <- integer_breaks()
-      # g$scales$scales[[2]]$breaks <- pretty_breaks()
-      g$scales$scales[[2]]$breaks <- range_breaks(digits = stat_decimals)
-      g$scales$scales[[2]]$limits <- neg_limits
       g$scales$scales[[2]]$name <- ifelse(has_pos, "", legend_label) # only add label to neg scale if there are no positive values
       g$scales$scales[[2]]$guide <- guide_colorbar(order = 2, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
     }
@@ -237,22 +183,13 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     ppos <- ifelse(has_pos && has_neg, 3, 2)
 
     if (has_pos) {
-      #g$scales$scales[[ppos]]$breaks <- integer_breaks()
-      #g$scales$scales[[ppos]]$breaks <- pretty_breaks() # ggplot default for now
-      g$scales$scales[[ppos]]$breaks <- range_breaks(digits = stat_decimals) # ggplot default for now
-      g$scales$scales[[ppos]]$limits <- pos_limits
       g$scales$scales[[ppos]]$name <- legend_label # label above positive extent
       g$scales$scales[[ppos]]$guide <- guide_colorbar(order = 1, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
     }
 
-    # annotation
-    # g <- g +
-    #   annotate(geom="text", x = Inf, y = -Inf, label=coords_df$coord_label[i], color = text_color, hjust = 1.5, vjust = -1.5)
 
     # theme refinements
     g <- g +
-      # geom_text(data = coords_df, mapping = aes(label = coord_label, x = Inf, y = -Inf), 
-      #           color="white", vjust = 0.5, hjust = 1, size=1) +
       theme_void(base_size = base_size) + coord_fixed() + #+ facet_wrap(~slice, drop=T) + 
       theme(
         strip.background = element_blank(),
@@ -264,9 +201,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
         legend.position = "right",
         plot.margin = unit(c(0.0, 0.5, 0.0, 0.5), "lines") # space on L and R, but not T and B
       )
-    
-    # add subcaption with cowplot -- note that this makes the object a gtable, not a ggplot object
-    # g <- g %>% add_sub(coords_df$coord_label[i], x = 0.9, hjust = 1, color = text_color) # right justified
     
     slice_info <- attr(slice_data, "slice_info")
     
@@ -283,7 +217,8 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       label_x_pos <- max(a_df$dim1, na.rm=T) + 2  # place slightly to the right of the furthest point
       label_y_pos <- min(a_df$dim2, na.rm=T) - 6  # place slightly below the lowest point
       
-      g <- g + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], hjust = 1, vjust = 0)
+      g <- g + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], 
+                        hjust = 1, vjust = 0, color=text_color)
     }
 
     # add x axis label if requested
@@ -315,13 +250,9 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     # cache legend for extraction
     attr(g, "legend") <- leg
 
-    # ggp <- ggbrain_panel_r6$new(g)
-
     return(g)
   }
   
-  # geom_raster is grumpy about blank space
-  #glist <- suppressWarnings(lapply(seq_along(anat_slices), make_slice_plot))
   glist <- lapply(seq_along(anat_slices), make_slice_plot)
   #leg <- get_legend(glist[[1]] + theme(legend.position="right"))
   
@@ -329,5 +260,5 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   g_all <- plot_grid(g_all, attr(glist[[1]], "legend"), rel_widths=c(1, 0.2)) +
     theme(plot.background = element_rect(fill=background_color, color = NA))
   #+theme(plot.margin = unit(c(1, 1, 1, 1), "lines"))
-  plot(g_all)
+  return(g_all)
 }

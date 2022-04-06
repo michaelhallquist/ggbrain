@@ -513,13 +513,6 @@ ggbrain_r6 <- R6::R6Class(
 }
 
 
-# allow for gg + theme() type stuff
-`+.ggbrain_panel` <-  function(gg, args) {
-  gg_new <- gg$clone(deep=TRUE) # need a new object to modify the panels in memory (not by reference)
-  gg_new$ggobj <- gg_new$get() + args # add args to panel
-  return(gg_new)
-}
-
 summary.ggbrain_images <- function(gg, args) {
   gg$summary()
 }
