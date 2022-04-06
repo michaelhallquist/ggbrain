@@ -19,6 +19,7 @@ R6 class for a single layer of a ggbrain panel
 \item \href{#method-add_to_gg}{\code{ggbrain_layer$add_to_gg()}}
 \item \href{#method-get_data}{\code{ggbrain_layer$get_data()}}
 \item \href{#method-get_name}{\code{ggbrain_layer$get_name()}}
+\item \href{#method-is_empty}{\code{ggbrain_layer$is_empty()}}
 \item \href{#method-clone}{\code{ggbrain_layer$clone()}}
 }
 }
@@ -162,6 +163,16 @@ Default: FALSE.}
 return the layer name
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$get_name()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-is_empty"></a>}}
+\if{latex}{\out{\hypertarget{method-is_empty}{}}}
+\subsection{Method \code{is_empty()}}{
+returns TRUE if all values are NA or if the data has 0 rows
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$is_empty()}\if{html}{\out{</div>}}
 }
 
 }

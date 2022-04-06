@@ -9,10 +9,12 @@ ggbrain_panel <- R6::R6Class(
     pvt_layer_objs = NULL, # list of layers
     pvt_title = NULL,
     generate_ggplot = function() {
-      empty_gg <- ggplot(mapping = aes(x=dim1, y=dim2))
+      blank_gg <- ggplot(mapping = aes(x=dim1, y=dim2))
+      empty <- sapply(private$pvt_layer_objs, function(x) x$is_empty())
+      to_plot <- private$pvt_layer_objs[!empty]
       
       # use reduce to add layers from left to right in the list
-      gg <- Reduce("+", private$pvt_layer_objs, init=empty_gg)
+      gg <- Reduce("+", to_plot, init=blank_gg)
       
       if (!is.null(private$pvt_title)) {
         gg <- gg + ggtitle(private$pvt_title)

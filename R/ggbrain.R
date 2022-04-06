@@ -231,7 +231,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       g <- g + theme(axis.title.y = element_text()) + ylab(slices$ylab[i])
     }
 
-    # add title if requested
+    # add panel title if requested
     if (!is.null(slices$panel_title[i]))  {
       g <- g + ggtitle(slices$panel_title[i])
     }

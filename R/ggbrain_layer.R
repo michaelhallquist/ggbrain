@@ -8,7 +8,8 @@ ggbrain_layer <- R6::R6Class(
     pvt_data = NULL,
     pvt_layer_scale = NULL,
     pvt_show_scale = NULL,
-    pvt_interpolate = FALSE
+    pvt_interpolate = FALSE,
+    pvt_is_empty = NULL
   ),
   public = list(
     #' @description create a new ggbrain_layer object
@@ -47,6 +48,13 @@ ggbrain_layer <- R6::R6Class(
       
       if (!is.null(breaks)) {
         self$set_breaks(breaks)
+      }
+      
+      # encode whether this layer is empty so that it doesn't get added to the panel
+      if (nrow(data) == 0L || all(is.na(data$value))) {
+        private$pvt_is_empty <- TRUE
+      } else {
+        private$pvt_is_empty <- FALSE
       }
     },
     
@@ -117,6 +125,11 @@ ggbrain_layer <- R6::R6Class(
     #' @description return the layer name
     get_name = function() {
       private$pvt_layer_name
+    },
+    
+    #' @description returns TRUE if all values are NA or if the data has 0 rows
+    is_empty = function() {
+      private$pvt_is_empty
     }
   )
 )
