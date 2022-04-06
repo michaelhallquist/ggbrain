@@ -13,6 +13,7 @@ Imports:
     dplyr,
     ggplot2,
     ggnewscale,
+    patchwork,
     rlang,
     tidyr
 License: `use_gpl3_license()`

@@ -20,6 +20,7 @@
 #' @param ncol Passed to cowplot::plot_grid, controls number of columns in multi-panel plot
 #' @importFrom checkmate assert_numeric
 #' @importFrom cowplot add_sub get_legend plot_grid
+#' @importFrom patchwork plot_layout wrap_plots
 #' @importFrom dplyr bind_rows filter mutate if_else group_by group_split %>%
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 aes coord_fixed element_blank element_rect element_text
@@ -44,7 +45,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
                     trim_underlay = c(.01, .99), zero_underlay = 1e-3, symmetric_legend = TRUE,
                     panel_labels = NULL, underlay_contrast = "none", panel_borders = TRUE,
                     theme_custom = NULL, base_size = 14,
-                    nrow = NULL, ncol = NULL
+                    nrow = NULL, ncol = NULL, title = NULL
 ) {
   
   checkmate::assert_class(underlay_colorscale, "ScaleContinuous")
@@ -164,6 +165,10 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     a_df <- anat_slices[[i]]
     p_df <- pos_plot[[i]]
     n_df <- neg_plot[[i]]
+    
+    # redefine these on a per-panel basis since some panels may lack a pos or neg component even if others have it
+    has_pos <- sum(!is.na(p_df$value)) > 0L
+    has_neg <- sum(!is.na(n_df$value)) > 0L
 
     a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, layer_scale = underlay_colorscale, show_scale=FALSE)
     n_layer <- ggbrain_layer$new(name = "negative", data = n_df, layer_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
@@ -186,7 +191,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       g$scales$scales[[ppos]]$name <- legend_label # label above positive extent
       g$scales$scales[[ppos]]$guide <- guide_colorbar(order = 1, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
     }
-
 
     # theme refinements
     g <- g +
@@ -245,7 +249,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     leg <- get_legend(g)
 
     # remove legend from subplots
-    g <- g + theme(legend.position = "none")
+    # g <- g + theme(legend.position = "none")
 
     # cache legend for extraction
     attr(g, "legend") <- leg
@@ -256,9 +260,38 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   glist <- lapply(seq_along(anat_slices), make_slice_plot)
   #leg <- get_legend(glist[[1]] + theme(legend.position="right"))
   
-  g_all <- plot_grid(plotlist = glist, labels = panel_labels, nrow = nrow, ncol = ncol) #, labels = "AUTO", label_colour = text_color)
-  g_all <- plot_grid(g_all, attr(glist[[1]], "legend"), rel_widths=c(1, 0.2)) +
-    theme(plot.background = element_rect(fill=background_color, color = NA))
-  #+theme(plot.margin = unit(c(1, 1, 1, 1), "lines"))
+  # panel_height <- (unit(1,"npc") - sum(ggplotGrob(glist[[1]])[["heights"]][-3]) - unit(1,"line"))/5
+  # 
+  
+  g_all <- wrap_plots(glist) + plot_layout(guides = 'collect', ncol = ncol, nrow = nrow) &
+    plot_annotation(
+      theme = theme(
+        plot.background = element_rect(fill=bg_color, color = NA),
+        plot.title = element_text(hjust = 0.5, size = base_size)
+      ),
+      title = title
+    )
+  
+  #plot.margin=grid::unit(c(0,0,0,0), "mm")
+  
+  # & guides(
+  #   fill = guide_colorbar(barheight=panel_height),
+  #   fill_new = guide_colorbar(barheight = panel_height, available_aes = "fill_new"),
+  #   #fill_new_new = guide_colorbar(barheight = unit(0.1, "cm"), available_aes = "fill_new_new")
+  # )
+  
+  # g_all <- glist[[1]] + guides(
+  #   fill = guide_colorbar(barheight=panel_height),
+  #   fill_new = guide_colorbar(barheight = panel_height, available_aes = "fill_new"),
+  #   #fill_new_new = guide_colorbar(barheight = unit(0.1, "cm"), available_aes = "fill_new_new")
+  # )
+  
+  
+  # g_all <- plot_grid(plotlist = glist, labels = panel_labels, nrow = nrow, ncol = ncol) #, labels = "AUTO", label_colour = text_color)
+  # g_all <- plot_grid(g_all, attr(glist[[1]], "legend"), rel_widths=c(1, 0.3)) +
+  #   theme(plot.background = element_rect(fill=background_color, color = NA))
+
+  # +theme(plot.margin = unit(c(1, 1, 1, 1), "lines"))
+  
   return(g_all)
 }
