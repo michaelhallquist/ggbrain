@@ -7,8 +7,6 @@
 ggbrain(
   underlay = NULL,
   overlay = NULL,
-  color_col = NULL,
-  alpha_col = NULL,
   underlay_colorscale = scale_fill_gradient(low = "grey8", high = "grey92"),
   negative_colorscale = scale_fill_distiller(palette = "Blues", direction = 1),
   positive_colorscale = scale_fill_distiller(palette = "Reds"),
@@ -29,7 +27,8 @@ ggbrain(
   theme_custom = NULL,
   base_size = 14,
   nrow = NULL,
-  ncol = NULL
+  ncol = NULL,
+  title = NULL
 )
 }
 \arguments{
@@ -37,18 +36,16 @@ ggbrain(
 
 \item{overlay}{a 4D nifti image used for plotting stats on underlay (color)}
 
-\item{color_col}{a position in the 4th dim of overlay use to color plots}
-
-\item{alpha_col}{a position in the 4th dim of overlay use to set alpha transparency of plots}
-
 \item{underlay_colorscale}{A ggplot scale_fill_* function call used for coloration of underlay}
 
 \item{negative_colorscale}{A ggplot scale_fill_* function call used for coloration of negative overlay values}
 
 \item{positive_colorscale}{A ggplot scale_fill_* function call used for coloration of positive overlay values}
 
-\item{remove_null_space}{If TRUE, quantiles are computed on the non-zero slices and plots are trimmed for
-empty space.}
+\item{slices}{A data.frame consisting of slices to display. Minimally, this should contain a column called coord that
+the x (sagittal), y (coronal), and z (axial) slices to display. Percentages can be used (e.g., "x = 25\%").}
+
+\item{remove_null_space}{If TRUE, plots are trimmed of empty space that was in the NIfTI.}
 
 \item{pos_thresh}{The positive threshold to be applied to the \code{overlay} image. Any positive voxel less than
 this threshold will be removed from the map.}
@@ -56,14 +53,26 @@ this threshold will be removed from the map.}
 \item{neg_thresh}{The negative threshold to be applied to the \code{overlay} image. Any negative voxel greater than
 this threshold will be removed from the map.}
 
+\item{legend_label}{An expression or character string to display over the color scale.}
+
+\item{background_color}{A character string specifying what color should be used for the plot background. Default: "gray10"}
+
+\item{text_color}{A character string specifying what color should be used for the text on the plot. Default: "white"}
+
 \item{trim_underlay}{Winsorize the extreme values of the underlay based on the low and high quantiles provided}
 
 \item{zero_underlay}{Any voxels in the underlay image whose absolute values are less than \code{zero_underlay}
 are set to precisely zero. This helps with small color variation in black/empty space.}
 
+\item{theme_custom}{A ggplot2 theme object that will be added to each panel.}
+
+\item{base_size}{The base_size argument passed to the theme, controlling overall font sizes}
+
 \item{nrow}{Passed to cowplot::plot_grid, controls number of rows in multi-panel plot}
 
 \item{ncol}{Passed to cowplot::plot_grid, controls number of columns in multi-panel plot}
+
+\item{title}{Passed to patchwork::plot_annotation and adds overall title}
 }
 \description{
 Plot fMRI data on an underlay image

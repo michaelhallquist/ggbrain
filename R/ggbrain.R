@@ -2,25 +2,31 @@
 #' 
 #' @param underlay a 3D nifti image used for the image underlay (default b/w)
 #' @param overlay a 4D nifti image used for plotting stats on underlay (color)
-#' @param color_col a position in the 4th dim of overlay use to color plots
-#' @param alpha_col a position in the 4th dim of overlay use to set alpha transparency of plots
 #' @param underlay_colorscale A ggplot scale_fill_* function call used for coloration of underlay
 #' @param positive_colorscale A ggplot scale_fill_* function call used for coloration of positive overlay values
 #' @param negative_colorscale A ggplot scale_fill_* function call used for coloration of negative overlay values
-#' @param remove_null_space If TRUE, quantiles are computed on the non-zero slices and plots are trimmed for
-#'   empty space.
+#' @param slices A data.frame consisting of slices to display. Minimally, this should contain a column called coord that
+#'   the x (sagittal), y (coronal), and z (axial) slices to display. Percentages can be used (e.g., "x = 25%").
+#' @param remove_null_space If TRUE, plots are trimmed of empty space that was in the NIfTI.
 #' @param pos_thresh The positive threshold to be applied to the \code{overlay} image. Any positive voxel less than
 #'   this threshold will be removed from the map.
 #' @param neg_thresh The negative threshold to be applied to the \code{overlay} image. Any negative voxel greater than
 #'   this threshold will be removed from the map.
+#' @param legend_label An expression or character string to display over the color scale.
+#' @param background_color A character string specifying what color should be used for the plot background. Default: "gray10"
+#' @param text_color A character string specifying what color should be used for the text on the plot. Default: "white"
+#' @param trim_underlay Winsorize the extreme values of the underlay based on the low and high quantiles provided
 #' @param zero_underlay Any voxels in the underlay image whose absolute values are less than \code{zero_underlay}
 #'   are set to precisely zero. This helps with small color variation in black/empty space.
-#' @param trim_underlay Winsorize the extreme values of the underlay based on the low and high quantiles provided
+#' @param theme_custom A ggplot2 theme object that will be added to each panel.
+#' @param base_size The base_size argument passed to the theme, controlling overall font sizes
 #' @param nrow Passed to cowplot::plot_grid, controls number of rows in multi-panel plot
 #' @param ncol Passed to cowplot::plot_grid, controls number of columns in multi-panel plot
+#' @param title Passed to patchwork::plot_annotation and adds overall title
+#' 
 #' @importFrom checkmate assert_numeric
 #' @importFrom cowplot add_sub get_legend plot_grid
-#' @importFrom patchwork plot_layout wrap_plots
+#' @importFrom patchwork plot_layout plot_annotation wrap_plots
 #' @importFrom dplyr bind_rows filter mutate if_else group_by group_split %>%
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 aes coord_fixed element_blank element_rect element_text
@@ -29,7 +35,6 @@
 #' @importFrom stats sd
 #' @export
 ggbrain <- function(underlay=NULL, overlay=NULL, 
-                    color_col=NULL, alpha_col=NULL,
                     underlay_colorscale = scale_fill_gradient(low="grey8", high="grey92"),
                     negative_colorscale = scale_fill_distiller(palette="Blues", direction = 1),
                     positive_colorscale = scale_fill_distiller(palette="Reds"),
@@ -39,8 +44,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
                                 "z = 25%", "z = 50%", "z = 75%")
                     ),
                     remove_null_space=TRUE,
-                    pos_thresh = 1,
-                    neg_thresh = -1, legend_label = expression(italic("z")),
+                    pos_thresh = 1, neg_thresh = -1, legend_label = expression(italic("z")),
                     background_color = "gray10", text_color = "white",
                     trim_underlay = c(.01, .99), zero_underlay = 1e-3, symmetric_legend = TRUE,
                     panel_labels = NULL, underlay_contrast = "none", panel_borders = TRUE,
@@ -266,7 +270,7 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
   g_all <- wrap_plots(glist) + plot_layout(guides = 'collect', ncol = ncol, nrow = nrow) &
     plot_annotation(
       theme = theme(
-        plot.background = element_rect(fill=bg_color, color = NA),
+        plot.background = element_rect(fill=background_color, color = NA),
         plot.title = element_text(hjust = 0.5, size = base_size)
       ),
       title = title
