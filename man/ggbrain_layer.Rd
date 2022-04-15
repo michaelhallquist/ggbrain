@@ -53,6 +53,8 @@ layer.}
 
 \item{\code{limits}}{if provided, sets the upper and lower bounds on the scale}
 
+\item{\code{breaks}}{if provided, a function to draw the breaks on the color scale}
+
 \item{\code{show_scale}}{if TRUE, show the scale on the plot legend}
 
 \item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}

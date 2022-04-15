@@ -177,39 +177,34 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, layer_scale = underlay_colorscale, show_scale=FALSE)
     n_layer <- ggbrain_layer$new(name = "negative", data = n_df, layer_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
     p_layer <- ggbrain_layer$new(name = "positive", data = p_df, layer_scale = positive_colorscale, limits = pos_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
-    panel_obj <- ggbrain_panel$new(layers = list(a_layer, n_layer, p_layer))
+    panel <- ggbrain_panel$new(
+      layers = list(a_layer, n_layer, p_layer),
+      title = slices$panel_title[i],
+      bg_color = background_color,
+      text_color = text_color,
+      draw_border = panel_borders,
+      xlab = slices$xlab[i],
+      ylab = slices$ylab[i],
+      theme_custom = theme_custom
+    )
     
-    g <- panel_obj$get_gg()
+    #panel$add_to_gg(theme_bw() + ggtitle("hello"))
     
     # modify scale breaks, limits, and guide order -- need to hack this from the existing scale since adding a new scale
     # overrides all of the information, rather than keeping what we want
     if (has_neg) {
-      g$scales$scales[[2]]$name <- ifelse(has_pos, "", legend_label) # only add label to neg scale if there are no positive values
-      g$scales$scales[[2]]$guide <- guide_colorbar(order = 2, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
+      panel$gg$scales$scales[[2]]$name <- ifelse(has_pos, "", legend_label) # only add label to neg scale if there are no positive values
+      panel$gg$scales$scales[[2]]$guide <- guide_colorbar(order = 2, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
     }
 
     # position of positive and negative color scales in g$scales$scales list
     ppos <- ifelse(has_pos && has_neg, 3, 2)
 
     if (has_pos) {
-      g$scales$scales[[ppos]]$name <- legend_label # label above positive extent
-      g$scales$scales[[ppos]]$guide <- guide_colorbar(order = 1, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
+      panel$gg$scales$scales[[ppos]]$name <- legend_label # label above positive extent
+      panel$gg$scales$scales[[ppos]]$guide <- guide_colorbar(order = 1, available_aes = c("fill", "fill_new"), ticks.colour = text_color)
     }
 
-    # theme refinements
-    g <- g +
-      theme_void(base_size = base_size) + coord_fixed() + #+ facet_wrap(~slice, drop=T) + 
-      theme(
-        strip.background = element_blank(),
-        strip.text.x = element_blank(), 
-        plot.background = element_rect(fill=background_color, color=ifelse(isTRUE(panel_borders), text_color, NA)),
-        panel.background = element_rect(fill=background_color, color=ifelse(isTRUE(panel_borders), text_color, NA)),
-        text = element_text(color = text_color),
-        legend.spacing.y = unit(0.1, "lines"),
-        legend.position = "right",
-        plot.margin = unit(c(0.0, 0.5, 0.0, 0.5), "lines") # space on L and R, but not T and B
-      )
-    
     slice_info <- attr(slice_data, "slice_info")
     
     if (isTRUE(slices$coord_label[i])) {
@@ -222,56 +217,38 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       # label_y_pos <- quantile(a_df$dim2, 0, na.rm=TRUE) # 10% off the bottom
       
       # annotate will expand the coordinates of the plot, if needed
-      label_x_pos <- max(a_df$dim1, na.rm=T) + 2  # place slightly to the right of the furthest point
-      label_y_pos <- min(a_df$dim2, na.rm=T) - 6  # place slightly below the lowest point
+      xrange <- diff(range(a_df$dim1, na.rm=T))
+      yrange <- diff(range(a_df$dim2, na.rm=T))
+      label_x_pos <- max(a_df$dim1, na.rm=T) + .01*xrange  # place slightly to the right of the furthest point
+      label_y_pos <- min(a_df$dim2, na.rm=T) - .07*yrange  # place slightly below the lowest point
       
-      g <- g + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], 
-                        hjust = 1, vjust = 0, color=text_color)
+      panel$gg <- panel$gg + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], 
+                        hjust = 1, vjust = 0, color=text_color, size = (base_size*.8)/ggplot2::.pt)
     }
-
-    # add x axis label if requested
-    if (!is.null(slices$xlab[i]))  {
-      g <- g + theme(axis.title.x = element_text()) + xlab(slices$xlab[i])
-    }
-
-    # add y axis label if requested
-    if (!is.null(slices$ylab[i]))  {
-      g <- g + theme(axis.title.y = element_text()) + ylab(slices$ylab[i])
-    }
-
-    # add panel title if requested
-    if (!is.null(slices$panel_title[i]))  {
-      g <- g + ggtitle(slices$panel_title[i])
-    }
-
-    # add custom theme elements to each panel, if requested
-    if (!is.null(theme_custom)) {
-      g <- g + theme_custom
-    }
-
+    
     # cache legend
-    leg <- get_legend(g)
+    leg <- get_legend(panel$gg)
 
     # remove legend from subplots
     # g <- g + theme(legend.position = "none")
 
     # cache legend for extraction
-    attr(g, "legend") <- leg
+    attr(panel$gg, "legend") <- leg
 
-    return(g)
+    return(panel$gg)
   }
-  
+
   glist <- lapply(seq_along(anat_slices), make_slice_plot)
   #leg <- get_legend(glist[[1]] + theme(legend.position="right"))
   
   # panel_height <- (unit(1,"npc") - sum(ggplotGrob(glist[[1]])[["heights"]][-3]) - unit(1,"line"))/5
   # 
   
-  g_all <- wrap_plots(glist) + plot_layout(guides = 'collect', ncol = ncol, nrow = nrow) &
+  g_all <- wrap_plots(glist) + plot_layout(guides = 'collect', ncol = ncol, nrow = nrow) +
     plot_annotation(
       theme = theme(
         plot.background = element_rect(fill=background_color, color = NA),
-        plot.title = element_text(hjust = 0.5, size = base_size)
+        plot.title = element_text(hjust = 0.5, vjust = 0, size = base_size)
       ),
       title = title
     )

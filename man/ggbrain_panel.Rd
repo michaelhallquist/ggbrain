@@ -8,18 +8,25 @@ R6 class for a single panel of a ggbrain image
 
 R6 class for a single panel of a ggbrain image
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{gg}}{The ggplot object that contains the panel}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{ggbrain_panel$new()}}
 \item \href{#method-reset_limits}{\code{ggbrain_panel$reset_limits()}}
 \item \href{#method-plot}{\code{ggbrain_panel$plot()}}
-\item \href{#method-get_gg}{\code{ggbrain_panel$get_gg()}}
+\item \href{#method-add_to_gg}{\code{ggbrain_panel$add_to_gg()}}
 \item \href{#method-add_layer}{\code{ggbrain_panel$add_layer()}}
 \item \href{#method-remove_layers}{\code{ggbrain_panel$remove_layers()}}
 \item \href{#method-get_data}{\code{ggbrain_panel$get_data()}}
-\item \href{#method-set_gg}{\code{ggbrain_panel$set_gg()}}
 \item \href{#method-get_layer_names}{\code{ggbrain_panel$get_layer_names()}}
+\item \href{#method-get_layers}{\code{ggbrain_panel$get_layers()}}
 \item \href{#method-set_layer_order}{\code{ggbrain_panel$set_layer_order()}}
 \item \href{#method-clone}{\code{ggbrain_panel$clone()}}
 }
@@ -30,7 +37,18 @@ R6 class for a single panel of a ggbrain image
 \subsection{Method \code{new()}}{
 create a new ggbrain_panel object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$new(layers = NULL, title = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$new(
+  layers = NULL,
+  title = NULL,
+  bg_color = NULL,
+  text_color = NULL,
+  border_color = NULL,
+  border_size = NULL,
+  draw_border = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  theme_custom = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -39,6 +57,25 @@ create a new ggbrain_panel object
 \item{\code{layers}}{a list of ggbrain_layer objects to form the panel}
 
 \item{\code{title}}{a title for the panel added to the ggplot object using ggtitle()}
+
+\item{\code{bg_color}}{the color used for the background of the plot. Default: 'gray10' (nearly black)}
+
+\item{\code{text_color}}{the color used for text displayed on the plot. Default: 'white'.}
+
+\item{\code{border_color}}{the color used for drawing a border around on the plot. Default: 'gray50'
+(though borders are not drawn by default).}
+
+\item{\code{border_size}}{the size of the border line drawn around the panel. Default: 1.1.}
+
+\item{\code{draw_border}}{if TRUE, a panel border of color \code{border_color} and \code{border_size} is
+drawn around the plot. Default: FALSE}
+
+\item{\code{xlab}}{The label to place on x axis. Default is NULL.}
+
+\item{\code{ylab}}{The label to place on y axis. Default is NULL.}
+
+\item{\code{theme_custom}}{Any custom theme() settings to be added to the plot
+plot the panel}
 }
 \if{html}{\out{</div>}}
 }
@@ -60,14 +97,35 @@ create a new ggbrain_panel object
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$plot(use_global_limits = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{use_global_limits}}{Not implemented at present}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_gg"></a>}}
-\if{latex}{\out{\hypertarget{method-get_gg}{}}}
-\subsection{Method \code{get_gg()}}{
-returns the ggplot object for this panel
+\if{html}{\out{<a id="method-add_to_gg"></a>}}
+\if{latex}{\out{\hypertarget{method-add_to_gg}{}}}
+\subsection{Method \code{add_to_gg()}}{
+add one or more custom ggplot settings to the panel
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$get_gg()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$add_to_gg(list_args)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{list_args}}{A list containing elements to add to the ggplot object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+Note that passing in an expression such as theme_bw() + ggtitle("hello")
+will not work because it creates an object that cannot be added sequentially to
+the ggplot. As noted in ggplot2's documentation (https://ggplot2.tidyverse.org/reference/gg-add.html),
+to programmatically add elements to a ggplot, pass in a list where each element is added sequentially
 }
 
 }
@@ -116,21 +174,22 @@ returns the data for all layers in the object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_gg"></a>}}
-\if{latex}{\out{\hypertarget{method-set_gg}{}}}
-\subsection{Method \code{set_gg()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$set_gg(ggobj)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_layer_names"></a>}}
 \if{latex}{\out{\hypertarget{method-get_layer_names}{}}}
 \subsection{Method \code{get_layer_names()}}{
 returns the names of the layers in this panel, ordered from bottom to top
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$get_layer_names()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-get_layers}{}}}
+\subsection{Method \code{get_layers()}}{
+returns a list of ggbrain_layer objects that comprise this panel
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$get_layers()}\if{html}{\out{</div>}}
 }
 
 }

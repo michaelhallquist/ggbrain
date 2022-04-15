@@ -19,6 +19,7 @@ ggbrain_layer <- R6::R6Class(
     #' @param layer_scale a ggplot scale object used for mapping the value column as the fill color for the
     #'   layer.
     #' @param limits if provided, sets the upper and lower bounds on the scale
+    #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_scale if TRUE, show the scale on the plot legend
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
     initialize = function(name = NULL, data = NULL, layer_scale = NULL, limits = NULL, 
