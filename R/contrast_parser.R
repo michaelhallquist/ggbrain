@@ -15,6 +15,9 @@
 #'  res <- contrast_parser("dsf [ sdf == 1 ] + b", data)
 #'  res <- contrast_parser("dsf * abc", data)
 #' }
+#' @author Michael Hallquist
+#' @importFrom checkmate assert_data_frame assert_subset
+#' @keywords internal
 contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   
   if (is.expression(expr)) { # expand expression as character vector
@@ -25,15 +28,17 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   
   checkmate::assert_data_frame(data)
   
-  open_brack <- stringr::str_locate_all(expr, fixed("["))[[1]]
-  close_brack <- stringr::str_locate_all(expr, fixed("]"))[[1]]
+  open_brack <- gregexpr("[", expr, fixed=T)[[1]]
+  close_brack <- gregexpr("]", expr, fixed=T)[[1]]
+  if (open_brack[1] == -1L) open_brack <- numeric(0) # necessary since no match returns -1
+  if (close_brack[1] == -1L) close_brack <- numeric(0)
   
-  if (nrow(open_brack) > nrow(close_brack)) {
+  if (length(open_brack) > length(close_brack)) {
     stop("At least one opening bracket does not have a closing bracket")
-  } else if (nrow(open_brack) < nrow(close_brack)) {
+  } else if (length(open_brack) < length(close_brack)) {
     stop("At least one closing bracket does not have an opening bracket")
   } else {
-    brack_df <- data.frame(open=open_brack[,1], close=close_brack[,1])
+    brack_df <- data.frame(open=open_brack, close=close_brack)
   }
   
   if (nrow(brack_df) == 0L) {
@@ -89,21 +94,6 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
       subset_vars <- subset_vars[-length(subset_vars)]
     }
     
-    # subset_positions <- sapply(ops_split, function(vars) {
-    #   ret <- rep(NA, length(vars))
-    #   ct <- 0
-    #   for (i in seq_along(ret)) {
-    #     if (!(is.na(vars[i]) || vars[i] == "")) ct <- ct + 1 # don't increment
-    #     #ct <- ct + 1
-    #     ret[i] <- ct
-    #   }
-    #   return(ret)
-    # })
-    #cumsum(unlist(lapply(ops_split, function(vars) if_else(vars=="", 0, 1) )))
-    
-    
-    #do.call(paste, c(ops_split, list(collapse="")))
-    
     # now, retain just the variables of interest as img_vars (minus the operands)
     img_vars <- unlist(ops_split)
   }
@@ -119,9 +109,6 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   
   # will skip if no subset
   for (vi in seq_along(subset_vars)) {
-    #sub_expr <- paste(img_vars[subset_vars][vi], "[", brack_expr[vi], "]")# %>% as.expression
-    #sub_expr <- paste(brack_expr[vi], "]")# %>% as.expression
-    
     # logical test of which elements match -- invert this to figure out what to zero
     l_test <- !with(out_data, eval(parse(text=brack_expr[vi])))
     
@@ -137,9 +124,6 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   out_var[abs(out_var) < 1e-6] <- default_val
   
   return(out_var)
-  
-  #expr_split <- strsplit(expr, "(?<!\\])\\s*[*-/+]\\s*(?!\\[)", perl = TRUE)
-  
 }
 
 # for testing
