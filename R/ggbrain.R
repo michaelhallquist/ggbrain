@@ -90,20 +90,15 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
 
   gg_imgs <- ggbrain_images$new(c(underlay = underlay, overlay = overlay))
 
-  # round very small values to zero
-  # if (!is.null(zero_underlay) && zero_underlay > 0) {
-  #   underlay[underlay > -1*zero_underlay & underlay < zero_underlay] <- 0
-  # }
-
   # winsorize extreme values in underlay based on quantiles of non-zero voxels
   gg_imgs$winsorize_images("underlay", trim_underlay)
 
+  # set any tiny value in underlay to NA
   gg_imgs$na_images("underlay", 1e-8)
   
   # sigmoid transform
   #underlay2 <- underlay + underlay*underlay_contrast*(1/(1+exp(-underlay)))
   #underlay <- underlay*5*(1/(1+exp(-underlay)))
-  #browser()
 
   underlay <- gg_imgs$get_images("underlay")
 
@@ -208,14 +203,6 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     slice_info <- attr(slice_data, "slice_info")
     
     if (isTRUE(slices$coord_label[i])) {
-      # new approach in ggplot 3+: use caption for label since that maintains this as a ggplot object
-      #g <- g + theme(plot.caption = element_text(hjust = 0.8, vjust = 8)) + labs(caption = slice_info$coord_label[i])  
-      #g <- g + annotate(geom = "text", x = Inf, y = -Inf, label = slice_info$coord_label[i], hjust = 1, vjust = 0)
-      
-      # final decision: annotate gives us fine control over positioning and doesn't expand panel into plot margin areas
-      # label_x_pos <- quantile(a_df$dim1, .95, na.rm=TRUE) # 90% right
-      # label_y_pos <- quantile(a_df$dim2, 0, na.rm=TRUE) # 10% off the bottom
-      
       # annotate will expand the coordinates of the plot, if needed
       xrange <- diff(range(a_df$dim1, na.rm=T))
       yrange <- diff(range(a_df$dim2, na.rm=T))
@@ -223,13 +210,13 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
       label_y_pos <- min(a_df$dim2, na.rm=T) - .07*yrange  # place slightly below the lowest point
       
       panel$gg <- panel$gg + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], 
-                        hjust = 1, vjust = 0, color=text_color, size = (base_size*.8)/ggplot2::.pt)
+                        hjust = 1, vjust = 0, color=text_color, size = (base_size*.6)/ggplot2::.pt)
     }
     
     # cache legend
     leg <- get_legend(panel$gg)
 
-    # remove legend from subplots
+    # remove legend from subplots (only needed for cowplot)
     # g <- g + theme(legend.position = "none")
 
     # cache legend for extraction
