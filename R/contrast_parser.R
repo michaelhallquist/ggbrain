@@ -123,7 +123,13 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   # passed through the arithmetic and apply the default value
   out_var[abs(out_var) < 1e-6] <- default_val
   
-  return(out_var)
+  # at present, always bind dim1 and dim2 back together with contrast values and
+  # return appropriately labeled data.frame that mirrors the $slice_data structure
+  checkmate::assert_subset(c("dim1", "dim2"), names(data))
+  
+  out_df <- data.frame(data[,c("dim1", "dim2")], value=out_var)
+  
+  return(out_df)
 }
 
 # for testing
