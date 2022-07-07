@@ -7,12 +7,15 @@ ggbrain_plot <- R6::R6Class(
     pvt_slices = NULL,
     pvt_ggbrain_panels = NULL,
     pvt_nslices = NULL,
-    get_default_scale = function(layer_def) {
-      if (!is.null(layer_def$layer_scale)) { return(layer_def$layer_scale) } # don't modify extant scale
+    set_default_scale = function(layer_def) {
+      if (!is.null(layer_def$layer_scale)) { return(layer_def) } # don't modify extant scale
       
       # flatten data into a list of data.frames for all possible layers across
       # this swaps the nesting so that we have [layers][slices]
-      img_data <- purrr::transpose(private$pvt_slices$slice_data)[[layer_def$name]] %>% bind_rows()
+      all_data <- lapply(seq_len(private$pvt_nslices), function(i) {
+        c(private$pvt_slices$slice_data[[i]], private$pvt_slices$contrast_data[[i]])
+      })
+      img_data <- purrr::transpose(all_data)[[layer_def$name]] %>% bind_rows()
       
       message(glue("For layer {layer_def$name}, no layer_scale specified. We will pick a default."))
       # detect appropriate default scale
@@ -23,7 +26,7 @@ ggbrain_plot <- R6::R6Class(
         has_pos <- any(img_data$value > 0, na.rm=TRUE)
         has_neg <- any(img_data$value < 0, na.rm=TRUE)
         if (has_pos && has_neg) {
-          layer_def$layer_scale <- scale_fill
+          layer_def$layer_scale <- scale_fill_distiller(palette="RdBu") # red-blue diverging
         } else if (has_neg) {
           layer_def$layer_scale <- scale_fill_distiller(palette="Blues", direction = 1)
         } else if (has_pos) {
@@ -32,6 +35,8 @@ ggbrain_plot <- R6::R6Class(
           stop("Cannot find positive or negative values") # TODO: support discrete/character labels
         }
       }
+      
+      return(layer_def) # modified with default scale
     }
   ),
   public=list(
@@ -49,7 +54,8 @@ ggbrain_plot <- R6::R6Class(
     #'   bottom-to-to drawing order within ggplot2. Each element of \code{layers} should be a list
     #'   that follows the approximate structure of the ggbrain_layer class, minimally including
     #'   the layer \code{name}, which is used to lookup data of images or contrasts within the
-    #'   slice_data object.
+    #'   slice_data object. If NULL, all layers in the slices object will be plotted. If only
+    #'   a character string is passed, then those layers will be plotted with default scales.
     #' @param slice_indices An optional subset of slice indices to display from the stored slice data
     #' @details In addition to \code{name}, the elements of a layer can include
     #'   \code{layer_scale} a ggplot2 scale object for coloring the layer. Should be a scale_fill_* object.
@@ -57,11 +63,19 @@ ggbrain_plot <- R6::R6Class(
     #'   \code{breaks} the scale breaks to use for the color scale of this layer
     #'   \code{show_scale} if FALSE, the color scale will not appear in the legend
     generate_plot = function(layers=NULL, slice_indices=NULL) {
-      checkmate(assert_list, layers)
+      possible_layer_names <- private$pvt_slices$get_image_names()
+      if (is.null(layers)) {
+        message("No layers specified, so we will plot: ", paste(possible_layer_names, collapse=", "))
+        layers <- lapply(possible_layer_names, function(ll) list(name=ll))
+      } else if (is.character(layers)) {
+        checkmate::assert_subset(layers, possible_layer_names)
+        layers <- lapply(layers, function(ll) list(name=ll))
+      }
       
       # each slice forms a ggbrain_panel
       slice_df <- private$pvt_slices$as_tibble()
-      possible_layer_names <- private$pvt_slices$get_image_names()
+      
+      checkmate::assert_list(layers)
       
       # validate and touch up layer specification
       layers <- lapply(layers, function(l_i) {
@@ -77,13 +91,15 @@ ggbrain_plot <- R6::R6Class(
           checkmate::assert_class("Scale", l_i$layer_scale)
           stopifnot(l_i$layer_scale$aesthetics == "fill")
         } else {
-          l_i$layer_scale <- private$get_default_scale(l_i)
+          l_i <- private$set_default_scale(l_i)
         }
         
         # make sure that NAs are always drawn as transparent
         if (l_i$layer_scale$na.value != "transparent") { 
           l_i$layer_scale$na.value <- "transparent"
         }
+        
+        return(l_i)
       })
       
       all_layer_names <- sapply(layers, "[[", "name")
@@ -92,7 +108,7 @@ ggbrain_plot <- R6::R6Class(
         slice_df <- slice_df %>% filter(slice_index %in% !!slice_indices)
       }
       
-      slice_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
+      private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
         comb_data <- c(slice_df$slice_data[[i]], slice_df$contrast_data[[i]])
         comb_data <- comb_data[all_layer_names] # subset to only relevant data
         
@@ -114,15 +130,24 @@ ggbrain_plot <- R6::R6Class(
         )
       })
       
-      
+      return(self)
     },
-    generate_panel = function(r) {
-      
+    #' @description return a plot of all panels as a patchwork object
+    plot = function() {
+      # extract ggplot objects from panels and plot with patchwork wrap_plots
+      wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg))
     }
+    # generate_panel = function(r) {
+    #   
+    # }
   )
 )
 
-
+#' S3 method to allow for plot() syntax with ggbrain_panel objects
+#' @export
+plot.ggbrain_plot <- function(object) {
+  object$plot()
+}
 
 #' ggbrain_r6 <- R6::R6Class(
 #'   classname = "ggbrain",
@@ -195,3 +220,4 @@ ggbrain_plot <- R6::R6Class(
 #   obj$plot()
 # }
 # 
+

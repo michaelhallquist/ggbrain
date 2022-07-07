@@ -13,7 +13,7 @@ An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 \itemize{
 \item \href{#method-ggbrain_plot-new}{\code{ggbrain_plot$new()}}
 \item \href{#method-ggbrain_plot-generate_plot}{\code{ggbrain_plot$generate_plot()}}
-\item \href{#method-ggbrain_plot-generate_panel}{\code{ggbrain_plot$generate_panel()}}
+\item \href{#method-ggbrain_plot-plot}{\code{ggbrain_plot$plot()}}
 \item \href{#method-ggbrain_plot-clone}{\code{ggbrain_plot$clone()}}
 }
 }
@@ -52,7 +52,8 @@ generate the plot
 bottom-to-to drawing order within ggplot2. Each element of \code{layers} should be a list
 that follows the approximate structure of the ggbrain_layer class, minimally including
 the layer \code{name}, which is used to lookup data of images or contrasts within the
-slice_data object.}
+slice_data object. If NULL, all layers in the slices object will be plotted. If only
+a character string is passed, then those layers will be plotted with default scales.}
 
 \item{\code{slice_indices}}{An optional subset of slice indices to display from the stored slice data}
 }
@@ -68,11 +69,12 @@ In addition to \code{name}, the elements of a layer can include
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_plot-generate_panel"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_plot-generate_panel}{}}}
-\subsection{Method \code{generate_panel()}}{
+\if{html}{\out{<a id="method-ggbrain_plot-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_plot-plot}{}}}
+\subsection{Method \code{plot()}}{
+return a plot of all panels as a patchwork object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$generate_panel(r)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$plot()}\if{html}{\out{</div>}}
 }
 
 }
