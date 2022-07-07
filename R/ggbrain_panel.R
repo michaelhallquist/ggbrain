@@ -3,9 +3,11 @@
 #' @importFrom dplyr bind_rows
 #' @export
 ggbrain_panel <- R6::R6Class(
-  classname = c("ggbrain_panel", "gg", "ggplot"),
+  #classname = c("ggbrain_panel", "gg", "ggplot"),
+  classname = "ggbrain_panel",
   private = list(
     ggobj = NULL,
+    pvt_annotation_objs = NULL, # list of annotation objects to add
     pvt_layer_objs = NULL, # list of layers
     pvt_title = NULL,
     pvt_addl = list(), # any custom additional objects to add, as a list
@@ -159,11 +161,12 @@ ggbrain_panel <- R6::R6Class(
       private$generate_ggplot()
     },
     
+    #' @description Reset the scale limits for the specified layers
     reset_limits = function(layer_names) {
       
     },
     
-    #' plot the panel
+    #' @description plot the panel
     #' @param use_global_limits Not implemented at present
     plot = function(use_global_limits = TRUE) {
       # add enforcement of limits
@@ -276,4 +279,11 @@ ggbrain_panel <- R6::R6Class(
 #' @export
 ggplot_add.ggbrain_panel <- function(object, plot, object_name) {
   plot + object$gg
+}
+
+
+#' S3 method to allow for plot() syntax with ggbrain_panel objects
+#' @export
+plot.ggbrain_panel <- function(object) {
+  object$plot()
 }

@@ -1,7 +1,7 @@
 #' R6 class for compiling images to render in ggplot
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
 #' @importFrom rlang flatten
-#' @importFrom dplyr bind_rows group_by group_split distinct mutate select n
+#' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
 #' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset
 #' @importFrom reshape2 melt
 #' @importFrom tidyr unnest
@@ -13,6 +13,7 @@ ggbrain_images <- R6::R6Class(
   classname = "ggbrain_images",
   private = list(
     pvt_imgs = list(), # image data
+    pvt_img_labels = list(), # list of data.frames containing labels for a label image
     pvt_img_names = NULL, # names of images
     pvt_dims = NULL, # x, y, z extent
     pvt_zero_tol = 1e-6, # threshold for what constitutes a non-zero voxel
@@ -68,6 +69,49 @@ ggbrain_images <- R6::R6Class(
     #' @param images a character vector of file names containing NIfTI images to read 
     initialize = function(images) {
       private$set_images(images)
+    },
+    
+    #' @description add a labels data.frame that connects an integer-valued image with a set of labels
+    #' @param ... named arguments containing data.frame objects for each image to be labeled. The argument name should
+    #'   match the image name to be labeled and the value should be a data.frame containing \code{img_value} and \code{label}. 
+    #' @details
+    #' 
+    #'   As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
+    #'   text-based labels in the label data. In addition, a new attribute will be returned called "slice_labels" that contains
+    #'   a row for each region represented in each slice.
+    add_labels = function(...) {
+      label_args <- list(...)
+      label_names <- names(label_args)
+      if (is.null(label_names) || any(label_names == "")) {
+        stop("All arguments must be named, with the name referring to the image to be labeled.")
+      }
+      
+      # all label arguments must match an image name
+      checkmate::assert_subset(label_names, private$pvt_img_names)
+      sapply(label_args, function(x) { checkmate::assert_data_frame(x) })
+      sapply(label_args, function(x) { checkmate::assert_subset(c("img_value", "label"), names(x)) })
+      
+      for (x in seq_along(label_args)) {
+        cur_vals <- private$pvt_img_labels[[ label_names[x] ]]
+        if (!is.null(cur_vals)) {
+          message(glue("Image {label_names[x]} has labels, which will replaced"))
+        } 
+        
+        private$pvt_img_labels[[ label_names[x] ]] <- label_args[[x]]
+      }
+      
+      # labels_df <- labels_df %>% group_by(img_name)
+      # gnames <- group_keys(labels_df)$img_name
+      # gvals <- group_split(labels_df)
+      
+      # lapply(seq_along(gvals), function(x) {
+      #   cur_vals <- private$pvt_img_labels[[ gnames[x] ]]
+      #   if (!is.null(cur_vals)) {
+      #     message(glue("Image {gnames[x]} has label, which will replaced"))
+      #   } 
+      #   private$pvt_img_labels[[ gnames[x] ]] <- gvals[[x]]
+      # })
+      
     },
     
     #' @description add one or more images to this ggbrain_images object
@@ -233,11 +277,26 @@ ggbrain_images <- R6::R6Class(
     #' @description get slice data for one or more slices based on their coordinates
     #' @param slices a vector of slice positions
     #' @param img_names a character vector of images contained in the ggbrain_images object to be sliced
+    #' @param contrasts a named character vector of contrasts to be calculated for each slice
     #' @param make_square If TRUE, make all images square and of the same size
     #' @param remove_null_space If TRUE, remove slices where all values are approximately zero
-    #' @param as_data_frame If TRUE, return slices as a data.frame indexed by slice, image layer, and the image matrix
-    get_slices = function(slices, img_names = NULL, make_square = TRUE, remove_null_space = TRUE, as_data_frame=TRUE) {
+    #' @details This function always returns a data.frame where each row represents a slice requested
+    #'   by the user. The $slice_data element is a list-column where each element is itself a list
+    #'   of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
+    #'   is a list-column where each element is a list of 2-D matrices, one per layer/image.
+    #'   
+    get_slices = function(slices, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
+      all_img_names <- self$get_image_names()
+      if (!is.null(img_names)) {
+        checkmate::assert_subset(img_names, all_img_names)
+      } else {
+        img_names <- all_img_names # all in the set
+      }
+      checkmate::assert_character(contrasts, names="unique", null.ok = TRUE)
+      checkmate::assert_logical(make_square, len=1L)
+      checkmate::assert_logical(remove_null_space, len=1L)
+      
       coords <- slice_df %>%
         group_by(slice_index) %>%
         group_split()
@@ -266,7 +325,7 @@ ggbrain_images <- R6::R6Class(
       
       # whether to make all images have the same square dimensions
       if (isTRUE(make_square)) {
-        slc_dims <- sapply(flatten(slc), dim)
+        slc_dims <- sapply(rlang::flatten(slc), dim)
         square_dims <- apply(slc_dims, 1, max)
         # for each slice and image within slice, center the matrix in the target output dims
         slc <- lapply(slc, function(ilist) {
@@ -276,28 +335,106 @@ ggbrain_images <- R6::R6Class(
         })
       }
 
-      by_slice <- slice_df # retain lookup as attribute
-      if (isTRUE(as_data_frame)) {
-        slc <- lapply(slc, function(dd) {
-          # each element of dd is a sqaure matrix for a given image
-          lapply(names(dd), function(lname) {
-            df <- reshape2::melt(dd[[lname]], varnames = c("dim1", "dim2"))
-            df$image <- lname
-            return(df)
-          }) %>% bind_rows()
-        })
+      # look up labels for each slice
+      if (any(img_names %in% names(private$pvt_img_labels))) {
+        # which images contain integer-valued data that should be labeled?
+        label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
 
-        slice_df$slice_data <- slc
-        slice_df <- slice_df %>% unnest(slice_data)
+        # compute CoM statistics for label images
+        label_slc <- lapply(slc, "[", label_imgs)
+        com_stats <- lapply(seq_along(label_slc), function(dd) {
+          lapply(label_slc[[dd]], function(xx) {
+            uvals <- unique(as.vector(xx))
+            uvals <- uvals[! uvals %in% c(NA, 0)]
+            sapply(uvals, function(u) { colMeans(which(xx == u, arr.ind=TRUE)) }) %>%
+              t() %>% data.frame() %>% setNames(c("dim1", "dim2")) %>% 
+              dplyr::bind_cols(img_value=uvals, slice_index=dd) %>% dplyr::arrange(uvals)
+          })
+        })
       } else {
-        # add list column for slice data
-        slice_df$slice_data <- slc
+        com_stats <- NULL
+        label_imgs <- NULL
       }
       
-      attr(slice_df, "slice_info") <- by_slice
-
-      return(slice_df)
-
+      # if (isTRUE(as_data_frame)) {
+      #   slc2 <- lapply(slc, function(dd) {
+      #     # each element of dd is a square matrix for a given image
+      #     lapply(names(dd), function(lname) {
+      #       df <- reshape2::melt(dd[[lname]], varnames = c("dim1", "dim2"))
+      #       df$image <- lname
+      #       return(df)
+      #     }) %>% dplyr::bind_rows()
+      #   })
+      # 
+      #   slice_df$slice_data <- slc
+      #   slice_df <- slice_df %>% tidyr::unnest(slice_data)
+      # } else {
+      #   # add list column for slice data
+      #   slice_df$slice_data <- slc
+      # }
+      
+      # create a list of image data.frames for each slice
+      slc_nestlist <- lapply(slc, function(dd) {
+        # each element of dd is a square matrix for a given image
+        sapply(names(dd), function(lname) {
+          df <- reshape2::melt(dd[[lname]], varnames = c("dim1", "dim2"))
+          df$image <- lname
+          return(df)
+        }, USE.NAMES = TRUE, simplify = FALSE)
+      })
+      
+      # generate a labeled copy of the data using the number -> label conversion
+      if (!is.null(label_imgs)) {
+        for (ii in seq_along(slc_nestlist)) {
+          this_slc <- slc_nestlist[[ii]]
+          which_lab <- intersect(names(this_slc), label_imgs)
+          
+          for (label_name in which_lab) {
+            this_img <- this_slc[[label_name]]
+            
+            # always set 0 to NA in labeled image
+            this_img$value[this_img$value == 0] <- NA
+            
+            # get labels
+            lb <- private$pvt_img_labels[[ label_name ]]
+            
+            # fill in missing labels, keeping the numeric values in string form
+            all_vals <- sort(unique(this_img$value)) # note that sort drops NA by default
+            all_labs <- as.character(all_vals)
+            all_df <- data.frame(img_value = all_vals, label=all_labs)
+            
+            # keep the non-matching rows from all_df as defaults, then bind the hand-labeled areas
+            comb_df <- all_df %>% dplyr::anti_join(lb, by="img_value") %>%
+              dplyr::bind_rows(lb) %>% dplyr::arrange(img_value)
+            
+            # replace numeric value column with labeled character column
+            this_img <- this_img %>%
+              dplyr::mutate(
+                label = comb_df$label[match(value, comb_df$img_value)]
+              ) %>% 
+              dplyr::select(dim1, dim2, value, label, image)
+            
+            #this_img$value <- comb_df$label[match(this_img$value, comb_df$img_value)]
+            
+            slc_nestlist[[ii]][[label_name]] <- this_img
+          }
+        }
+      }
+      
+      # can use unnest_longer to get a slices and images/layers on the rows
+      slice_df$slice_data <- slc_nestlist
+      #xx <- slice_df %>% tidyr::unnest_longer(slice_data)
+      
+      # always keep slices as a list of 2D matrices (one per layer/image)
+      slice_df$slice_matrix <- slc
+      slice_df$slice_labels <- com_stats
+      
+      slice_obj <- ggbrain_slices$new(slice_df)
+      if (!is.null(contrasts)) { # compute contrasts, if requested
+        slice_obj$add_contrasts(contrasts)
+      }
+      
+      return(slice_obj)
     },
     
     #' @description get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane
@@ -388,12 +525,8 @@ ggbrain_images <- R6::R6Class(
         # determine world or voxel coordinate system
         coord <- switch(
           axis,
-          i = "voxel",
-          j = "voxel",
-          k = "voxel",
-          x = "world",
-          y = "world",
-          z = "world",
+          i = "voxel", j = "voxel", k = "voxel",
+          x = "world", y = "world", z = "world",
           stop(sprintf("Cannot interpret input: %s", coord_str))
         )
         
@@ -428,7 +561,6 @@ ggbrain_images <- R6::R6Class(
         df <- data.frame(coord_label = paste(axis_label, "=", slc_coords), plane = plane, slice_number = slc_num)
         
         return(df)
-        
       }
       
       slice_df <- lapply(slices, get_slice_num) %>%
@@ -444,81 +576,8 @@ ggbrain_images <- R6::R6Class(
 
 )
 
-
-ggbrain_r6 <- R6::R6Class(
-  classname = "ggbrain",
-  private = list(
-    layer_imgs = list(), # keep original data?
-    pvt_panels = list(),
-    composite_plot = NULL,
-    set_panels = function(panels) {
-      if (checkmate::assert_class(panels, "gg")) {
-
-      }
-      checkmate::assert_list(panels)
-      sapply(panels, function(x) { checkmate::assert_class(x, "ggbrain_panel") })
-      private$pvt_panels <- panels
-    }
-  ),
-  active = list(
-    #' @field panels The ggplot panels
-    panels = function(val) {
-      if (missing(val)) {
-        return(private$pvt_panels)
-      } else {
-        private$set_panels(val)
-      }
-    }
-  ),
-  public = list(
-    #' @description generate empty ggbrain object
-    initialize = function(panels = NULL) {
-      if (is.null(panels)) {
-        stop("Cannot create a ggbrain object without panels!")
-      } else {
-        self$set_panels(panels)
-      }
-    },
-    
-    #' @description plot the composite plot
-    plot = function() {
-      plot(private$composite_plot)
-    },
-    
-    #' @description return the composite plot
-    get_composite_plot = function() {
-      private$composite_plot
-    },
-
-    #' @description future idea? -- multiple views based on cached data
-    create_view = function(slices) {
-      private$views <- c(private$views, "VIEW HERE")
-    }
-  )
-)
-
-# allow for gg + theme() type stuff at panel level
-`+.ggbrain` <- function(gg, args) {
-  gg_new <- gg$clone(deep=TRUE) # need a new object to modify the panels in memory (not by reference)
-  gg_new$panels <- lapply(gg_new$get_panels(), function(gg) { gg + args }) # add to each panel
-  return(gg_new)
-}
-
-# allow for gg %+% theme() stuff at composite level
-# this does not create a new ggbrain object... just adds to the composite plot.
-`%+%.ggbrain` <- function(gg, args) {
-  # gg_new <- gg$clone(deep=TRUE) # need a new object to modify the panels in memory (not by reference)
-  gg$get_composite_plot() + args
-  #return(gg_new)
-}
-
-
 summary.ggbrain_images <- function(gg, args) {
   gg$summary()
 }
 
-
-plot.ggbrain <- function(obj) {
-  obj$plot()
-}
 

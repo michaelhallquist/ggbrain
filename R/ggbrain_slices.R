@@ -20,26 +20,33 @@ ggbrain_slices <- R6::R6Class(
   
   # these active bindings create read-only access to class properties
   active = list(
+    #' @field slice_index read-only access to the slice_index containing the slice numbers
     slice_index = function(value) {
       if (missing(value)) private$pvt_slice_index
       else stop("Cannot assign slice_index")
     },
+    #' @field coord_input the input string used to lookup the slices
     coord_input = function(value) {
       if (missing(value)) private$pvt_coord_input
       else stop("Cannot assign coord_input")
     },
+    #' @field coord_label the calculated x, y, or z coordinate of the relevant slice
     coord_label = function(value) {
       if (missing(value)) private$pvt_coord_label
       else stop("Cannot assign coord_label")
     },
+    #' @field slice_number the slice number along the relevant axis of the 3D image matrix
     slice_number = function(value) {
       if (missing(value)) private$pvt_slice_number
       else stop("Cannot assign slice_number")
     },
+    #' @field slice_data a nested list of data.frames where each element contains all data relevant to
+    #'   that slice and the list elements within are each a given image
     slice_data = function(value) {
       if (missing(value)) private$pvt_slice_data
       else stop("Cannot assign slice_data")
     },
+    #' @field slice_matrix the slice data in matrix form
     slice_matrix = function(value) {
       if (missing(value)) private$pvt_slice_matrix
       else stop("Cannot assign slice_matrix")
@@ -74,6 +81,16 @@ ggbrain_slices <- R6::R6Class(
         private$pvt_contrast_data <- lapply(seq_len(nrow(slice_df)), function(i) list()) # empty lists
       }
     },
+    
+    #' @description computes contrasts of the sliced image data
+    #' @param contrast_list a named list or character vector containing contrasts to be computed.
+    #'   The names of the list form the contrast names, while the values should be character strings
+    #'   that use standard R syntax for logical tests, subsetting, and arithmetic
+    #' @examples 
+    #' \dontrun{
+    #'   slc <- ggbrain_slices$new(slice_df=my_data)
+    #'   slc$add_contrasts(list(pos_vals="overlay[overlay> 0]"))
+    #' }
     add_contrasts = function(contrast_list=NULL) {
       if (checkmate::test_class(contrast_list, "character")) {
         contrast_list = as.list(contrast_list) # tolerate named character vector input
@@ -116,6 +133,7 @@ ggbrain_slices <- R6::R6Class(
       })
       
     },
+    
     #' @description convert the slices object into a data.frame with list-columns for slice data elements
     as_tibble = function() {
       tibble::tibble(
@@ -130,6 +148,9 @@ ggbrain_slices <- R6::R6Class(
         contrast_data=private$pvt_contrast_data
       )
     },
+    
+    #' @description returns a vector of the names of all image and contrast data available in this
+    #'   ggbrain_slices object.
     get_image_names = function() {
       if (length(private$pvt_contrast_data) > 0L) {
         nmc <- names(private$pvt_contrast_data[[1]]) # first slice should be representative
