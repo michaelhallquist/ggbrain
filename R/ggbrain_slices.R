@@ -68,7 +68,11 @@ ggbrain_slices <- R6::R6Class(
       if ("slice_data" %in% df_names) private$pvt_slice_data <- slice_df$slice_data
       if ("slice_labels" %in% df_names) private$pvt_slice_labels <- slice_df$slice_labels
       if ("slice_matrix" %in% df_names) private$pvt_slice_matrix <- slice_df$slice_matrix
-      if ("contrast_data" %in% df_names) private$pvt_contrast_data <- slice_df$contrast_data
+      if ("contrast_data" %in% df_names) {
+        private$pvt_contrast_data <- slice_df$contrast_data
+      } else {
+        private$pvt_contrast_data <- lapply(seq_len(nrow(slice_df)), function(i) list()) # empty lists
+      }
     },
     add_contrasts = function(contrast_list=NULL) {
       if (checkmate::test_class(contrast_list, "character")) {
@@ -76,6 +80,9 @@ ggbrain_slices <- R6::R6Class(
       }
       
       checkmate::assert_list(contrast_list, names = "unique")
+      if (length(private$pvt_slice_data) == 0L) {
+        stop("Cannot use $add_contrasts() if there are no slice_data in the object")
+      }
       
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
@@ -122,6 +129,21 @@ ggbrain_slices <- R6::R6Class(
         slice_matrix=private$pvt_slice_matrix,
         contrast_data=private$pvt_contrast_data
       )
+    },
+    get_image_names = function() {
+      if (length(private$pvt_contrast_data) > 0L) {
+        nmc <- names(private$pvt_contrast_data[[1]]) # first slice should be representative
+      } else {
+        nmc <- NULL
+      }
+      
+      if (length(private$pvt_slice_data) > 0L) {
+        nms <- names(private$pvt_slice_data[[1]]) # first slice should be representative
+      } else {
+        nms <- NULL
+      }
+      
+      return(c(nms, nmc))
     }
   )
 )
