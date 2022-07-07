@@ -4,6 +4,7 @@ Version: 0.1.0.9000
 Authors@R:
     person("Michael", "Hallquist", , "michael.hallquist@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5894-8038"))
+Maintainer: Michael Hallquist <michael.hallquist@gmail.com>
 Description: What the package does (one paragraph).
 Depends: R (>= 3.5.0)
 Imports:
@@ -14,9 +15,11 @@ Imports:
     ggplot2,
     ggnewscale,
     patchwork,
+    purrr,
     rlang,
+    tibble,
     tidyr
 License: `use_gpl3_license()`
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0

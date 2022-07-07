@@ -11,26 +11,27 @@ R6 class for compiling images to render in ggplot
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{ggbrain_images$new()}}
-\item \href{#method-add_images}{\code{ggbrain_images$add_images()}}
-\item \href{#method-dim}{\code{ggbrain_images$dim()}}
-\item \href{#method-get_image_names}{\code{ggbrain_images$get_image_names()}}
-\item \href{#method-get_images}{\code{ggbrain_images$get_images()}}
-\item \href{#method-get_headers}{\code{ggbrain_images$get_headers()}}
-\item \href{#method-remove_images}{\code{ggbrain_images$remove_images()}}
-\item \href{#method-winsorize_images}{\code{ggbrain_images$winsorize_images()}}
-\item \href{#method-na_images}{\code{ggbrain_images$na_images()}}
-\item \href{#method-summary}{\code{ggbrain_images$summary()}}
-\item \href{#method-get_nz_indices}{\code{ggbrain_images$get_nz_indices()}}
-\item \href{#method-get_slices}{\code{ggbrain_images$get_slices()}}
-\item \href{#method-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
-\item \href{#method-lookup_slices}{\code{ggbrain_images$lookup_slices()}}
-\item \href{#method-clone}{\code{ggbrain_images$clone()}}
+\item \href{#method-ggbrain_images-new}{\code{ggbrain_images$new()}}
+\item \href{#method-ggbrain_images-add_labels}{\code{ggbrain_images$add_labels()}}
+\item \href{#method-ggbrain_images-add_images}{\code{ggbrain_images$add_images()}}
+\item \href{#method-ggbrain_images-dim}{\code{ggbrain_images$dim()}}
+\item \href{#method-ggbrain_images-get_image_names}{\code{ggbrain_images$get_image_names()}}
+\item \href{#method-ggbrain_images-get_images}{\code{ggbrain_images$get_images()}}
+\item \href{#method-ggbrain_images-get_headers}{\code{ggbrain_images$get_headers()}}
+\item \href{#method-ggbrain_images-remove_images}{\code{ggbrain_images$remove_images()}}
+\item \href{#method-ggbrain_images-winsorize_images}{\code{ggbrain_images$winsorize_images()}}
+\item \href{#method-ggbrain_images-na_images}{\code{ggbrain_images$na_images()}}
+\item \href{#method-ggbrain_images-summary}{\code{ggbrain_images$summary()}}
+\item \href{#method-ggbrain_images-get_nz_indices}{\code{ggbrain_images$get_nz_indices()}}
+\item \href{#method-ggbrain_images-get_slices}{\code{ggbrain_images$get_slices()}}
+\item \href{#method-ggbrain_images-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
+\item \href{#method-ggbrain_images-lookup_slices}{\code{ggbrain_images$lookup_slices()}}
+\item \href{#method-ggbrain_images-clone}{\code{ggbrain_images$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-new"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-new}{}}}
 \subsection{Method \code{new()}}{
 create ggbrain_images object consisting of one or more NIfTI images
 \subsection{Usage}{
@@ -46,8 +47,32 @@ create ggbrain_images object consisting of one or more NIfTI images
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-add_images"></a>}}
-\if{latex}{\out{\hypertarget{method-add_images}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-add_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-add_labels}{}}}
+\subsection{Method \code{add_labels()}}{
+add a labels data.frame that connects an integer-valued image with a set of labels
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_labels(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{named arguments containing data.frame objects for each image to be labeled. The argument name should
+match the image name to be labeled and the value should be a data.frame containing \code{img_value} and \code{label}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
+text-based labels in the label data. In addition, a new attribute will be returned called "slice_labels" that contains
+a row for each region represented in each slice.
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-add_images"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-add_images}{}}}
 \subsection{Method \code{add_images()}}{
 add one or more images to this ggbrain_images object
 \subsection{Usage}{
@@ -63,8 +88,8 @@ add one or more images to this ggbrain_images object
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-dim"></a>}}
-\if{latex}{\out{\hypertarget{method-dim}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-dim"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-dim}{}}}
 \subsection{Method \code{dim()}}{
 return the 3D dimensions of the images contained in this object
 \subsection{Usage}{
@@ -73,8 +98,8 @@ return the 3D dimensions of the images contained in this object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_image_names"></a>}}
-\if{latex}{\out{\hypertarget{method-get_image_names}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-get_image_names"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_image_names}{}}}
 \subsection{Method \code{get_image_names()}}{
 return the names of the images contained in this object
 \subsection{Usage}{
@@ -83,8 +108,8 @@ return the names of the images contained in this object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_images"></a>}}
-\if{latex}{\out{\hypertarget{method-get_images}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-get_images"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_images}{}}}
 \subsection{Method \code{get_images()}}{
 return the RNifti objects of one or more images contained in this object
 \subsection{Usage}{
@@ -104,8 +129,8 @@ containing that object.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_headers"></a>}}
-\if{latex}{\out{\hypertarget{method-get_headers}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-get_headers"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_headers}{}}}
 \subsection{Method \code{get_headers()}}{
 return the NIfTI headers for one or more images contained in this object
 \subsection{Usage}{
@@ -125,8 +150,8 @@ containing that object.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-remove_images"></a>}}
-\if{latex}{\out{\hypertarget{method-remove_images}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-remove_images"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-remove_images}{}}}
 \subsection{Method \code{remove_images()}}{
 method for removing one or more images from the ggbrain_images object
 \subsection{Usage}{
@@ -142,8 +167,8 @@ method for removing one or more images from the ggbrain_images object
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-winsorize_images"></a>}}
-\if{latex}{\out{\hypertarget{method-winsorize_images}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-winsorize_images"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-winsorize_images}{}}}
 \subsection{Method \code{winsorize_images()}}{
 winsorize the tails of a set of images to pull in extreme values
 \subsection{Usage}{
@@ -161,8 +186,8 @@ winsorize the tails of a set of images to pull in extreme values
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-na_images"></a>}}
-\if{latex}{\out{\hypertarget{method-na_images}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-na_images"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-na_images}{}}}
 \subsection{Method \code{na_images()}}{
 method to set values less than \code{threshold} to NA
 \subsection{Usage}{
@@ -181,8 +206,8 @@ If \code{NULL}, use the pvt_zero_tol field (default 1e-6).}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-summary"></a>}}
-\if{latex}{\out{\hypertarget{method-summary}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-summary"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-summary}{}}}
 \subsection{Method \code{summary()}}{
 print a summary of the ggbrain_images object
 \subsection{Usage}{
@@ -191,8 +216,8 @@ print a summary of the ggbrain_images object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_nz_indices"></a>}}
-\if{latex}{\out{\hypertarget{method-get_nz_indices}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-get_nz_indices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_nz_indices}{}}}
 \subsection{Method \code{get_nz_indices()}}{
 return the indices of non-zero voxels
 \subsection{Usage}{
@@ -213,17 +238,17 @@ Or in more technical terms,
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_slices"></a>}}
-\if{latex}{\out{\hypertarget{method-get_slices}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-get_slices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_slices}{}}}
 \subsection{Method \code{get_slices()}}{
 get slice data for one or more slices based on their coordinates
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_slices(
   slices,
   img_names = NULL,
+  contrasts = NULL,
   make_square = TRUE,
-  remove_null_space = TRUE,
-  as_data_frame = TRUE
+  remove_null_space = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -234,18 +259,25 @@ get slice data for one or more slices based on their coordinates
 
 \item{\code{img_names}}{a character vector of images contained in the ggbrain_images object to be sliced}
 
+\item{\code{contrasts}}{a named character vector of contrasts to be calculated for each slice}
+
 \item{\code{make_square}}{If TRUE, make all images square and of the same size}
 
 \item{\code{remove_null_space}}{If TRUE, remove slices where all values are approximately zero}
-
-\item{\code{as_data_frame}}{If TRUE, return slices as a data.frame indexed by slice, image layer, and the image matrix}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+This function always returns a data.frame where each row represents a slice requested
+by the user. The $slice_data element is a list-column where each element is itself a list
+of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
+is a list-column where each element is a list of 2-D matrices, one per layer/image.
+}
+
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_slices_inplane"></a>}}
-\if{latex}{\out{\hypertarget{method-get_slices_inplane}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-get_slices_inplane"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_slices_inplane}{}}}
 \subsection{Method \code{get_slices_inplane()}}{
 get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane
 \subsection{Usage}{
@@ -275,8 +307,8 @@ A 3D matrix of slices x dim1 x dim2
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-lookup_slices"></a>}}
-\if{latex}{\out{\hypertarget{method-lookup_slices}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-lookup_slices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-lookup_slices}{}}}
 \subsection{Method \code{lookup_slices()}}{
 internal function to lookup which slices to display along each axis based on their quantile,
 xyz coordinate, or ijk coordinate
@@ -296,8 +328,8 @@ use the quantiles of only the non-zero slices (ignoring blank sliaces)}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-ggbrain_images-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

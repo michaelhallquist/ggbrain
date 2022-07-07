@@ -11,21 +11,21 @@ R6 class for a single layer of a ggbrain panel
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{ggbrain_layer$new()}}
-\item \href{#method-set_limits}{\code{ggbrain_layer$set_limits()}}
-\item \href{#method-set_breaks}{\code{ggbrain_layer$set_breaks()}}
-\item \href{#method-set_name}{\code{ggbrain_layer$set_name()}}
-\item \href{#method-plot}{\code{ggbrain_layer$plot()}}
-\item \href{#method-add_to_gg}{\code{ggbrain_layer$add_to_gg()}}
-\item \href{#method-get_data}{\code{ggbrain_layer$get_data()}}
-\item \href{#method-get_name}{\code{ggbrain_layer$get_name()}}
-\item \href{#method-is_empty}{\code{ggbrain_layer$is_empty()}}
-\item \href{#method-clone}{\code{ggbrain_layer$clone()}}
+\item \href{#method-ggbrain_layer-new}{\code{ggbrain_layer$new()}}
+\item \href{#method-ggbrain_layer-set_limits}{\code{ggbrain_layer$set_limits()}}
+\item \href{#method-ggbrain_layer-set_breaks}{\code{ggbrain_layer$set_breaks()}}
+\item \href{#method-ggbrain_layer-set_name}{\code{ggbrain_layer$set_name()}}
+\item \href{#method-ggbrain_layer-plot}{\code{ggbrain_layer$plot()}}
+\item \href{#method-ggbrain_layer-add_to_gg}{\code{ggbrain_layer$add_to_gg()}}
+\item \href{#method-ggbrain_layer-get_data}{\code{ggbrain_layer$get_data()}}
+\item \href{#method-ggbrain_layer-get_name}{\code{ggbrain_layer$get_name()}}
+\item \href{#method-ggbrain_layer-is_empty}{\code{ggbrain_layer$is_empty()}}
+\item \href{#method-ggbrain_layer-clone}{\code{ggbrain_layer$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-new"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-new}{}}}
 \subsection{Method \code{new()}}{
 create a new ggbrain_layer object
 \subsection{Usage}{
@@ -63,8 +63,8 @@ layer.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_limits"></a>}}
-\if{latex}{\out{\hypertarget{method-set_limits}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_limits"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_limits}{}}}
 \subsection{Method \code{set_limits()}}{
 set the limits for this layer's scale
 \subsection{Usage}{
@@ -80,8 +80,8 @@ set the limits for this layer's scale
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_breaks"></a>}}
-\if{latex}{\out{\hypertarget{method-set_breaks}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_breaks"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_breaks}{}}}
 \subsection{Method \code{set_breaks()}}{
 set the breaks element of this layer's scale
 \subsection{Usage}{
@@ -97,8 +97,8 @@ set the breaks element of this layer's scale
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_name"></a>}}
-\if{latex}{\out{\hypertarget{method-set_name}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_name"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_name}{}}}
 \subsection{Method \code{set_name()}}{
 set the layer name
 \subsection{Usage}{
@@ -114,8 +114,8 @@ set the layer name
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-plot}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-plot}{}}}
 \subsection{Method \code{plot()}}{
 plot this layer alone (mostly for debugging)
 \subsection{Usage}{
@@ -124,8 +124,8 @@ plot this layer alone (mostly for debugging)
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-add_to_gg"></a>}}
-\if{latex}{\out{\hypertarget{method-add_to_gg}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-add_to_gg"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-add_to_gg}{}}}
 \subsection{Method \code{add_to_gg()}}{
 method to add this layer to an existing ggplot object
 \subsection{Usage}{
@@ -141,8 +141,8 @@ method to add this layer to an existing ggplot object
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_data"></a>}}
-\if{latex}{\out{\hypertarget{method-get_data}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-get_data"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-get_data}{}}}
 \subsection{Method \code{get_data()}}{
 return the data.frame associated with this layer
 \subsection{Usage}{
@@ -159,8 +159,8 @@ Default: FALSE.}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_name"></a>}}
-\if{latex}{\out{\hypertarget{method-get_name}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-get_name"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-get_name}{}}}
 \subsection{Method \code{get_name()}}{
 return the layer name
 \subsection{Usage}{
@@ -169,8 +169,8 @@ return the layer name
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-is_empty"></a>}}
-\if{latex}{\out{\hypertarget{method-is_empty}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-is_empty"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-is_empty}{}}}
 \subsection{Method \code{is_empty()}}{
 returns TRUE if all values are NA or if the data has 0 rows
 \subsection{Usage}{
@@ -179,8 +179,8 @@ returns TRUE if all values are NA or if the data has 0 rows
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-ggbrain_layer-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

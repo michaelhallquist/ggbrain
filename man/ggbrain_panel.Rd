@@ -18,22 +18,22 @@ R6 class for a single panel of a ggbrain image
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{ggbrain_panel$new()}}
-\item \href{#method-reset_limits}{\code{ggbrain_panel$reset_limits()}}
-\item \href{#method-plot}{\code{ggbrain_panel$plot()}}
-\item \href{#method-add_to_gg}{\code{ggbrain_panel$add_to_gg()}}
-\item \href{#method-add_layer}{\code{ggbrain_panel$add_layer()}}
-\item \href{#method-remove_layers}{\code{ggbrain_panel$remove_layers()}}
-\item \href{#method-get_data}{\code{ggbrain_panel$get_data()}}
-\item \href{#method-get_layer_names}{\code{ggbrain_panel$get_layer_names()}}
-\item \href{#method-get_layers}{\code{ggbrain_panel$get_layers()}}
-\item \href{#method-set_layer_order}{\code{ggbrain_panel$set_layer_order()}}
-\item \href{#method-clone}{\code{ggbrain_panel$clone()}}
+\item \href{#method-ggbrain_panel-new}{\code{ggbrain_panel$new()}}
+\item \href{#method-ggbrain_panel-reset_limits}{\code{ggbrain_panel$reset_limits()}}
+\item \href{#method-ggbrain_panel-plot}{\code{ggbrain_panel$plot()}}
+\item \href{#method-ggbrain_panel-add_to_gg}{\code{ggbrain_panel$add_to_gg()}}
+\item \href{#method-ggbrain_panel-add_layer}{\code{ggbrain_panel$add_layer()}}
+\item \href{#method-ggbrain_panel-remove_layers}{\code{ggbrain_panel$remove_layers()}}
+\item \href{#method-ggbrain_panel-get_data}{\code{ggbrain_panel$get_data()}}
+\item \href{#method-ggbrain_panel-get_layer_names}{\code{ggbrain_panel$get_layer_names()}}
+\item \href{#method-ggbrain_panel-get_layers}{\code{ggbrain_panel$get_layers()}}
+\item \href{#method-ggbrain_panel-set_layer_order}{\code{ggbrain_panel$set_layer_order()}}
+\item \href{#method-ggbrain_panel-clone}{\code{ggbrain_panel$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-new"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-new}{}}}
 \subsection{Method \code{new()}}{
 create a new ggbrain_panel object
 \subsection{Usage}{
@@ -74,25 +74,26 @@ drawn around the plot. Default: FALSE}
 
 \item{\code{ylab}}{The label to place on y axis. Default is NULL.}
 
-\item{\code{theme_custom}}{Any custom theme() settings to be added to the plot
-plot the panel}
+\item{\code{theme_custom}}{Any custom theme() settings to be added to the plot}
 }
 \if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-reset_limits"></a>}}
-\if{latex}{\out{\hypertarget{method-reset_limits}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-reset_limits"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-reset_limits}{}}}
 \subsection{Method \code{reset_limits()}}{
+Reset the scale limits for the specified layers
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$reset_limits(layer_names)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-plot"></a>}}
-\if{latex}{\out{\hypertarget{method-plot}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-plot}{}}}
 \subsection{Method \code{plot()}}{
+plot the panel
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$plot(use_global_limits = TRUE)}\if{html}{\out{</div>}}
 }
@@ -106,8 +107,8 @@ plot the panel}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-add_to_gg"></a>}}
-\if{latex}{\out{\hypertarget{method-add_to_gg}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-add_to_gg"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-add_to_gg}{}}}
 \subsection{Method \code{add_to_gg()}}{
 add one or more custom ggplot settings to the panel
 \subsection{Usage}{
@@ -130,8 +131,8 @@ to programmatically add elements to a ggplot, pass in a list where each element 
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-add_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-add_layer}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-add_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-add_layer}{}}}
 \subsection{Method \code{add_layer()}}{
 adds a ggplot_layer object to the panel
 \subsection{Usage}{
@@ -147,8 +148,8 @@ adds a ggplot_layer object to the panel
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-remove_layers"></a>}}
-\if{latex}{\out{\hypertarget{method-remove_layers}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-remove_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-remove_layers}{}}}
 \subsection{Method \code{remove_layers()}}{
 removes one or more layers by name
 \subsection{Usage}{
@@ -164,8 +165,8 @@ removes one or more layers by name
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_data"></a>}}
-\if{latex}{\out{\hypertarget{method-get_data}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-get_data"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-get_data}{}}}
 \subsection{Method \code{get_data()}}{
 returns the data for all layers in the object
 \subsection{Usage}{
@@ -174,8 +175,8 @@ returns the data for all layers in the object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_layer_names"></a>}}
-\if{latex}{\out{\hypertarget{method-get_layer_names}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-get_layer_names"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-get_layer_names}{}}}
 \subsection{Method \code{get_layer_names()}}{
 returns the names of the layers in this panel, ordered from bottom to top
 \subsection{Usage}{
@@ -184,8 +185,8 @@ returns the names of the layers in this panel, ordered from bottom to top
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_layers"></a>}}
-\if{latex}{\out{\hypertarget{method-get_layers}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-get_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-get_layers}{}}}
 \subsection{Method \code{get_layers()}}{
 returns a list of ggbrain_layer objects that comprise this panel
 \subsection{Usage}{
@@ -194,8 +195,8 @@ returns a list of ggbrain_layer objects that comprise this panel
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_layer_order"></a>}}
-\if{latex}{\out{\hypertarget{method-set_layer_order}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-set_layer_order"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-set_layer_order}{}}}
 \subsection{Method \code{set_layer_order()}}{
 sets the order of layers from bottom to top based on the layer names provided
 \subsection{Usage}{
@@ -212,8 +213,8 @@ must be provided, not just a subset}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-ggbrain_panel-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{
