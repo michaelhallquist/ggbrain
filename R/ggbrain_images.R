@@ -1,4 +1,4 @@
-#' R6 class for compiling images to render in ggplot
+#' @title R6 class for compiling images to render in ggplot
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
 #' @importFrom rlang flatten
 #' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
@@ -18,35 +18,44 @@ ggbrain_images <- R6::R6Class(
     pvt_dims = NULL, # x, y, z extent
     pvt_zero_tol = 1e-6, # threshold for what constitutes a non-zero voxel
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
-    set_images = function(images) {
-      checkmate::assert_character(images)
-      checkmate::assert_file_exists(images)
-      if (is.null(names(images))) {
-        warning(
-          "The images vector does not contain any names. ",
-          "This may lead to weird behaviors downstream if 'underlay' and 'overlay' are requested."
-        )
-        names(images) <- make.unique(basename(images))
-      } else if (any(names(images) == "")) {
-        which_empty <- names(images) == ""
-        names(images)[which_empty] <- make.unique(basename(images[which_empty]))
-      }
-
-      if (!"underlay" %in% c(private$pvt_img_names, names(images))) {
-        warning("'underlay' is not among the images provided. This may lead to weirdness downstream.")
-      }
-
-      img_list <- sapply(images, function(ff) {
-        img <- RNifti::readNifti(ff)
-
-        # round very small values to zero
-        if (!is.null(private$pvt_zero_tol) && private$pvt_zero_tol > 0) {
-          img[img > -1 * private$pvt_zero_tol & img < private$pvt_zero_tol] <- 0
+    pvt_slices = NULL, # allows caching of slices for + approach
+    
+    set_images = function(images = NULL) {
+      if (is.null(images)) { return(NULL) } # skip out
+      
+      if (checkmate::test_character(images)) {
+        checkmate::assert_file_exists(images)
+        if (is.null(names(images))) {
+          warning(
+            "The images vector does not contain any names. ",
+            "This may lead to weird behaviors downstream if 'underlay' and 'overlay' are requested."
+          )
+          names(images) <- make.unique(basename(images))
+        } else if (any(names(images) == "")) {
+          which_empty <- names(images) == ""
+          names(images)[which_empty] <- make.unique(basename(images[which_empty]))
         }
-
-        return(img)
-      }, simplify = FALSE)
-
+        
+        if (!"underlay" %in% c(private$pvt_img_names, names(images))) {
+          warning("'underlay' is not among the images provided. This may lead to weirdness downstream.")
+        }
+        
+        img_list <- sapply(images, function(ff) {
+          img <- RNifti::readNifti(ff)
+          
+          # round very small values to zero
+          if (!is.null(private$pvt_zero_tol) && private$pvt_zero_tol > 0) {
+            img[img > -1 * private$pvt_zero_tol & img < private$pvt_zero_tol] <- 0
+          }
+          
+          return(img)
+        }, simplify = FALSE)
+      } else if (checkmate::test_list(images)) {
+        checkmate::assert_named(images, type = "unique") # unique names
+        sapply(images, function(x) { checkmate::assert_class(x, "niftiImage") }) # enforce RNifti objects
+        img_list <- images
+      }
+      
       img_dims <- cbind(sapply(img_list, dim), extant=private$pvt_dims) # xyz x images matrix augmented by stored dims
       dim_match <- apply(img_dims, 1, function(row) {
         length(unique(row)) == 1L
@@ -64,11 +73,60 @@ ggbrain_images <- R6::R6Class(
       private$pvt_nz_range <- self$get_nz_indices()
     }
   ),
+  active = list(
+    #' @field zero_tol the (positive) numeric value that should be treated as indistinguishable from zero.
+    #'   This value is used to set small values in the images to exactly zero for proper masking. Default 1e-6
+    zero_tol = function(value) {
+      if (missing(value)) {
+        private$pvt_zero_tol
+      } else {
+        checkmate::assert_number(value, lower=0) # force positive number
+        private$pvt_zero_tol <- value
+      }
+    },
+    #' @field slices a character vector of cached slice specifications to be used in $get_slices()
+    slices = function(value) {
+      if (missing(value)) {
+        private$pvt_slices
+      } else {
+        checkmate::assert_character(value) # probably need better validation...
+        private$pvt_slices <- value
+      }
+    }
+  ),
   public = list(
     #' @description create ggbrain_images object consisting of one or more NIfTI images
     #' @param images a character vector of file names containing NIfTI images to read 
-    initialize = function(images) {
+    initialize = function(images = NULL) {
       private$set_images(images)
+    },
+    
+    #' @description method to add another ggbrain_images object to this one
+    #' @param obj the ggbrain_images object to combine with this one
+    add = function(obj) {
+      checkmate::assert_class(obj, "ggbrain_images")
+      if (!identical(obj$dim(), self$dim())) {
+        stop(glue("Dimensions of existing object ({paste(self$dim(), collapse=',')})",
+                  "do not match object to add ({paste(obj$dim(), collapse=',')})"))
+      }
+      
+      if (!identical(obj$zero_tol, self$zero_tol)) {
+        new_tol <- min(obj$zero_tol, self$zero_tol)
+        message(glue("Using lesser of zero tolerances ({new_tol}) in combined object"))
+        self$zero_tol <- new_tol
+      }
+      
+      # add any slice specifications from other object
+      self$add_slices(obj$slices)
+      
+      # get image list (list of Niftis) of object to be added
+      self$add_images(obj$get_images(drop=FALSE))
+      
+      # use do.call to build a named ... list of arguments
+      do.call(self$add_labels, obj$get_labels())
+      
+      # pvt_img_labels = list(), # list of data.frames containing labels for a label image
+      return(self)
     },
     
     #' @description add a labels data.frame that connects an integer-valued image with a set of labels
@@ -81,6 +139,9 @@ ggbrain_images <- R6::R6Class(
     #'   a row for each region represented in each slice.
     add_labels = function(...) {
       label_args <- list(...)
+      
+      # return unchanged object if no input labels found
+      if (is.null(label_args) || length(label_args) == 0L) { return(self) }
       label_names <- names(label_args)
       if (is.null(label_names) || any(label_names == "")) {
         stop("All arguments must be named, with the name referring to the image to be labeled.")
@@ -100,24 +161,14 @@ ggbrain_images <- R6::R6Class(
         private$pvt_img_labels[[ label_names[x] ]] <- label_args[[x]]
       }
       
-      # labels_df <- labels_df %>% group_by(img_name)
-      # gnames <- group_keys(labels_df)$img_name
-      # gvals <- group_split(labels_df)
-      
-      # lapply(seq_along(gvals), function(x) {
-      #   cur_vals <- private$pvt_img_labels[[ gnames[x] ]]
-      #   if (!is.null(cur_vals)) {
-      #     message(glue("Image {gnames[x]} has label, which will replaced"))
-      #   } 
-      #   private$pvt_img_labels[[ gnames[x] ]] <- gvals[[x]]
-      # })
-      
+      return(self)
     },
     
     #' @description add one or more images to this ggbrain_images object
     #' @param images a character vector of file names containing NIfTI images to read 
-    add_images = function(images) {
+    add_images = function(images = NULL) {
       private$set_images(images)
+      return(self)
     },
     
     #' @description return the 3D dimensions of the images contained in this object
@@ -243,7 +294,6 @@ ggbrain_images <- R6::R6Class(
     #' @description return the indices of non-zero voxels
     #' @param img_names The names of images in the ggbrain_images object whose non-zero indices should be looked up
     #' @details Note that this function looks for non-zero voxels in any of the images specified by \code{img_names}.
-    #'   Or in more technical terms, 
     get_nz_indices = function(img_names = NULL) {
       if (is.null(img_names)) {
         if (!is.null(private$pvt_nz_range)) {
@@ -273,6 +323,24 @@ ggbrain_images <- R6::R6Class(
         range(nz_pos[, j])
       }) %>% setNames(c("i", "j", "k"))
     },
+    
+    #' @description adds one or more slices to the cached slices that will be retrieved by
+    #'   $get_slices() when no \code{slices} argument is passed.
+    #' @param slices a character vector containing one or more slices to be extracted by \code{$get_slices}.
+    #'   Uses the syntax `"<xyz>=<number>"`. Example: `c("x=10", "y=50%")`
+    add_slices = function(slices = NULL) {
+      if (!is.null(slices)) {
+        checkmate::assert_character(slices)
+        private$pvt_slices <- c(private$pvt_slices, slices)
+      }
+      return(self)
+    },
+    
+    #' @description remove all cached slice settings
+    reset_slices = function() {
+      private$pvt_slices <- NULL
+      return(self)
+    },
 
     #' @description get slice data for one or more slices based on their coordinates
     #' @param slices a vector of slice positions
@@ -284,8 +352,11 @@ ggbrain_images <- R6::R6Class(
     #'   by the user. The $slice_data element is a list-column where each element is itself a list
     #'   of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
     #'   is a list-column where each element is a list of 2-D matrices, one per layer/image.
-    #'   
-    get_slices = function(slices, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
+    #'  @return a ggbrain_slices object containing the requested slices and contrasts 
+    get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
+      if (is.null(slices) && !is.null(private$pvt_slices)) {
+        slices <- private$pvt_slices # use cached slice settings
+      }
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       all_img_names <- self$get_image_names()
       if (!is.null(img_names)) {
@@ -355,23 +426,6 @@ ggbrain_images <- R6::R6Class(
         com_stats <- NULL
         label_imgs <- NULL
       }
-      
-      # if (isTRUE(as_data_frame)) {
-      #   slc2 <- lapply(slc, function(dd) {
-      #     # each element of dd is a square matrix for a given image
-      #     lapply(names(dd), function(lname) {
-      #       df <- reshape2::melt(dd[[lname]], varnames = c("dim1", "dim2"))
-      #       df$image <- lname
-      #       return(df)
-      #     }) %>% dplyr::bind_rows()
-      #   })
-      # 
-      #   slice_df$slice_data <- slc
-      #   slice_df <- slice_df %>% tidyr::unnest(slice_data)
-      # } else {
-      #   # add list column for slice data
-      #   slice_df$slice_data <- slc
-      # }
       
       # create a list of image data.frames for each slice
       slc_nestlist <- lapply(slc, function(dd) {
@@ -469,6 +523,12 @@ ggbrain_images <- R6::R6Class(
         if (isTRUE(drop)) slc_mat <- drop(slc_mat)
         return(slc_mat)
       }, simplify = FALSE)
+    },
+    
+    #' @description return a list of data.frames containing labels for a given image
+    #' @details the names of the list correspond directly with the names of the images
+    get_labels = function() {
+      return(private$pvt_img_labels)
     },
     
     #' @description internal function to lookup which slices to display along each axis based on their quantile,
@@ -581,3 +641,43 @@ summary.ggbrain_images <- function(gg, args) {
 }
 
 
+#'addition operator for combining ggbrain_images objects
+#' @param o1 first ggbrain_images object
+#' @param o2 second ggbrain_images object
+#' @return combined ggbrain_images object
+#' @details note that the addition does not modify either existing object. Rather,
+#'   the first object is cloned and the second is added to it. If you want to add one
+#'   ggbrain_images object to another in place (i.e., modifying the extant object), use
+#'   the $add() method.
+#' @export
+`+.ggbrain_images` <- function(o1, o2) {
+  if (!identical(o1$dim(), o2$dim())) {
+    stop("ggbrain_images objects must have the same dimensions to be added together")
+  }
+  
+  # always work from copy
+  oc <- o1$clone(deep = TRUE)
+  
+  # add objects using add method
+  oc$add(o2)
+}
+
+
+# testing
+# test <- data.frame(img_value=100, label="hello")
+# 
+# i1 <- ggbrain_images$new(images=c(underlay = "template_brain.nii.gz"))
+# i1$add_slices("x=10")
+# i1$add_labels(underlay=test)
+# 
+# i2 <- ggbrain_images$new(images=c(atlas = "template_brain.nii.gz"))
+# i2$add_slices("y=10")
+# i2$add_labels(atlas=test)
+# 
+# ic <- i1+i2
+# ic$slices
+# ic$get_labels()
+# ic$get_images()
+# ic$get_nz_indices()
+
+#i1$add(i2) # add by reference

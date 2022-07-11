@@ -8,10 +8,21 @@ R6 class for compiling images to render in ggplot
 
 R6 class for compiling images to render in ggplot
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{zero_tol}}{the (positive) numeric value that should be treated as indistinguishable from zero.
+This value is used to set small values in the images to exactly zero for proper masking. Default 1e-6}
+
+\item{\code{slices}}{a character vector of cached slice specifications to be used in $get_slices()}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggbrain_images-new}{\code{ggbrain_images$new()}}
+\item \href{#method-ggbrain_images-add}{\code{ggbrain_images$add()}}
 \item \href{#method-ggbrain_images-add_labels}{\code{ggbrain_images$add_labels()}}
 \item \href{#method-ggbrain_images-add_images}{\code{ggbrain_images$add_images()}}
 \item \href{#method-ggbrain_images-dim}{\code{ggbrain_images$dim()}}
@@ -23,8 +34,11 @@ R6 class for compiling images to render in ggplot
 \item \href{#method-ggbrain_images-na_images}{\code{ggbrain_images$na_images()}}
 \item \href{#method-ggbrain_images-summary}{\code{ggbrain_images$summary()}}
 \item \href{#method-ggbrain_images-get_nz_indices}{\code{ggbrain_images$get_nz_indices()}}
+\item \href{#method-ggbrain_images-add_slices}{\code{ggbrain_images$add_slices()}}
+\item \href{#method-ggbrain_images-reset_slices}{\code{ggbrain_images$reset_slices()}}
 \item \href{#method-ggbrain_images-get_slices}{\code{ggbrain_images$get_slices()}}
 \item \href{#method-ggbrain_images-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
+\item \href{#method-ggbrain_images-get_labels}{\code{ggbrain_images$get_labels()}}
 \item \href{#method-ggbrain_images-lookup_slices}{\code{ggbrain_images$lookup_slices()}}
 \item \href{#method-ggbrain_images-clone}{\code{ggbrain_images$clone()}}
 }
@@ -35,13 +49,30 @@ R6 class for compiling images to render in ggplot
 \subsection{Method \code{new()}}{
 create ggbrain_images object consisting of one or more NIfTI images
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-add"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-add}{}}}
+\subsection{Method \code{add()}}{
+method to add another ggbrain_images object to this one
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add(obj)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{obj}}{the ggbrain_images object to combine with this one}
 }
 \if{html}{\out{</div>}}
 }
@@ -76,7 +107,7 @@ a row for each region represented in each slice.
 \subsection{Method \code{add_images()}}{
 add one or more images to this ggbrain_images object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -233,7 +264,35 @@ return the indices of non-zero voxels
 }
 \subsection{Details}{
 Note that this function looks for non-zero voxels in any of the images specified by \code{img_names}.
-Or in more technical terms,
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-add_slices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-add_slices}{}}}
+\subsection{Method \code{add_slices()}}{
+adds one or more slices to the cached slices that will be retrieved by
+$get_slices() when no \code{slices} argument is passed.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_slices(slices = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{slices}}{a character vector containing one or more slices to be extracted by \code{$get_slices}.
+Uses the syntax \code{"<xyz>=<number>"}. Example: \code{c("x=10", "y=50\%")}}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-reset_slices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-reset_slices}{}}}
+\subsection{Method \code{reset_slices()}}{
+remove all cached slice settings
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$reset_slices()}\if{html}{\out{</div>}}
 }
 
 }
@@ -244,7 +303,7 @@ Or in more technical terms,
 get slice data for one or more slices based on their coordinates
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_slices(
-  slices,
+  slices = NULL,
   img_names = NULL,
   contrasts = NULL,
   make_square = TRUE,
@@ -272,6 +331,7 @@ This function always returns a data.frame where each row represents a slice requ
 by the user. The $slice_data element is a list-column where each element is itself a list
 of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
 is a list-column where each element is a list of 2-D matrices, one per layer/image.
+@return a ggbrain_slices object containing the requested slices and contrasts
 }
 
 }
@@ -305,6 +365,20 @@ get_slices_inplane is mostly an internal funciton for getting one or more slices
 \subsection{Returns}{
 A 3D matrix of slices x dim1 x dim2
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-get_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_labels}{}}}
+\subsection{Method \code{get_labels()}}{
+return a list of data.frames containing labels for a given image
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_labels()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+the names of the list correspond directly with the names of the images
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-lookup_slices"></a>}}
