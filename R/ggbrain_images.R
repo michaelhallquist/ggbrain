@@ -105,8 +105,11 @@ ggbrain_images <- R6::R6Class(
     #' @param obj the ggbrain_images object to combine with this one
     add = function(obj) {
       checkmate::assert_class(obj, "ggbrain_images")
-      if (!identical(obj$dim(), self$dim())) {
-        stop(glue("Dimensions of existing object ({paste(self$dim(), collapse=',')})",
+      # nothing to add
+      if (is.null(obj$get_image_names())) {
+        return(self)
+      } else if (!is.null(self$get_image_names()) && !identical(obj$dim(), self$dim())) {
+        stop(glue::glue("Dimensions of existing object ({paste(self$dim(), collapse=',')})",
                   "do not match object to add ({paste(obj$dim(), collapse=',')})"))
       }
       
@@ -354,8 +357,12 @@ ggbrain_images <- R6::R6Class(
     #'   is a list-column where each element is a list of 2-D matrices, one per layer/image.
     #'  @return a ggbrain_slices object containing the requested slices and contrasts 
     get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
-      if (is.null(slices) && !is.null(private$pvt_slices)) {
-        slices <- private$pvt_slices # use cached slice settings
+      if (is.null(slices)) {
+        if (!is.null(private$pvt_slices)) {
+          slices <- private$pvt_slices # use cached slice settings
+        } else {
+          stop("No slices have been provided and none are in the $slices field. Cannot determine what to extract.")
+        }
       }
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       all_img_names <- self$get_image_names()
