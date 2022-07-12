@@ -66,20 +66,20 @@ ggbrain_slices <- R6::R6Class(
     #' @details If this becomes a user-facing/exported class, we may want a more friendly constructor
     initialize = function(slice_df = NULL) {
       checkmate::assert_data_frame(slice_df)
+
+      # empty lists for populating unused fields -- match length of slice_df for consistency
+      empty_list <- lapply(seq_len(nrow(slice_df)), function(i) list())
+
       df_names <- names(slice_df)
-      if ("coord_input" %in% df_names) private$pvt_coord_input <- slice_df$coord_input
-      if ("coord_label" %in% df_names) private$pvt_coord_label <- slice_df$coord_label
-      if ("plane" %in% df_names) private$pvt_plane <- slice_df$plane
-      if ("slice_index" %in% df_names) private$pvt_slice_index <- slice_df$slice_index
-      if ("slice_number" %in% df_names) private$pvt_slice_number <- slice_df$slice_number
-      if ("slice_data" %in% df_names) private$pvt_slice_data <- slice_df$slice_data
-      if ("slice_labels" %in% df_names) private$pvt_slice_labels <- slice_df$slice_labels
-      if ("slice_matrix" %in% df_names) private$pvt_slice_matrix <- slice_df$slice_matrix
-      if ("contrast_data" %in% df_names) {
-        private$pvt_contrast_data <- slice_df$contrast_data
-      } else {
-        private$pvt_contrast_data <- lapply(seq_len(nrow(slice_df)), function(i) list()) # empty lists
-      }
+      private$pvt_coord_input <- ifelse("coord_input" %in% df_names, slice_df$coord_input, empty_list)
+      private$pvt_coord_label <- ifelse("coord_label" %in% df_names, slice_df$coord_label, empty_list)
+      private$pvt_plane <- ifelse("plane" %in% df_names, slice_df$plane, empty_list)
+      private$pvt_slice_index <- ifelse("slice_index" %in% df_names, slice_df$slice_index, empty_list)
+      private$pvt_slice_number <- ifelse("slice_number" %in% df_names, slice_df$slice_number, empty_list)
+      private$pvt_slice_data <- ifelse("slice_data" %in% df_names, slice_df$slice_data, empty_list)
+      private$pvt_slice_labels <- ifelse("slice_labels" %in% df_names, slice_df$slice_labels, empty_list)
+      private$pvt_slice_matrix <- ifelse("slice_matrix" %in% df_names, slice_df$slice_matrix, empty_list)
+      private$pvt_contrast_data <- ifelse("contrast_data" %in% df_names, slice_df$contrast_data, empty_list)
     },
     
     #' @description computes contrasts of the sliced image data
@@ -111,7 +111,7 @@ ggbrain_slices <- R6::R6Class(
         names(ss) <- sub("_value$", "", names(ss)) # remove _value suffix to make evaluation of contrasts easier
         return(ss)
       })
-      
+
       if (any(names(contrast_list) %in% names(private$pvt_contrast_data))) {
         overlap <- intersect(names(contrast_list), names(private$pvt_contrast_data))
         warning("Existing contrast data will be replaced for the following contrasts: ", paste(overlap, collapse=", "))
