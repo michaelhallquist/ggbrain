@@ -48,27 +48,27 @@ ggbrain_panel <- R6::R6Class(
       blank_gg <- ggplot(mapping = aes(x=dim1, y=dim2))
       empty <- sapply(private$pvt_layer_objs, function(x) x$is_empty())
       to_plot <- private$pvt_layer_objs[!empty]
-      
+
       # use reduce to add layers from left to right in the list
       gg <- Reduce("+", to_plot, init=blank_gg)
-      
+
       # always start with default panel theme
       gg <- gg + private$pvt_default_theme + private$pvt_theme_custom
-      
+
       if (!is.null(private$pvt_title)) {
         gg <- gg + ggtitle(private$pvt_title)
       }
-      
+
       if (!is.null(private$pvt_xlab)) {
         gg <- gg + theme(axis.title.x = element_text()) + xlab(private$pvt_xlab)
       }
-      
+
       if (!is.null(private$pvt_ylab)) {
         gg <- gg + theme(axis.title.y = element_text()) + ylab(private$pvt_ylab)
       }
-      
+
       gg <- gg + private$pvt_addl
-      
+
       self$gg <- gg
     }
   ),
@@ -162,6 +162,7 @@ ggbrain_panel <- R6::R6Class(
     },
     
     #' @description Reset the scale limits for the specified layers
+    #' @param layer_names not implemented yet
     reset_limits = function(layer_names) {
       
     },

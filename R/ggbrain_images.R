@@ -20,10 +20,10 @@ ggbrain_images <- R6::R6Class(
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
     pvt_slices = NULL, # allows caching of slices for + approach
     pvt_contrasts = NULL, # allows caching of contrasts for + approach
-    
+
     set_images = function(images = NULL) {
       if (is.null(images)) { return(NULL) } # skip out
-      
+
       if (checkmate::test_character(images)) {
         checkmate::assert_file_exists(images)
         if (is.null(names(images))) {
@@ -52,7 +52,7 @@ ggbrain_images <- R6::R6Class(
         sapply(images, function(x) { checkmate::assert_class(x, "niftiImage") }) # enforce RNifti objects
         img_list <- images
       }
-      
+
       img_dims <- cbind(sapply(img_list, dim), extant=private$pvt_dims) # xyz x images matrix augmented by stored dims
       dim_match <- apply(img_dims, 1, function(row) {
         length(unique(row)) == 1L

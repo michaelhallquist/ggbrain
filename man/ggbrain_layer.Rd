@@ -8,17 +8,28 @@ R6 class for a single layer of a ggbrain panel
 
 R6 class for a single layer of a ggbrain panel
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{name}}{the name of this layer, used for referencing in layer and panel modifications}
+
+\item{\code{data}}{the data.frame containing relevant data for this layer.}
+
+\item{\code{layer_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
+
+\item{\code{show_scale}}{a logical indicating whether to show or hide the fill/color scale}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggbrain_layer-new}{\code{ggbrain_layer$new()}}
 \item \href{#method-ggbrain_layer-set_limits}{\code{ggbrain_layer$set_limits()}}
 \item \href{#method-ggbrain_layer-set_breaks}{\code{ggbrain_layer$set_breaks()}}
-\item \href{#method-ggbrain_layer-set_name}{\code{ggbrain_layer$set_name()}}
 \item \href{#method-ggbrain_layer-plot}{\code{ggbrain_layer$plot()}}
 \item \href{#method-ggbrain_layer-add_to_gg}{\code{ggbrain_layer$add_to_gg()}}
 \item \href{#method-ggbrain_layer-get_data}{\code{ggbrain_layer$get_data()}}
-\item \href{#method-ggbrain_layer-get_name}{\code{ggbrain_layer$get_name()}}
 \item \href{#method-ggbrain_layer-is_empty}{\code{ggbrain_layer$is_empty()}}
 \item \href{#method-ggbrain_layer-clone}{\code{ggbrain_layer$clone()}}
 }
@@ -97,23 +108,6 @@ set the breaks element of this layer's scale
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_layer-set_name"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_name}{}}}
-\subsection{Method \code{set_name()}}{
-set the layer name
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_name(name)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{name}}{a character string defining the layer's name}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_layer-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_layer-plot}{}}}
 \subsection{Method \code{plot()}}{
@@ -157,16 +151,6 @@ Default: FALSE.}
 }
 \if{html}{\out{</div>}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_layer-get_name"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_layer-get_name}{}}}
-\subsection{Method \code{get_name()}}{
-return the layer name
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$get_name()}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_layer-is_empty"></a>}}

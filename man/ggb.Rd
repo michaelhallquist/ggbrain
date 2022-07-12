@@ -2,11 +2,11 @@
 % Please edit documentation in R/sugar.R
 \name{ggb}
 \alias{ggb}
-\title{Generic R6 base class that is inherited by all other ggbrain objects to support + semantics}
+\title{Generic R6 base class that is used to support + semantics}
 \description{
-Generic R6 base class that is inherited by all other ggbrain objects to support + semantics
+Generic R6 base class that is used to support + semantics
 
-Generic R6 base class that is inherited by all other ggbrain objects to support + semantics
+Generic R6 base class that is used to support + semantics
 }
 \details{
 this object becomes a simple storage class that contains all relevant objects
@@ -18,6 +18,8 @@ this object becomes a simple storage class that contains all relevant objects
 \item{\code{ggb_images}}{ggbrain_images object for this plot}
 
 \item{\code{ggb_slices}}{character string of slices to extract}
+
+\item{\code{ggb_plot}}{a ggbrain_plot object containing the specification of the plot}
 
 \item{\code{action}}{what should this ggb object contribute to another when added with it?}
 }
@@ -47,6 +49,8 @@ unintended modify-in-place behaviors of R6 classes.
 \item{\code{images}}{a ggbrain_images object containing relevant images}
 
 \item{\code{slices}}{a ggbrain_images object containing relevant images}
+
+\item{\code{action}}{the action to be taken when adding this object to an existing ggb}
 }
 \if{html}{\out{</div>}}
 }
