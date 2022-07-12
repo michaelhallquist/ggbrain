@@ -88,6 +88,13 @@ Reset the scale limits for the specified layers
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$reset_limits(layer_names)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{layer_names}}{not implemented yet}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_panel-plot"></a>}}

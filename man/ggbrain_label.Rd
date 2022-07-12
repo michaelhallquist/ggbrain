@@ -8,6 +8,9 @@ R6 class for adding labels to a ggbrain_panel
 
 R6 class for adding labels to a ggbrain_panel
 }
+\section{Super class}{
+\code{\link[ggbrain:ggb]{ggbrain::ggb}} -> \code{ggbrain_label}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -16,6 +19,16 @@ R6 class for adding labels to a ggbrain_panel
 \item \href{#method-ggbrain_label-clone}{\code{ggbrain_label$clone()}}
 }
 }
+\if{html}{\out{
+<details open><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="add_layer"><a href='../../ggbrain/html/ggb.html#method-ggb-add_layer'><code>ggbrain::ggb$add_layer()</code></a></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="add_slices"><a href='../../ggbrain/html/ggb.html#method-ggb-add_slices'><code>ggbrain::ggb$add_slices()</code></a></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="plot"><a href='../../ggbrain/html/ggb.html#method-ggb-plot'><code>ggbrain::ggb$plot()</code></a></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="render"><a href='../../ggbrain/html/ggb.html#method-ggb-render'><code>ggbrain::ggb$render()</code></a></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_label-new"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_label-new}{}}}

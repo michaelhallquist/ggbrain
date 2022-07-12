@@ -12,12 +12,15 @@ Generic R6 base class that is used to support + semantics
 this object becomes a simple storage class that contains all relevant objects
 (e.g., ggbrain_images) required to generate a brain plot
 }
+\keyword{internal}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{ggb_images}}{ggbrain_images object for this plot}
 
 \item{\code{ggb_slices}}{character string of slices to extract}
+
+\item{\code{ggb_layers}}{a list of ggbrain_layer objects containing the bottom-to-top layers to be plotted}
 
 \item{\code{ggb_plot}}{a ggbrain_plot object containing the specification of the plot}
 
@@ -29,6 +32,9 @@ this object becomes a simple storage class that contains all relevant objects
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggb-new}{\code{ggb$new()}}
+\item \href{#method-ggb-add_layer}{\code{ggb$add_layer()}}
+\item \href{#method-ggb-add_slices}{\code{ggb$add_slices()}}
+\item \href{#method-ggb-render}{\code{ggb$render()}}
 \item \href{#method-ggb-plot}{\code{ggb$plot()}}
 \item \href{#method-ggb-clone}{\code{ggb$clone()}}
 }
@@ -40,7 +46,7 @@ this object becomes a simple storage class that contains all relevant objects
 create a new ggb object. Note that inputs are always cloned to avoid
 unintended modify-in-place behaviors of R6 classes.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggb$new(images = NULL, slices = NULL, action = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggb$new(images = NULL, slices = NULL, layers = NULL, action = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -48,12 +54,58 @@ unintended modify-in-place behaviors of R6 classes.
 \describe{
 \item{\code{images}}{a ggbrain_images object containing relevant images}
 
-\item{\code{slices}}{a ggbrain_images object containing relevant images}
+\item{\code{slices}}{a character vector of slices to extract}
+
+\item{\code{layers}}{a list of ggbrain_layer objects}
 
 \item{\code{action}}{the action to be taken when adding this object to an existing ggb}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_layer}{}}}
+\subsection{Method \code{add_layer()}}{
+add layers from another ggb object to this one
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_layer(ilist)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{ilist}}{a list of ggbrain_layer objects. If a ggb object is passed, we
+will get this list from obj$ggb_layers}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_slices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_slices}{}}}
+\subsection{Method \code{add_slices()}}{
+add slices to the existing vector of slices
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_slices(slices = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{slices}}{a character vector of slices to be appended to the existing slices}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-render"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-render}{}}}
+\subsection{Method \code{render()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$render()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggb-plot"></a>}}

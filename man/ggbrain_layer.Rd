@@ -13,11 +13,13 @@ R6 class for a single layer of a ggbrain panel
 \describe{
 \item{\code{name}}{the name of this layer, used for referencing in layer and panel modifications}
 
+\item{\code{definition}}{a character string specifying the image name or contrast that defines this layer}
+
 \item{\code{data}}{the data.frame containing relevant data for this layer.}
 
-\item{\code{layer_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
+\item{\code{color_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
 
-\item{\code{show_scale}}{a logical indicating whether to show or hide the fill/color scale}
+\item{\code{show_legend}}{a logical indicating whether to show or hide the fill/color scale}
 }
 \if{html}{\out{</div>}}
 }
@@ -42,11 +44,12 @@ create a new ggbrain_layer object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$new(
   name = NULL,
+  definition = NULL,
   data = NULL,
-  layer_scale = NULL,
+  color_scale = NULL,
   limits = NULL,
   breaks = NULL,
-  show_scale = TRUE,
+  show_legend = TRUE,
   interpolate = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -56,17 +59,21 @@ create a new ggbrain_layer object
 \describe{
 \item{\code{name}}{the name of this layer, used for referencing in layer and panel modifications}
 
+\item{\code{definition}}{an optional character string defining the image or contrast that should be used
+to lookup data from a ggbrain_slices object. This is mostly used internally by the ggbrain + syntax
+to allow layers to be defined without data in advance of the plot.}
+
 \item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
 and "value" as columns}
 
-\item{\code{layer_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
+\item{\code{color_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
 layer.}
 
 \item{\code{limits}}{if provided, sets the upper and lower bounds on the scale}
 
 \item{\code{breaks}}{if provided, a function to draw the breaks on the color scale}
 
-\item{\code{show_scale}}{if TRUE, show the scale on the plot legend}
+\item{\code{show_legend}}{if TRUE, show the scale on the plot legend}
 
 \item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
 }

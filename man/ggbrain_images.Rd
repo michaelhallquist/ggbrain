@@ -15,6 +15,8 @@ R6 class for compiling images to render in ggplot
 This value is used to set small values in the images to exactly zero for proper masking. Default 1e-6}
 
 \item{\code{slices}}{a character vector of cached slice specifications to be used in $get_slices()}
+
+\item{\code{contrasts}}{a character vector of cached contrast specifications to be used in $get_slices()}
 }
 \if{html}{\out{</div>}}
 }
@@ -35,6 +37,7 @@ This value is used to set small values in the images to exactly zero for proper 
 \item \href{#method-ggbrain_images-summary}{\code{ggbrain_images$summary()}}
 \item \href{#method-ggbrain_images-get_nz_indices}{\code{ggbrain_images$get_nz_indices()}}
 \item \href{#method-ggbrain_images-add_slices}{\code{ggbrain_images$add_slices()}}
+\item \href{#method-ggbrain_images-add_contrasts}{\code{ggbrain_images$add_contrasts()}}
 \item \href{#method-ggbrain_images-reset_slices}{\code{ggbrain_images$reset_slices()}}
 \item \href{#method-ggbrain_images-get_slices}{\code{ggbrain_images$get_slices()}}
 \item \href{#method-ggbrain_images-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
@@ -282,6 +285,25 @@ $get_slices() when no \code{slices} argument is passed.
 \describe{
 \item{\code{slices}}{a character vector containing one or more slices to be extracted by \code{$get_slices}.
 Uses the syntax \code{"<xyz>=<number>"}. Example: \code{c("x=10", "y=50\%")}}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-add_contrasts"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-add_contrasts}{}}}
+\subsection{Method \code{add_contrasts()}}{
+adds one or more contrasts to the cached contrasts that will be retrieved by
+$get_slices() when no \code{contrasts} argument is passed.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_contrasts(contrasts = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{contrasts}}{a character vector containing one or more contrasts to be extracted by \code{$get_slices}.
+Uses the syntax \code{"<img_name>[subset_expression] + <img_name>"}.}
 }
 \if{html}{\out{</div>}}
 }

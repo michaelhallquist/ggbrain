@@ -1,5 +1,7 @@
 #' R6 class for a single layer of a ggbrain panel
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller
+#' @importFrom ggnewscale new_scale_fill
 #' @export
 ggbrain_layer <- R6::R6Class(
   classname = "ggbrain_layer",
@@ -201,7 +203,7 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_color_scale
       } else {
         base_gg +
-          new_scale_fill() +
+          ggnewscale::new_scale_fill() +
           geom_raster(data = df, mapping = aes_string(x="dim1", y="dim2", fill=new_val), show.legend = private$pvt_show_legend) +
           private$pvt_color_scale
       }

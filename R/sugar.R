@@ -210,3 +210,9 @@ geom_brain <- function(...) {
 
   ret <- ggb$new(layers = l_obj, action="add_layer")
 }
+
+#' Function to convert ggb object to ggplot/patchwork object
+#' @export
+render <- function() {
+  ggb$new(action = "render")
+}
