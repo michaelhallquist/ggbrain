@@ -19,6 +19,7 @@ ggbrain_images <- R6::R6Class(
     pvt_zero_tol = 1e-6, # threshold for what constitutes a non-zero voxel
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
     pvt_slices = NULL, # allows caching of slices for + approach
+    pvt_contrasts = NULL, # allows caching of contrasts for + approach
     
     set_images = function(images = NULL) {
       if (is.null(images)) { return(NULL) } # skip out
@@ -35,19 +36,15 @@ ggbrain_images <- R6::R6Class(
           which_empty <- names(images) == ""
           names(images)[which_empty] <- make.unique(basename(images[which_empty]))
         }
-        
-        if (!"underlay" %in% c(private$pvt_img_names, names(images))) {
-          warning("'underlay' is not among the images provided. This may lead to weirdness downstream.")
-        }
-        
+
         img_list <- sapply(images, function(ff) {
           img <- RNifti::readNifti(ff)
-          
+
           # round very small values to zero
           if (!is.null(private$pvt_zero_tol) && private$pvt_zero_tol > 0) {
             img[img > -1 * private$pvt_zero_tol & img < private$pvt_zero_tol] <- 0
           }
-          
+
           return(img)
         }, simplify = FALSE)
       } else if (checkmate::test_list(images)) {
@@ -92,6 +89,15 @@ ggbrain_images <- R6::R6Class(
         checkmate::assert_character(value) # probably need better validation...
         private$pvt_slices <- value
       }
+    },
+    #' @field contrasts a character vector of cached contrast specifications to be used in $get_slices()
+    contrasts = function(value) {
+      if (missing(value)) {
+        private$pvt_contrasts
+      } else {
+        checkmate::assert_character(value) # probably need better validation...
+        private$pvt_contrasts <- value
+      }
     }
   ),
   public = list(
@@ -121,10 +127,10 @@ ggbrain_images <- R6::R6Class(
       
       # add any slice specifications from other object
       self$add_slices(obj$slices)
-      
+
       # get image list (list of Niftis) of object to be added
       self$add_images(obj$get_images(drop=FALSE))
-      
+
       # use do.call to build a named ... list of arguments
       do.call(self$add_labels, obj$get_labels())
       
@@ -326,7 +332,7 @@ ggbrain_images <- R6::R6Class(
         range(nz_pos[, j])
       }) %>% setNames(c("i", "j", "k"))
     },
-    
+
     #' @description adds one or more slices to the cached slices that will be retrieved by
     #'   $get_slices() when no \code{slices} argument is passed.
     #' @param slices a character vector containing one or more slices to be extracted by \code{$get_slices}.
@@ -338,7 +344,19 @@ ggbrain_images <- R6::R6Class(
       }
       return(self)
     },
-    
+
+    #' @description adds one or more contrasts to the cached contrasts that will be retrieved by
+    #'   $get_slices() when no \code{contrasts} argument is passed.
+    #' @param contrasts a character vector containing one or more contrasts to be extracted by \code{$get_slices}.
+    #'   Uses the syntax `"<img_name>[subset_expression] + <img_name>"`.
+    add_contrasts = function(contrasts = NULL) {
+      if (!is.null(contrasts)) {
+        checkmate::assert_character(contrasts)
+        private$pvt_contrasts <- c(private$pvt_contrasts, contrasts)
+      }
+      return(self)
+    },
+
     #' @description remove all cached slice settings
     reset_slices = function() {
       private$pvt_slices <- NULL
@@ -364,6 +382,11 @@ ggbrain_images <- R6::R6Class(
           stop("No slices have been provided and none are in the $slices field. Cannot determine what to extract.")
         }
       }
+      
+      if (is.null(contrasts) && !is.null(private$pvt_contrasts)) {
+          contrasts <- private$pvt_contrasts # use cached contrast settings
+      }
+      
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       all_img_names <- self$get_image_names()
       if (!is.null(img_names)) {
@@ -390,7 +413,7 @@ ggbrain_images <- R6::R6Class(
           img_nz <- lapply(rlang::flatten(ilist), function(img) {
             abs(img) > private$pvt_zero_tol
           })
-          
+
           img_any <- Reduce("|", img_nz)
           good_rows <- rowSums(img_any, na.rm = T) > 0L
           good_cols <- colSums(img_any, na.rm = T) > 0L
@@ -400,7 +423,7 @@ ggbrain_images <- R6::R6Class(
           })
         })
       }
-      
+
       # whether to make all images have the same square dimensions
       if (isTRUE(make_square)) {
         slc_dims <- sapply(rlang::flatten(slc), dim)
