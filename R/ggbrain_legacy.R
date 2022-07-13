@@ -34,7 +34,7 @@
 #'   theme_void xlab ylab
 #' @importFrom stats sd
 #' @export
-ggbrain <- function(underlay=NULL, overlay=NULL, 
+ggbrain_legacy <- function(underlay=NULL, overlay=NULL, 
                     underlay_colorscale = scale_fill_gradient(low="grey8", high="grey92"),
                     negative_colorscale = scale_fill_distiller(palette="Blues", direction = 1),
                     positive_colorscale = scale_fill_distiller(palette="Reds"),
@@ -169,9 +169,9 @@ ggbrain <- function(underlay=NULL, overlay=NULL,
     has_pos <- sum(!is.na(p_df$value)) > 0L
     has_neg <- sum(!is.na(n_df$value)) > 0L
 
-    a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, layer_scale = underlay_colorscale, show_scale=FALSE)
-    n_layer <- ggbrain_layer$new(name = "negative", data = n_df, layer_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
-    p_layer <- ggbrain_layer$new(name = "positive", data = p_df, layer_scale = positive_colorscale, limits = pos_limits, breaks = range_breaks(digits = stat_decimals), show_scale=TRUE)
+    a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, color_scale = underlay_colorscale, show_legend=FALSE)
+    n_layer <- ggbrain_layer$new(name = "negative", data = n_df, color_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_legend=TRUE)
+    p_layer <- ggbrain_layer$new(name = "positive", data = p_df, color_scale = positive_colorscale, limits = pos_limits, breaks = range_breaks(digits = stat_decimals), show_legend=TRUE)
     panel <- ggbrain_panel$new(
       layers = list(a_layer, n_layer, p_layer),
       title = slices$panel_title[i],

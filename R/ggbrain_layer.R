@@ -9,6 +9,8 @@ ggbrain_layer <- R6::R6Class(
     pvt_name = NULL,
     pvt_definition = NULL,
     pvt_data = NULL,
+    pvt_use_labels = NULL, # whether to use value or label column of data
+    pvt_unify_scales = NULL, # whether to equate scale limits or level across panels
     pvt_color_scale = NULL,
     pvt_show_legend = NULL,
     pvt_interpolate = FALSE,
@@ -35,7 +37,8 @@ ggbrain_layer <- R6::R6Class(
         } else if (has_pos) {
           self$color_scale <- scale_fill_distiller(palette = "Reds")
         } else {
-          stop("Cannot find positive or negative values") # TODO: support discrete/character labels
+          warning("Cannot find positive or negative values") # TODO: support discrete/character labels
+          self$color_scale <- scale_color_brewer(palette = "Set3")
         }
         if (is.null(self$show_legend)) self$show_legend <- TRUE
       }
@@ -72,8 +75,8 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_data <- NULL # clear data
           private$pvt_is_empty <- TRUE
         } else {
-          checkmate::assert_data_frame(data)
-          if (!all(c("dim1", "dim2", "value") %in% names(data))) {
+          checkmate::assert_data_frame(value)
+          if (!all(c("dim1", "dim2", "value") %in% names(value))) {
             stop("data must contain dim1, dim2, and value")
           }
 
@@ -94,7 +97,8 @@ ggbrain_layer <- R6::R6Class(
         stopifnot(value$aesthetics == "fill")
 
         # make sure that NAs are always drawn as transparent
-        if (value$na.value != "transparent") {
+        # if na.value is NA, omit it so that NA is not shown as a factor level
+        if (!is.na(value$na.value) && value$na.value != "transparent") {
           value$na.value <- "transparent"
         }
 
@@ -112,8 +116,28 @@ ggbrain_layer <- R6::R6Class(
         checkmate::assert_logical(value, len = 1L)
         private$pvt_show_legend <- value
       }
-    }
+    },
 
+    #' @field use_labels if TRUE, use the $label column as the color on the plot for this layer
+    use_labels = function(value) {
+      if (missing(value)) {
+        private$pvt_use_labels
+      } else {
+        checkmate::assert_logical(value, len = 1L)
+        private$pvt_use_labels <- value
+      }
+    },
+
+    #' @field unify_scales a logical indicating whether to unify scale limits and levels when this layer
+    #'   is added across many panels
+    unify_scales = function(value) {
+      if (missing(value)) {
+        private$pvt_unify_scales
+      } else{
+        checkmate::assert_logical(value, len=1L)
+        private$pvt_unify_scales <- value
+      }
+    }
   ),
   public = list(
     #' @description create a new ggbrain_layer object
@@ -129,8 +153,10 @@ ggbrain_layer <- R6::R6Class(
     #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_legend if TRUE, show the scale on the plot legend
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
+    #' @param use_labels if TRUE, plot the label column as the color
+    #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
     initialize = function(name = NULL, definition = NULL, data = NULL, color_scale = NULL, limits = NULL,
-                          breaks = NULL, show_legend = TRUE, interpolate = NULL) {
+                          breaks = NULL, show_legend = TRUE, interpolate = NULL, use_labels = FALSE, unify_scales=TRUE) {
 
       if (is.null(name)) name <- "layer"
       checkmate::assert_numeric(limits, len = 2L, null.ok = TRUE)
@@ -141,6 +167,8 @@ ggbrain_layer <- R6::R6Class(
       self$color_scale <- color_scale
       self$show_legend <- show_legend
       self$definition <- definition
+      self$use_labels <- use_labels
+      self$unify_scales <- unify_scales
 
       # allow for empty layers with data added later
       self$data <- data

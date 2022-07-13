@@ -150,26 +150,26 @@ ggbrain_images <- R6::R6Class(
       label_args <- list(...)
       
       # return unchanged object if no input labels found
-      if (is.null(label_args) || length(label_args) == 0L) { return(self) }
+      if (is.null(label_args) || length(label_args) == 0L) return(self)
       label_names <- names(label_args)
       if (is.null(label_names) || any(label_names == "")) {
         stop("All arguments must be named, with the name referring to the image to be labeled.")
       }
-      
+
       # all label arguments must match an image name
       checkmate::assert_subset(label_names, private$pvt_img_names)
       sapply(label_args, function(x) { checkmate::assert_data_frame(x) })
       sapply(label_args, function(x) { checkmate::assert_subset(c("img_value", "label"), names(x)) })
-      
+
       for (x in seq_along(label_args)) {
         cur_vals <- private$pvt_img_labels[[ label_names[x] ]]
         if (!is.null(cur_vals)) {
           message(glue("Image {label_names[x]} has labels, which will replaced"))
-        } 
-        
+        }
+
         private$pvt_img_labels[[ label_names[x] ]] <- label_args[[x]]
       }
-      
+
       return(self)
     },
     
@@ -382,11 +382,11 @@ ggbrain_images <- R6::R6Class(
           stop("No slices have been provided and none are in the $slices field. Cannot determine what to extract.")
         }
       }
-      
+
       if (is.null(contrasts) && !is.null(private$pvt_contrasts)) {
           contrasts <- private$pvt_contrasts # use cached contrast settings
       }
-      
+
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
       all_img_names <- self$get_image_names()
       if (!is.null(img_names)) {
@@ -397,7 +397,7 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_character(contrasts, names="unique", null.ok = TRUE)
       checkmate::assert_logical(make_square, len=1L)
       checkmate::assert_logical(remove_null_space, len=1L)
-      
+
       coords <- slice_df %>%
         group_by(slice_index) %>%
         group_split()
@@ -417,7 +417,7 @@ ggbrain_images <- R6::R6Class(
           img_any <- Reduce("|", img_nz)
           good_rows <- rowSums(img_any, na.rm = T) > 0L
           good_cols <- colSums(img_any, na.rm = T) > 0L
-          
+
           lapply(ilist, function(mat) {
             mat[good_rows, good_cols]
           })
@@ -456,7 +456,7 @@ ggbrain_images <- R6::R6Class(
         com_stats <- NULL
         label_imgs <- NULL
       }
-      
+
       # create a list of image data.frames for each slice
       slc_nestlist <- lapply(slc, function(dd) {
         # each element of dd is a square matrix for a given image
@@ -466,19 +466,19 @@ ggbrain_images <- R6::R6Class(
           return(df)
         }, USE.NAMES = TRUE, simplify = FALSE)
       })
-      
+
       # generate a labeled copy of the data using the number -> label conversion
       if (!is.null(label_imgs)) {
         for (ii in seq_along(slc_nestlist)) {
           this_slc <- slc_nestlist[[ii]]
           which_lab <- intersect(names(this_slc), label_imgs)
-          
+
           for (label_name in which_lab) {
             this_img <- this_slc[[label_name]]
-            
+
             # always set 0 to NA in labeled image
             this_img$value[this_img$value == 0] <- NA
-            
+
             # get labels
             lb <- private$pvt_img_labels[[ label_name ]]
             
@@ -499,23 +499,23 @@ ggbrain_images <- R6::R6Class(
               dplyr::select(dim1, dim2, value, label, image)
             
             #this_img$value <- comb_df$label[match(this_img$value, comb_df$img_value)]
-            
+
             slc_nestlist[[ii]][[label_name]] <- this_img
           }
         }
       }
-      
+
       # can use unnest_longer to get a slices and images/layers on the rows
       slice_df$slice_data <- slc_nestlist
       #xx <- slice_df %>% tidyr::unnest_longer(slice_data)
-      
+
       # always keep slices as a list of 2D matrices (one per layer/image)
       slice_df$slice_matrix <- slc
       slice_df$slice_labels <- com_stats
       
       slice_obj <- ggbrain_slices$new(slice_df)
       if (!is.null(contrasts)) { # compute contrasts, if requested
-        slice_obj$add_contrasts(contrasts)
+        slice_obj$compute_contrasts(contrasts)
       }
       
       return(slice_obj)

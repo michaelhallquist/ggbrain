@@ -1,6 +1,7 @@
 #' An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 #' @importFrom ggplot2 scale_fill_distiller
 #' @importFrom purrr transpose
+#' @importFrom patchwork wrap_plots
 #' @export
 ggbrain_plot <- R6::R6Class(
   classname="ggbrain_plot",
@@ -9,11 +10,6 @@ ggbrain_plot <- R6::R6Class(
     pvt_layers = NULL, # list of ggbrain_layer objects
     pvt_ggbrain_panels = NULL,
     pvt_nslices = NULL,
-
-    # convert input to a valid ggbrain_layer object
-    validate_layer = function(layer_def) {
-
-    },
 
     set_default_scale = function(layer_def) {
       if (!is.null(layer_def$color_scale)) return(layer_def) # don't modify extant scale
@@ -77,6 +73,7 @@ ggbrain_plot <- R6::R6Class(
         } else {
           stop("Cannot determine how to assign layers based on input.")
         }
+        names(private$pvt_layers) <- l_names # use $name element to name list of layers
       }
     }
   ),
@@ -116,70 +113,96 @@ ggbrain_plot <- R6::R6Class(
     #'   \code{breaks} the scale breaks to use for the color scale of this layer
     #'   \code{show_legend} if FALSE, the color scale will not appear in the legend
     generate_plot = function(layers=NULL, slice_indices=NULL) {
-      possible_layer_names <- private$pvt_slices$get_image_names()
+      possible_layer_names <- names(private$pvt_layers)
       if (is.null(layers)) {
         if (!is.null(private$pvt_layers)) {
           layers <- private$pvt_layers
         } else {
-          message("No layers specified, so we will plot: ", paste(possible_layer_names, collapse = ", "))
-          layers <- lapply(possible_layer_names, function(ll) list(name = ll))
+          stop("No layers specified and none are available in the $layers field. Cannot continue")
         }
       } else if (is.character(layers)) {
         checkmate::assert_subset(layers, possible_layer_names)
-        layers <- lapply(layers, function(ll) list(name=ll))
+        layers <- private$pvt_layers[layers] # get relevant subset
+      } else {
+        stop("Unclear layers input to generate_plot()")
       }
+      checkmate::assert_list(layers)
+      plot_layer_names <- sapply(layers, "[[", "name")
 
       # each slice forms a ggbrain_panel
       slice_df <- private$pvt_slices$as_tibble()
-
-      checkmate::assert_list(layers)
-
-      # validate and touch up layer specification
-      layers <- lapply(layers, function(l_i) {
-        if (is.null(l_i$name)) {
-          print(l_i)
-          stop("This layer does not contain the required name element!")
-        } else {
-          checkmate::assert_string(l_i$name)
-          stopifnot(l_i$name %in% possible_layer_names)
-        }
-
-        if (!is.null(l_i$color_scale)) {
-          checkmate::assert_class("Scale", l_i$color_scale)
-          stopifnot(l_i$color_scale$aesthetics == "fill")
-        } else {
-          l_i <- private$set_default_scale(l_i)
-        }
-
-        return(l_i)
-      })
-
-      all_layer_names <- sapply(layers, "[[", "name")
 
       if (!is.null(slice_indices)) {
         slice_df <- slice_df %>% filter(slice_index %in% !!slice_indices)
       }
 
+      # calculate overall ranges across slices for unified scales
+      comb_data <- c(slice_df$slice_data, slice_df$contrast_data)
+      el_lens <- sapply(comb_data, length)
+      comb_data <- comb_data[el_lens > 0] # drop empty lists prior to transpose
+      img_data <- purrr::transpose(comb_data) %>% bind_rows()
 
+      img_ranges <- img_data %>%
+        group_by(image) %>%
+        summarise(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE))
+
+      if ("label" %in% names(img_data)) {
+        img_uvals <- img_data %>%
+          group_by(image) %>%
+          summarise(uvals = unique(label)) %>%
+          na.omit()
+      } else {
+        img_uvals <- NULL
+      }
+
+      # generate a list of panel objects that combine layers and slice data
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
+        # match slice data with layers
+
         comb_data <- c(slice_df$slice_data[[i]], slice_df$contrast_data[[i]])
-        comb_data <- comb_data[all_layer_names] # subset to only relevant data
+        comb_data <- comb_data[plot_layer_names] # subset to only relevant data
 
         # list of layers
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
-          l_obj$data <- comb_data[[j]] # add slice-specific data to this this layer
+          df <- comb_data[[j]]
+          if (isTRUE(l_obj$use_labels)) {
+            stopifnot("label" %in% names(df))
+            # swap out label into value position for plotting
+            df <- df %>% select(-value) %>% rename(value=label)
+          }
+          l_obj$data <- df # add slice-specific data to this this layer
+
+          if (isTRUE(l_obj$unify_scales)) {
+            if (isTRUE(l_obj$use_labels)) {
+              # unify factor levels
+              f_levels <- img_uvals %>%
+                filter(image == !!l_obj$name) %>%
+                pull(uvals)
+              l_obj$data$value <- factor(l_obj$data$value, levels = f_levels)
+              l_obj$color_scale$drop <- FALSE # don't drop unused levels
+            } else {
+              lims <- img_ranges %>%
+                filter(image == !!l_obj$name) %>%
+                select(low, high) %>%
+                unlist()
+              l_obj$set_limits(lims)
+            }
+          }
+
           return(l_obj)
         })
 
+        unify_scales <- sapply(layers, "[[", "unify_scales")
+
         ggbrain_panel$new(
           layers = slc_layers,
-          title = "Testing",
+          #title = "Testing",
           bg_color = "black",
           text_color = "white",
-          draw_border = FALSE,
-          xlab = "X lab",
-          ylab = "Y lab"
+          draw_border = FALSE
+          #xlab = "X lab",
+          #ylab = "Y lab"
         )
       })
 
@@ -188,7 +211,7 @@ ggbrain_plot <- R6::R6Class(
     #' @description return a plot of all panels as a patchwork object
     plot = function() {
       # extract ggplot objects from panels and plot with patchwork wrap_plots
-      wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg))
+      patchwork::wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg))
     }
     # generate_panel = function(r) {
     #   

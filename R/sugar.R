@@ -6,7 +6,7 @@
 #' @param labels a list of data.frames for labels?
 #' @param slices a set of slices to be added to the plot
 #' @export
-ggbrain <- function(images = NULL, labels = NULL, slices = NULL) {
+ggbrain <- function(images = NULL, labels = NULL, slices = NULL, bg_color="grey8", text_color="grey92") {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
   } else {
@@ -22,7 +22,7 @@ ggbrain <- function(images = NULL, labels = NULL, slices = NULL) {
     img_obj$add_slices(slices)
   }
 
-  ggb_obj <- ggb$new(images = img_obj)
+  ggb_obj <- ggb$new(images = img_obj, bg_color=bg_color, text_color=text_color)
 
   # get_slices = function(slices, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
   return(ggb_obj)
@@ -39,6 +39,9 @@ ggb <- R6::R6Class(
   public=list(
     #' @field ggb_images ggbrain_images object for this plot
     ggb_images = NULL,
+
+    #' @field ggb_labels a named list of data.frames that label corresponding images
+    ggb_labels = NULL,
 
     #' @field ggb_slices character string of slices to extract
     ggb_slices = NULL,
@@ -58,7 +61,7 @@ ggb <- R6::R6Class(
     #' @param slices a character vector of slices to extract
     #' @param layers a list of ggbrain_layer objects
     #' @param action the action to be taken when adding this object to an existing ggb
-    initialize=function(images=NULL, slices=NULL, layers = NULL, action=NULL) {
+    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL) {
       if (!is.null(images)) {
         checkmate::assert_class(images, "ggbrain_images")
         self$ggb_images <- images$clone(deep=TRUE)
@@ -79,6 +82,11 @@ ggb <- R6::R6Class(
         self$ggb_layers <- layers
       }
 
+      if (!is.null(labels)) {
+        checkmate::assert_list(labels, names = "unique")
+        do.call(self$add_labels, labels)
+      }
+
       # for tracking addition actions
       if (!is.null(action)) {
         self$action <- action
@@ -95,6 +103,11 @@ ggb <- R6::R6Class(
       checkmate::assert_list(ilist)
 
       self$ggb_layers <- c(self$ggb_layers, ilist)
+      # internally, ggb objects name each layer in ascending sequence
+      for (i in seq_along(self$ggb_layers)) {
+        self$ggb_layers[[i]]$name <- paste0("layer", i)
+      }
+      names(self$ggb_layers) <- sapply(self$ggb_layers, "[[", "name")
       return(self)
     },
 
@@ -106,16 +119,68 @@ ggb <- R6::R6Class(
       return(self)
     },
 
+    #' @description add labels to a given image
+    #' @param labels a named list of data.frame objects where the names denote corresponding images
+    add_labels = function(...) {
+      label_args <- list(...)
+
+      # return unchanged object if no input labels found
+      if (is.null(label_args) || length(label_args) == 0L) {
+        return(self)
+      }
+      label_names <- names(label_args)
+      if (is.null(label_names) || any(label_names == "")) {
+        stop("All arguments must be named, with the name referring to the image to be labeled.")
+      }
+
+      sapply(label_args, function(x) {
+        checkmate::assert_data_frame(x)
+      })
+      sapply(label_args, function(x) {
+        checkmate::assert_subset(c("img_value", "label"), names(x))
+      })
+
+      self$ggb_labels <- c(self$ggb_labels, label_args)
+      return(self)
+    },
+
     render = function() {
+      if (is.null(self$ggb_layers) || length(self$ggb_layers) == 0L) {
+        stop("No brain layers added to this object yet. Use + geom_brain() to add.")
+      }
+
       img <- self$ggb_images$clone(deep = TRUE)
       img$add_slices(self$ggb_slices)
-      img$add_contrasts(self$ggb_contrasts)
+      do.call(img$add_labels, self$ggb_labels)
       slc <- img$get_slices()
+
+      # internally, all layers are treated as contrasts named in ascending sequence
+      layer_defs <- sapply(self$ggb_layers, "[[", "definition")
+      layer_names <- names(layer_defs)
+      is_contrast <- !layer_defs %in% img$get_image_names()
+      if (any(is_contrast)) {
+        contrast_list <- layer_defs[is_contrast]
+        # names(contrast_list) <- paste0("layer", seq_along(contrast_list))
+
+        slc$compute_contrasts(contrast_list)
+      }
+
+      # for any direct image, change its layer name to match
+      layer_names[!is_contrast] <- layer_defs[!is_contrast]
+
+      for (i in seq_along(layer_names)) {
+        self$ggb_layers[[i]]$name <- layer_names[i] # assign by reference
+      }
+      names(self$ggb_layers) <- layer_names
+
+      # need to line up layer names with data name in slice_data and contrast_data
+      #browser()
+      
       plot_obj <- ggbrain_plot$new(slc)
       plot_obj$layers <- self$ggb_layers
       plot_obj$generate_plot()
-      plot_obj$plot()
 
+      return(plot_obj$plot())
     },
 
     #' @description plot this ggb object
@@ -155,8 +220,11 @@ ggb <- R6::R6Class(
       oc$ggb_images$add(o2$ggb_images)
     } else if (o2$action == "add_layer") {
       oc$add_layer(o2$ggb_layers)
+    } else if (o2$action == "add_labels") {
+      do.call(oc$add_labels, o2$ggb_labels)
     } else if (o2$action == "render") {
-      oc$render()
+      # transform in to patchwork object
+      oc <- oc$render()
     }
   }
 
@@ -165,6 +233,11 @@ ggb <- R6::R6Class(
 
 ### Lower-level sugar functions for adding plot elements
 ### Each returns a ggb object with the relevant action for adding it to the overall ggb object
+
+add_labels <- function(...) {
+  args <- list(...)
+  ret <- ggb$new(labels=args, action = "add_labels")
+}
 
 #' Add slices to a ggb object
 #' @param slices a character vector of slices to be added to the ggb plot object
@@ -197,13 +270,19 @@ add_images <- function(images = NULL) {
 }
 
 #' Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer
-#' @param ... all parameters are passed through to ggbrain_layer$new() to create a new layer object
+#' @param name the name of this brain layer
+#' @param definition a character string of the contrast or image definition used to define this layer.
+#'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overlay[overlay > 5]')
+#' @param color_scale the color scale to be used for this layer (a scale_fill* object)
+#' @param show_legend whether to show the color scale for this layer in the legend
+
 #' @details Note that the color_scale and limits must be specified at the time of the geom_contrast creation
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 #'   created using the typical + scale_fill_X syntax, and similarly for scale limits.
 #' @return a ggb object populated with the ggb_layer and the action of 'add_layer'
 #' @export
+#geom_brain <- function(name=NULL, definition=NULL, ) {
 geom_brain <- function(...) {
   inp_args <- list(...)
   l_obj <- do.call(ggbrain_layer$new, inp_args)

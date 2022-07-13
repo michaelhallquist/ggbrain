@@ -101,15 +101,15 @@ ggbrain_panel <- R6::R6Class(
       # enforce that layers is a named list of ggbrain_layer objects
       checkmate::assert_list(layers)
       sapply(layers, function(x) checkmate::assert_class(x, "ggbrain_layer"))
-      layer_names <- sapply(layers, function(x) x$get_name())
+      layer_names <- sapply(layers, function(x) x$name)
       if (any(duplicated(layer_names))) {
         stop("Layer names must be unique but are: ", paste(layer_names, collapse=", "))
       } else {
         names(layers) <- layer_names # for easy referencing
       }
-      
+
       private$pvt_layer_objs <- layers
-      
+
       if (!is.null(title)) {
         checkmate::assert_string(title)
         private$pvt_title <- title
@@ -119,7 +119,7 @@ ggbrain_panel <- R6::R6Class(
         checkmate::assert_string(bg_color)
         private$pvt_bg_color <- bg_color
       }
-      
+
       if (!is.null(text_color)) {
         checkmate::assert_string(text_color)
         private$pvt_text_color <- text_color
@@ -193,7 +193,7 @@ ggbrain_panel <- R6::R6Class(
     #' @param layer_obj a ggbrain_layer object to add to the panel
     add_layer = function(layer_obj) {
       checkmate::assert_class(layer_obj, "ggbrain_layer")
-      lname <- layer_obj$get_name()
+      lname <- layer_obj$name
       if (lname %in% names(private$pvt_layer_objs)) {
         stop("A layer of this name (", lname, ") already exists in the panel.")
       } else {
