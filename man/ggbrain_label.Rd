@@ -22,6 +22,7 @@ R6 class for adding labels to a ggbrain_panel
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="add_labels"><a href='../../ggbrain/html/ggb.html#method-ggb-add_labels'><code>ggbrain::ggb$add_labels()</code></a></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="add_layer"><a href='../../ggbrain/html/ggb.html#method-ggb-add_layer'><code>ggbrain::ggb$add_layer()</code></a></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="add_slices"><a href='../../ggbrain/html/ggb.html#method-ggb-add_slices'><code>ggbrain::ggb$add_slices()</code></a></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggb" data-id="plot"><a href='../../ggbrain/html/ggb.html#method-ggb-plot'><code>ggbrain::ggb$plot()</code></a></li>

@@ -4,7 +4,13 @@
 \alias{ggbrain}
 \title{create ggb container object for a given plot}
 \usage{
-ggbrain(images = NULL, labels = NULL, slices = NULL)
+ggbrain(
+  images = NULL,
+  labels = NULL,
+  slices = NULL,
+  bg_color = "grey8",
+  text_color = "grey92"
+)
 }
 \arguments{
 \item{images}{a character vector or existing ggbrain_images object defining which

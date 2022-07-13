@@ -71,43 +71,53 @@ ggbrain_slices <- R6::R6Class(
       empty_list <- lapply(seq_len(nrow(slice_df)), function(i) list())
 
       df_names <- names(slice_df)
-      private$pvt_coord_input <- ifelse("coord_input" %in% df_names, slice_df$coord_input, empty_list)
-      private$pvt_coord_label <- ifelse("coord_label" %in% df_names, slice_df$coord_label, empty_list)
-      private$pvt_plane <- ifelse("plane" %in% df_names, slice_df$plane, empty_list)
-      private$pvt_slice_index <- ifelse("slice_index" %in% df_names, slice_df$slice_index, empty_list)
-      private$pvt_slice_number <- ifelse("slice_number" %in% df_names, slice_df$slice_number, empty_list)
-      private$pvt_slice_data <- ifelse("slice_data" %in% df_names, slice_df$slice_data, empty_list)
-      private$pvt_slice_labels <- ifelse("slice_labels" %in% df_names, slice_df$slice_labels, empty_list)
-      private$pvt_slice_matrix <- ifelse("slice_matrix" %in% df_names, slice_df$slice_matrix, empty_list)
-      private$pvt_contrast_data <- ifelse("contrast_data" %in% df_names, slice_df$contrast_data, empty_list)
+      private$pvt_coord_input <- if ("coord_input" %in% df_names) slice_df$coord_input else empty_list
+      private$pvt_coord_label <- if ("coord_label" %in% df_names) slice_df$coord_label else empty_list
+      private$pvt_plane <- if ("plane" %in% df_names) slice_df$plane else empty_list
+      private$pvt_slice_index <- if ("slice_index" %in% df_names) slice_df$slice_index else empty_list
+      private$pvt_slice_number <- if ("slice_number" %in% df_names) slice_df$slice_number else empty_list
+      private$pvt_slice_data <- if ("slice_data" %in% df_names) slice_df$slice_data else empty_list
+      private$pvt_slice_labels <- if ("slice_labels" %in% df_names) slice_df$slice_labels else empty_list
+      private$pvt_slice_matrix <- if ("slice_matrix" %in% df_names) slice_df$slice_matrix else empty_list
+      private$pvt_contrast_data <- if ("contrast_data" %in% df_names) slice_df$contrast_data else empty_list
     },
-    
+
     #' @description computes contrasts of the sliced image data
     #' @param contrast_list a named list or character vector containing contrasts to be computed.
     #'   The names of the list form the contrast names, while the values should be character strings
     #'   that use standard R syntax for logical tests, subsetting, and arithmetic
-    #' @examples 
+    #' @examples
     #' \dontrun{
     #'   slc <- ggbrain_slices$new(slice_df=my_data)
-    #'   slc$add_contrasts(list(pos_vals="overlay[overlay> 0]"))
+    #'   slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
     #' }
-    add_contrasts = function(contrast_list=NULL) {
+    compute_contrasts = function(contrast_list=NULL) {
       if (checkmate::test_class(contrast_list, "character")) {
-        contrast_list = as.list(contrast_list) # tolerate named character vector input
+        contrast_list <- as.list(contrast_list) # tolerate named character vector input
       }
-      
+
+      # force unique names of input contrats
       checkmate::assert_list(contrast_list, names = "unique")
       if (length(private$pvt_slice_data) == 0L) {
-        stop("Cannot use $add_contrasts() if there are no slice_data in the object")
+        stop("Cannot use $compute_contrasts() if there are no slice_data in the object")
       }
-      
+
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
-        ss <- slc_xx %>% dplyr::bind_rows() %>% 
-          tidyr::pivot_wider(id_cols = c(dim1, dim2), 
-                             names_from = "image", 
-                             names_glue = "{image}_{.value}",
-                             values_from=c(value, label))
+        ss <- slc_xx %>% dplyr::bind_rows()
+        if ("label" %in% names(ss)) { # only pivot label if it is present
+          vcols <- c("value", "label")
+        } else {
+          vcols <- c("value")
+        }
+        ss <- ss %>%
+          tidyr::pivot_wider(
+            id_cols = c(dim1, dim2),
+            names_from = "image",
+            names_glue = "{image}_{.value}",
+            values_from = all_of(vcols)
+          )
+
         names(ss) <- sub("_value$", "", names(ss)) # remove _value suffix to make evaluation of contrasts easier
         return(ss)
       })
@@ -116,13 +126,13 @@ ggbrain_slices <- R6::R6Class(
         overlap <- intersect(names(contrast_list), names(private$pvt_contrast_data))
         warning("Existing contrast data will be replaced for the following contrasts: ", paste(overlap, collapse=", "))
       }
-      
+
       private$pvt_contrast_data <- lapply(seq_along(wide), function(ww) {
         c_data <- lapply(seq_along(contrast_list), function(cc) {
           contrast_parser(contrast_list[[cc]], data = wide[[ww]]) %>%
             mutate(image = names(contrast_list)[cc]) # tag contrasts with a label column
         }) %>% setNames(names(contrast_list))
-        
+
         if (length(private$pvt_contrast_data) > 0L) {
           e_data <- private$pvt_contrast_data[[ww]]
         } else {
@@ -133,7 +143,7 @@ ggbrain_slices <- R6::R6Class(
       })
       
     },
-    
+
     #' @description convert the slices object into a data.frame with list-columns for slice data elements
     as_tibble = function() {
       tibble::tibble(

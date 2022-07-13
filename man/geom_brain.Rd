@@ -7,7 +7,14 @@
 geom_brain(...)
 }
 \arguments{
-\item{...}{all parameters are passed through to ggbrain_layer$new() to create a new layer object}
+\item{name}{the name of this brain layer}
+
+\item{definition}{a character string of the contrast or image definition used to define this layer.
+Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overlay\link{overlay > 5}')}
+
+\item{color_scale}{the color scale to be used for this layer (a scale_fill* object)}
+
+\item{show_legend}{whether to show the color scale for this layer in the legend}
 }
 \value{
 a ggb object populated with the ggb_layer and the action of 'add_layer'

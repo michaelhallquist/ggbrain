@@ -20,6 +20,11 @@ R6 class for a single layer of a ggbrain panel
 \item{\code{color_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
 
 \item{\code{show_legend}}{a logical indicating whether to show or hide the fill/color scale}
+
+\item{\code{use_labels}}{if TRUE, use the $label column as the color on the plot for this layer}
+
+\item{\code{unify_scales}}{a logical indicating whether to unify scale limits and levels when this layer
+is added across many panels}
 }
 \if{html}{\out{</div>}}
 }
@@ -50,7 +55,9 @@ create a new ggbrain_layer object
   limits = NULL,
   breaks = NULL,
   show_legend = TRUE,
-  interpolate = NULL
+  interpolate = NULL,
+  use_labels = FALSE,
+  unify_scales = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -76,6 +83,10 @@ layer.}
 \item{\code{show_legend}}{if TRUE, show the scale on the plot legend}
 
 \item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
+
+\item{\code{use_labels}}{if TRUE, plot the label column as the color}
+
+\item{\code{unify_scales}}{if TRUE, when this layer is reused across panels, unify the scales to match}
 }
 \if{html}{\out{</div>}}
 }

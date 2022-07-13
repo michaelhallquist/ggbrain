@@ -18,6 +18,8 @@ this object becomes a simple storage class that contains all relevant objects
 \describe{
 \item{\code{ggb_images}}{ggbrain_images object for this plot}
 
+\item{\code{ggb_labels}}{a named list of data.frames that label corresponding images}
+
 \item{\code{ggb_slices}}{character string of slices to extract}
 
 \item{\code{ggb_layers}}{a list of ggbrain_layer objects containing the bottom-to-top layers to be plotted}
@@ -34,6 +36,7 @@ this object becomes a simple storage class that contains all relevant objects
 \item \href{#method-ggb-new}{\code{ggb$new()}}
 \item \href{#method-ggb-add_layer}{\code{ggb$add_layer()}}
 \item \href{#method-ggb-add_slices}{\code{ggb$add_slices()}}
+\item \href{#method-ggb-add_labels}{\code{ggb$add_labels()}}
 \item \href{#method-ggb-render}{\code{ggb$render()}}
 \item \href{#method-ggb-plot}{\code{ggb$plot()}}
 \item \href{#method-ggb-clone}{\code{ggb$clone()}}
@@ -46,7 +49,13 @@ this object becomes a simple storage class that contains all relevant objects
 create a new ggb object. Note that inputs are always cloned to avoid
 unintended modify-in-place behaviors of R6 classes.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggb$new(images = NULL, slices = NULL, layers = NULL, action = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggb$new(
+  images = NULL,
+  slices = NULL,
+  layers = NULL,
+  labels = NULL,
+  action = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -94,6 +103,23 @@ add slices to the existing vector of slices
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{slices}}{a character vector of slices to be appended to the existing slices}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_labels}{}}}
+\subsection{Method \code{add_labels()}}{
+add labels to a given image
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_labels(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{labels}}{a named list of data.frame objects where the names denote corresponding images}
 }
 \if{html}{\out{</div>}}
 }

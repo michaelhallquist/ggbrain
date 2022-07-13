@@ -11,12 +11,12 @@ R6 class for managing slice data for ggbrain plots
 \examples{
 
 ## ------------------------------------------------
-## Method `ggbrain_slices$add_contrasts`
+## Method `ggbrain_slices$compute_contrasts`
 ## ------------------------------------------------
 
 \dontrun{
   slc <- ggbrain_slices$new(slice_df=my_data)
-  slc$add_contrasts(list(pos_vals="overlay[overlay> 0]"))
+  slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
 }
 }
 \author{
@@ -45,7 +45,7 @@ that slice and the list elements within are each a given image}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggbrain_slices-new}{\code{ggbrain_slices$new()}}
-\item \href{#method-ggbrain_slices-add_contrasts}{\code{ggbrain_slices$add_contrasts()}}
+\item \href{#method-ggbrain_slices-compute_contrasts}{\code{ggbrain_slices$compute_contrasts()}}
 \item \href{#method-ggbrain_slices-as_tibble}{\code{ggbrain_slices$as_tibble()}}
 \item \href{#method-ggbrain_slices-get_image_names}{\code{ggbrain_slices$get_image_names()}}
 \item \href{#method-ggbrain_slices-clone}{\code{ggbrain_slices$clone()}}
@@ -73,12 +73,12 @@ If this becomes a user-facing/exported class, we may want a more friendly constr
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_slices-add_contrasts"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_slices-add_contrasts}{}}}
-\subsection{Method \code{add_contrasts()}}{
+\if{html}{\out{<a id="method-ggbrain_slices-compute_contrasts"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_slices-compute_contrasts}{}}}
+\subsection{Method \code{compute_contrasts()}}{
 computes contrasts of the sliced image data
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$add_contrasts(contrast_list = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$compute_contrasts(contrast_list = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -94,7 +94,7 @@ that use standard R syntax for logical tests, subsetting, and arithmetic}
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{\dontrun{
   slc <- ggbrain_slices$new(slice_df=my_data)
-  slc$add_contrasts(list(pos_vals="overlay[overlay> 0]"))
+  slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
 }
 }
 \if{html}{\out{</div>}}
