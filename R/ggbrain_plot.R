@@ -137,14 +137,26 @@ ggbrain_plot <- R6::R6Class(
       }
 
       # calculate overall ranges across slices for unified scales
-      comb_data <- c(slice_df$slice_data, slice_df$contrast_data)
-      el_lens <- sapply(comb_data, length)
-      comb_data <- comb_data[el_lens > 0] # drop empty lists prior to transpose
-      img_data <- purrr::transpose(comb_data) %>% bind_rows()
+      # first we need to traspose the data to be [[layers]][[slices]]
+      img_slice <- slice_df$slice_data
+      if (all(sapply(img_slice, length) > 0L)) {
+        img_data <- purrr::transpose(img_slice) %>% bind_rows()
+      } else {
+        img_data <- NULL
+      }
 
-      img_ranges <- img_data %>%
+      img_contrast <- slice_df$contrast_data
+      if (all(sapply(img_contrast, length) > 0L)) {
+        con_data <- purrr::transpose(img_contrast) %>% bind_rows()
+      } else {
+        con_data <- NULL
+      }
+
+      img_all <- img_data %>% bind_rows(con_data)
+
+      img_ranges <- img_all %>%
         group_by(image) %>%
-        summarise(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE))
+        summarise(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups="drop")
 
       if ("label" %in% names(img_data)) {
         img_uvals <- img_data %>%
