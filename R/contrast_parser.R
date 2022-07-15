@@ -87,7 +87,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
     brack_vars <- NULL
     subset_vars <- NULL
   } else {
-    brack_expr <- apply(brack_df, 1, function(x) { 
+    brack_expr <- apply(brack_df, 1, function(x) {
       trimws(substr(expr, x["open"]+1, x["close"]-1))
     })
 
@@ -122,7 +122,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
     ops_split <- strsplit(trimws(img_vars), "\\s*[\\*/\\-\\+]\\s*", perl=TRUE)
 
     # drop empty splits (empty space or 0 chars around operator) since that will throw off numbering
-    ops_split <- sapply(ops_split, function(vars) { vars[vars != ""] })
+    ops_split <- sapply(ops_split, function(vars) vars[vars != ""])
 
     # use cumulative sum to index subset variables across all
     subset_vars <- cumsum(sapply(ops_split, length))
@@ -139,7 +139,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
 
   if (!checkmate::test_subset(img_vars, names(data))) {
     mismatch <- setdiff(img_vars, names(data))
-    stop("The following columns in the contrast expression could not be found in the data: ", 
+    stop("The following columns in the contrast expression could not be found in the data: ",
          paste(mismatch, collapse=", "))
   }
 

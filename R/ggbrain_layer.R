@@ -1,6 +1,6 @@
 #' R6 class for a single layer of a ggbrain panel
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
-#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt
 #' @importFrom ggnewscale new_scale_fill
 #' @export
 ggbrain_layer <- R6::R6Class(
@@ -15,6 +15,33 @@ ggbrain_layer <- R6::R6Class(
     pvt_show_legend = NULL,
     pvt_interpolate = FALSE,
     pvt_is_empty = NULL,
+    pvt_bisided = FALSE, # only set by color_scale active binding
+
+    # helper function to make positive and negative scales symmetric
+    symmetrize_limits = function(df_neg, df_pos) {
+      # if positive and negative limits are already set, then respect these
+      # (most commonly, this is due to unify_scales)
+
+      # don't symmetrize if not requested
+      if (!private$pvt_color_scale$symmetric) return(invisible(NULL))
+
+      neg_lims <- private$pvt_color_scale$neg_scale$limits
+      pos_lims <- private$pvt_color_scale$pos_scale$limits
+
+      if (is.null(neg_lims)) {
+        neg_lims <- c(min(df_neg$value, na.rm = TRUE), max(df_neg$value, na.rm = TRUE))
+      }
+
+      if (is.null(pos_lims)) {
+        pos_lims <- c(min(df_pos$value, na.rm = TRUE), max(df_pos$value, na.rm = TRUE))
+      }
+
+      biggest <- max(abs(neg_lims[1]), pos_lims[2])
+      smallest <- min(abs(neg_lims[2]), pos_lims[1])
+
+      private$pvt_color_scale$neg_scale$limits <- -1 * c(biggest, smallest)
+      private$pvt_color_scale$pos_scale$limits <- c(smallest, biggest)
+    },
 
     # private method to set default fill scale when not provided
     set_default_scale = function() {
@@ -31,7 +58,11 @@ ggbrain_layer <- R6::R6Class(
         has_pos <- any(private$pvt_data$value > 0, na.rm = TRUE)
         has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)
         if (has_pos && has_neg) {
-          self$color_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
+          #self$color_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
+          self$color_scale <- scale_fill_bisided(
+            neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
+            pos_scale = scale_fill_distiller(palette = "Reds")
+          ) # internal scale stack
         } else if (has_neg) {
           self$color_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
         } else if (has_pos) {
@@ -102,6 +133,23 @@ ggbrain_layer <- R6::R6Class(
           value$na.value <- "transparent"
         }
 
+        # default color scale to name of layer if not otherwise provided
+        if (is.null(value$name) || inherits(value$name, "waiver")) {
+          value$name <- self$name
+        }
+
+        if (inherits(value, "ScaleBisided")) {
+          private$pvt_bisided <- TRUE # flag this layer as bisided
+
+          # propagate na.value to pos and neg components
+          value$pos_scale$na.value <- value$na.value
+          value$neg_scale$na.value <- value$na.value
+          value$pos_scale$name <- value$name
+          value$neg_scale$name <- "" # no label on negative scale
+        } else {
+          private$pvt_bisided <- FALSE
+        }
+
         private$pvt_color_scale <- value
       } else {
         stop("Cannot understand color_scale input. Should be a scale_fill_* object.")
@@ -133,10 +181,16 @@ ggbrain_layer <- R6::R6Class(
     unify_scales = function(value) {
       if (missing(value)) {
         private$pvt_unify_scales
-      } else{
+      } else {
         checkmate::assert_logical(value, len=1L)
         private$pvt_unify_scales <- value
       }
+    },
+
+    #' @field bisided read-only access to whether this layer uses a bisided color scale
+    bisided = function(value) {
+      if (missing(value)) private$pvt_bisided
+      else stop("Cannot assign bisided")
     }
   ),
   public = list(
@@ -194,6 +248,24 @@ ggbrain_layer <- R6::R6Class(
       return(self)
     },
 
+    #' @description set the limits for this layer's positive scale (only relevant to bisided)
+    #' @param limits a 2-element numeric vector setting the lower and upper limits on the layer's positive scale
+    set_pos_limits = function(limits) {
+      stopifnot(isTRUE(private$pvt_bisided))
+      checkmate::assert_numeric(limits, len=2L)
+      private$pvt_color_scale$pos_scale$limits <- limits
+      return(self)
+    },
+
+    #' @description set the limits for this layer's positive scale (only relevant to bisided)
+    #' @param limits a 2-element numeric vector setting the lower and upper limits on the layer's positive scale
+    set_neg_limits = function(limits) {
+      stopifnot(isTRUE(private$pvt_bisided))
+      checkmate::assert_numeric(limits, len=2L)
+      private$pvt_color_scale$neg_scale$limits <- limits
+      return(self)
+    },
+
     #' @description set the breaks element of this layer's scale
     #' @param breaks a function used to label the breaks
     set_breaks = function(breaks) {
@@ -201,13 +273,30 @@ ggbrain_layer <- R6::R6Class(
       private$pvt_color_scale$breaks <- breaks
     },
 
+    #' @description set the breaks element of this layer's positive scale (only relevant to bisided)
+    #' @param breaks a function used to label the positive breaks
+    set_pos_breaks = function(breaks) {
+      checkmate::assert_class(breaks, "function")
+      private$pvt_color_scale$pos_scale$breaks <- breaks
+    },
+
+    #' @description set the breaks element of this layer's negative scale (only relevant to bisided)
+    #' @param breaks a function used to label the negative breaks
+    set_neg_breaks = function(breaks) {
+      checkmate::assert_class(breaks, "function")
+      private$pvt_color_scale$neg_scale$breaks <- breaks
+    },
+
     #' @description plot this layer alone (mostly for debugging)
     plot = function() {
       if (self$is_empty()) stop("Cannot generate plot because this layer has no data! Use $data to add.")
 
-      g <- ggplot(data = private$pvt_data, aes(x=dim1, y=dim2, fill=value)) +
-        geom_raster(show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate) +
-        private$pvt_color_scale
+      # create empty plot
+      g <- ggplot(data = private$pvt_data, aes(x=dim1, y=dim2, fill=value))
+
+      # add relevant marks to layer
+      g <- self$add_to_gg(g)
+
       return(g)
     },
 
@@ -221,20 +310,64 @@ ggbrain_layer <- R6::R6Class(
       }
       checkmate::assert_class(base_gg, "gg")
       n_layers <- length(base_gg$layers)
+      ret <- base_gg # ggplot object to modify and return
+
+      # Handle bisided situation
+      # Note that geom_raster does best when there is a value at every square. Otherwise, this throws:
+      # "Raster pixels are placed at uneven vertical intervals and will be shifted"
+      # This appears to be ignorable, but is concerning and slightly annoying as a warning message
+      # Thus, we create parallel data.frames with NAs, rather than a simple filter for pos or neg
+      if (isTRUE(private$pvt_bisided)) {
+        df <- private$pvt_data %>%
+          dplyr::mutate(value=if_else(value < 0, value, NA_real_))
+
+        df_pos <- private$pvt_data %>%
+          dplyr::mutate(value=if_else(value > 0, value, NA_real_))
+
+        private$symmetrize_limits(df, df_pos)
+
+        cscale <- private$pvt_color_scale$neg_scale
+      } else {
+        df <- private$pvt_data
+        cscale <- private$pvt_color_scale
+      }
+
       new_val <- paste0("value", n_layers + 1L) # new_scale_fill depends on the fill aesthetic mapping differing by layer
-      df <- private$pvt_data %>%
+      df <- df %>%
         dplyr::rename(!!new_val := value)
 
-      if (n_layers == 0L) {
-        base_gg +
-          geom_raster(data = df, mapping = aes_string(x="dim1", y="dim2", fill=new_val), show.legend = private$pvt_show_legend) +
-          private$pvt_color_scale
-      } else {
-        base_gg +
-          ggnewscale::new_scale_fill() +
-          geom_raster(data = df, mapping = aes_string(x="dim1", y="dim2", fill=new_val), show.legend = private$pvt_show_legend) +
-          private$pvt_color_scale
+      if (n_layers > 0L) {
+        # if there is already a layer, we need to create a new slot for a fill aesthetic
+        ret <- base_gg + ggnewscale::new_scale_fill()
       }
+
+      ret <- ret +
+        geom_raster(
+          data = df, mapping = aes_string(x = "dim1", y = "dim2", fill = new_val),
+          show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate
+        ) +
+        cscale
+
+      if (isTRUE(private$pvt_bisided)) {
+        # add positive scale above negative to have it appear above it
+        new_val <- paste0("value", n_layers + 2L) # additional layer for positive values
+        df_pos <- df_pos %>%
+          dplyr::rename(!!new_val := value)
+
+        ret <- ret + ggnewscale::new_scale_fill() +
+          geom_raster(
+            data = df_pos, mapping = aes_string(x = "dim1", y = "dim2", fill = new_val),
+            show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate
+          ) +
+          private$pvt_color_scale$pos_scale
+
+        # force color bar order: +1 is negative, +2 is positive. Lower orders are positioned lower on legend
+        ret$scales$scales[[n_layers + 1]]$guide <- guide_colorbar(order = n_layers + 2, available_aes = c("fill", "fill_new"))
+        ret$scales$scales[[n_layers + 2]]$guide <- guide_colorbar(order = n_layers + 1, available_aes = c("fill", "fill_new"))
+      }
+
+      return(ret)
+
     },
 
     #' @description return the data.frame associated with this layer
@@ -265,3 +398,18 @@ ggbrain_layer <- R6::R6Class(
 ggplot_add.ggbrain_layer <- function(object, plot, object_name) {
   object$add_to_gg(plot) # adds the layer to the extant plot
 }
+
+## Trying to sort a two-sided scale with pos/neg gradients
+## The problem is that if we have thresholded values, then the min/max may not be 0, but something like 3.09 etc.
+# df <- data.frame(x=1:200, y = 1, 
+#                  stat_vals=c(
+#                    sort(truncnorm::rtruncnorm(100, a=4, mean=6, sd=2)),
+#                    sort(truncnorm::rtruncnorm(100, b=-4, mean=-6, sd=2))
+#                  ))
+
+# df <- df %>% mutate(stat_res = scales::rescale(stat_vals, c(0, 1)))
+
+# #https://stackoverflow.com/questions/18700938/ggplot2-positive-and-negative-values-different-color-gradient
+# ggplot(df, aes(x=x, y=y, fill=stat_vals)) + geom_tile() +
+#   scale_fill_gradientn(colours=c("blue","cyan","white", "yellow","red"), 
+#                        values=rescale(c(-1,0-.Machine$double.eps,0,0+.Machine$double.eps,1)))

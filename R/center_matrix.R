@@ -16,10 +16,9 @@ center_matrix <- function(output_dim, mat, default_value = NA_real_, drop_zeros 
     nz_mat <- 1L * (mat > 1e-5 | mat < -1e-5)
     nz_rows <- rowSums(nz_mat, na.rm = TRUE) > 0
     nz_cols <- colSums(nz_mat, na.rm = TRUE) > 0
-    lzr <- min(which(nz_rows == TRUE)) - 1
-    rzr <- length(nz_rows) - max(which(nz_rows == TRUE))
-    lzr_bias <- lzr - rzr
-    
+    #lzr <- min(which(nz_rows == TRUE)) - 1
+    #rzr <- length(nz_rows) - max(which(nz_rows == TRUE))
+    #lzr_bias <- lzr - rzr
     mat <- mat[nz_rows, nz_cols, drop=FALSE]
   }
 
