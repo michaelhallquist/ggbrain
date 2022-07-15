@@ -1,7 +1,8 @@
 #' R6 class for managing slice data for ggbrain plots
-#' @importFrom dplyr bind_rows
-#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr bind_rows full_join group_by across mutate summarize filter
+#' @importFrom tidyr pivot_wider pivot_longer unnest
 #' @importFrom tibble tibble
+#' @importFrom tidyselect across
 #' @author Michael Hallquist
 #' @keywords internal
 ggbrain_slices <- R6::R6Class(
@@ -15,9 +16,69 @@ ggbrain_slices <- R6::R6Class(
     pvt_slice_data=list(),
     pvt_slice_matrix=list(),
     pvt_slice_labels=list(),
-    pvt_contrast_data=list()
+    pvt_contrast_data=list(),
+
+    # helper function to combine slice image and contrast data
+    # TODO: sort out how to avoid calculating this twice for labels and numeric values
+    get_combined_data = function(slice_indices = NULL, only_labeled=FALSE) {
+      if (is.null(slice_indices)) {
+        slice_indices <- private$pvt_slice_index
+      } else {
+        checkmate::assert_integerish(slice_indices, lower = 1, upper = max(private$pvt_slice_index), unique = TRUE)
+      }
+
+      # calculate overall ranges across slices for unified scales
+      img_slice <- private$pvt_slice_data[slice_indices]
+      if (isTRUE(only_labeled)) {
+        # which layers are labeled
+        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) "label" %in% names(x))
+        stopifnot(sum(has_labels) > 0L) # would be a problem
+
+        # subset img_slice to only labeled layers
+        img_slice <- lapply(img_slice, function(ll) ll[has_labels])
+      }
+
+      if (all(sapply(img_slice, length) > 0L)) {
+        # img_data <- purrr::transpose(img_slice) %>% bind_rows(.id = "slice_index")
+        # since this is a nested list, bind_rows will generate list-columns for each layer with corresponding layer data
+        img_data <- img_slice %>% bind_rows(.id = "slice_index")
+      } else {
+        img_data <- NULL
+      }
+
+      img_contrast <- private$pvt_contrast_data[slice_indices]
+      if (all(sapply(img_contrast, length) > 0L)) {
+        # con_data <- purrr::transpose(img_contrast) %>% bind_rows(.id = "slice_index")
+        con_data <- img_contrast %>% bind_rows(.id = "slice_index")
+      } else {
+        con_data <- NULL
+      }
+
+      if (!is.null(img_data) && !is.null(con_data)) {
+        img_all <- img_data %>% inner_join(con_data, by = "slice_index")
+      } else if (is.null(img_data)) {
+        img_all <- con_data
+      } else if (is.null(con_data)) {
+        img_all <- img_data
+      } else {
+        stop("In $get_ranges, both $slice_data and $contrast_data are empty!")
+      }
+
+      # get names of all columns (layers) except the index
+      layer_names <- grep("slice_index", names(img_all), invert = TRUE, value = TRUE)
+
+      # convert into a long data frame with layer and slice_index as keys, drop NAs
+      img_all <- img_all %>%
+        tidyr::pivot_longer(cols = all_of(layer_names), names_to = "layer", values_to = "slice_data") %>%
+        tidyr::unnest(slice_data) %>%
+        dplyr::mutate(slice_index = as.integer(slice_index)) %>%
+        dplyr::filter(!is.na(value)) # no point in keeping all the empty/NA data
+
+      return(img_all)
+
+    }
   ),
-  
+
   # these active bindings create read-only access to class properties
   active = list(
     #' @field slice_index read-only access to the slice_index containing the slice numbers
@@ -74,7 +135,7 @@ ggbrain_slices <- R6::R6Class(
       private$pvt_coord_input <- if ("coord_input" %in% df_names) slice_df$coord_input else empty_list
       private$pvt_coord_label <- if ("coord_label" %in% df_names) slice_df$coord_label else empty_list
       private$pvt_plane <- if ("plane" %in% df_names) slice_df$plane else empty_list
-      private$pvt_slice_index <- if ("slice_index" %in% df_names) slice_df$slice_index else empty_list
+      private$pvt_slice_index <- if ("slice_index" %in% df_names) slice_df$slice_index else seq_along(df_names)
       private$pvt_slice_number <- if ("slice_number" %in% df_names) slice_df$slice_number else empty_list
       private$pvt_slice_data <- if ("slice_data" %in% df_names) slice_df$slice_data else empty_list
       private$pvt_slice_labels <- if ("slice_labels" %in% df_names) slice_df$slice_labels else empty_list
@@ -141,7 +202,7 @@ ggbrain_slices <- R6::R6Class(
         e_data[names(c_data)] <- c_data # update relevant elements of extant data
         return(e_data)
       })
-      
+
     },
 
     #' @description convert the slices object into a data.frame with list-columns for slice data elements
@@ -158,7 +219,7 @@ ggbrain_slices <- R6::R6Class(
         contrast_data=private$pvt_contrast_data
       )
     },
-    
+
     #' @description returns a vector of the names of all image and contrast data available in this
     #'   ggbrain_slices object.
     get_image_names = function() {
@@ -167,14 +228,64 @@ ggbrain_slices <- R6::R6Class(
       } else {
         nmc <- NULL
       }
-      
+
       if (length(private$pvt_slice_data) > 0L) {
         nms <- names(private$pvt_slice_data[[1]]) # first slice should be representative
       } else {
         nms <- NULL
       }
-      
+
       return(c(nms, nmc))
+    },
+
+    #' @description calculates the numeric ranges of each image/contrast in this object, across all
+    #'   constituent slices. This is useful for setting scale limits that are shared across panels
+    #' @param slice_indices an optional integer vector of slice indices to be used as a subset in the calculation
+    #' @return a tibble keyed by 'layer' with overall low and high values, as well as split by pos/neg
+    get_ranges = function(slice_indices = NULL) {
+      img_all <- private$get_combined_data(slice_indices)
+
+      img_ranges <- img_all %>%
+        dplyr::group_by(layer) %>%
+        dplyr::summarize(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups = "drop")
+
+      # for bisided layers, we need pos and neg ranges -- N.B. this does not support arbitrary cutpoints!
+      img_ranges_posneg <- img_all %>%
+        dplyr::filter(value > 2 * .Machine$double.eps | value < -2 * .Machine$double.eps) %>% # filter exact zeros so that we get true > and <
+        dplyr::mutate(above_zero = factor(value > 0, levels = c(TRUE, FALSE), labels = c("pos", "neg"))) %>%
+        dplyr::group_by(layer, above_zero, .drop=FALSE) %>%
+        dplyr::summarize(
+          low = suppressWarnings(min(value, na.rm = TRUE)),
+          high = suppressWarnings(max(value, na.rm = TRUE)), .groups = "drop") %>%
+        pivot_wider(id_cols="layer", names_from="above_zero", values_from=c(low, high))
+
+      # join the overall ranges with the pos/neg split
+      img_ranges <- img_ranges %>%
+        dplyr::full_join(img_ranges_posneg, by = "layer") %>%
+        dplyr::mutate(across(matches("low|high"), ~ if_else(is.infinite(.x), NA_real_, .x))) # set Inf to NA
+
+      return(img_ranges)
+
+    },
+
+    #' @description returns a data.frame with the unique values for each label layer, across all
+    #'   constituent slices
+    #' @param slice_indices an optional integer vector of slice indices to be used as a subset in the calculation
+    get_uvals = function(slice_indices = NULL) {
+      # examine first slice to see if any layers have labels (reasonably assumes all slices have same layers)
+      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) "label" %in% names(x))
+      if (!any(has_labels)) {
+        return(data.frame()) # return empty data.frame
+      } else {
+        img_all <- private$get_combined_data(slice_indices, only_labeled = TRUE)
+        img_uvals <- img_all %>%
+          group_by(layer) %>%
+          dplyr::summarize(uvals = unique(label), .groups = "drop") %>%
+          na.omit()
+      }
+
+      return(img_uvals)
+
     }
   )
 )
