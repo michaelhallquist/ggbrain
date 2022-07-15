@@ -52,6 +52,9 @@ ggb <- R6::R6Class(
     #' @field ggb_plot a ggbrain_plot object containing the specification of the plot
     ggb_plot = NULL,
 
+    #' @field ggb_annotation a list of annotation objects
+    ggb_annotate = NULL,
+
     #' @field action what should this ggb object contribute to another when added with it?
     action = NULL,
 
@@ -61,7 +64,7 @@ ggb <- R6::R6Class(
     #' @param slices a character vector of slices to extract
     #' @param layers a list of ggbrain_layer objects
     #' @param action the action to be taken when adding this object to an existing ggb
-    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL) {
+    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL, bg_color="grey50", text_color="black") {
       if (!is.null(images)) {
         checkmate::assert_class(images, "ggbrain_images")
         self$ggb_images <- images$clone(deep=TRUE)
@@ -104,9 +107,9 @@ ggb <- R6::R6Class(
 
       self$ggb_layers <- c(self$ggb_layers, ilist)
       # internally, ggb objects name each layer in ascending sequence
-      for (i in seq_along(self$ggb_layers)) {
-        self$ggb_layers[[i]]$name <- paste0("layer", i)
-      }
+      # for (i in seq_along(self$ggb_layers)) {
+      #   self$ggb_layers[[i]]$name <- paste0("layer", i)
+      # }
       names(self$ggb_layers) <- sapply(self$ggb_layers, "[[", "name")
       return(self)
     },
@@ -174,8 +177,7 @@ ggb <- R6::R6Class(
       names(self$ggb_layers) <- layer_names
 
       # need to line up layer names with data name in slice_data and contrast_data
-      #browser()
-      
+
       plot_obj <- ggbrain_plot$new(slc)
       plot_obj$layers <- self$ggb_layers
       plot_obj$generate_plot()
@@ -290,8 +292,66 @@ geom_brain <- function(...) {
   ret <- ggb$new(layers = l_obj, action="add_layer")
 }
 
+#' Adds the coordinate labels (e.g., x = -6) to each panel
+#' @details Note that the data that define the label should be in the ggbrain_slices object that is returned as
+#'   part of the add_slices() argument. If you wish to add a custom label, pass it through the add_slices(coord_label)
+#'   argument.
+annotate_panels <- function(..., position="lower_right") {
+
+
+
+}
+
 #' Function to convert ggb object to ggplot/patchwork object
 #' @export
 render <- function() {
   ggb$new(action = "render")
+}
+
+#' little helper function to create named list from objects
+#' @param ... A set of arguments to be compiled into a list
+#' @details The names of the objects will form the names of the list elements
+named_list <- function(...) {
+  vnames <- as.character(match.call())[-1]
+  return(setNames(list(...), vnames))
+}
+
+
+#' scale for plotting separate color gradients for positive and negative values
+#' @param name the scale name to be printed in the legend (above positive scale)
+#' @param neg_scale a scale_fill_* object used for negative values
+#' @param pos_scale a scale_fill_* object used for positive values
+#' @param symmetric if TRUE, the limits of the positive scale will equal the inverse limits of
+#'   the negative scale. Said differently, this makes the positive and negative scales symmetric
+#' @details Note that this will absolutely not work as a general purpose ggplot2 scale!
+#'   The positive/negative combination is achieved by adding two layers/geoms behind the
+#'   scenes with different color scale.
+#' @importFrom ggplot2 waiver
+#' @export
+scale_fill_bisided <- function(
+  name = waiver(),
+  neg_scale = scale_fill_distiller(palette="Blues", direction = 1),
+  pos_scale = scale_fill_distiller(palette="Reds"), symmetric = TRUE) {
+
+  checkmate::assert_class(neg_scale, "ScaleContinuous")
+  stopifnot(neg_scale$aesthetics == "fill")
+
+  checkmate::assert_class(pos_scale, "ScaleContinuous")
+  stopifnot(pos_scale$aesthetics == "fill")
+
+  checkmate::assert_logical(symmetric, len=1L)
+
+  # fake the right class to allow this to validate at the ggbrain_layer stage
+  ret <- list(
+    name = name,
+    neg_scale = neg_scale,
+    pos_scale = pos_scale,
+    aesthetics = "fill",
+    na.value = "transparent",
+    symmetric = symmetric
+  )
+
+  # hack package into tolerating made up scale object
+  class(ret) <- c("list", "ScaleContinuous", "ScaleBisided", "Scale") # ggproto and gg classes lead to errors in print method
+  return(ret)
 }
