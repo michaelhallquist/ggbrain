@@ -133,39 +133,13 @@ ggbrain_plot <- R6::R6Class(
       slice_df <- private$pvt_slices$as_tibble()
 
       if (!is.null(slice_indices)) {
-        slice_df <- slice_df %>% filter(slice_index %in% !!slice_indices)
+        slice_df <- slice_df %>%
+          dplyr::filter(slice_index %in% !!slice_indices)
       }
 
-      # calculate overall ranges across slices for unified scales
-      # first we need to traspose the data to be [[layers]][[slices]]
-      img_slice <- slice_df$slice_data
-      if (all(sapply(img_slice, length) > 0L)) {
-        img_data <- purrr::transpose(img_slice) %>% bind_rows()
-      } else {
-        img_data <- NULL
-      }
-
-      img_contrast <- slice_df$contrast_data
-      if (all(sapply(img_contrast, length) > 0L)) {
-        con_data <- purrr::transpose(img_contrast) %>% bind_rows()
-      } else {
-        con_data <- NULL
-      }
-
-      img_all <- img_data %>% bind_rows(con_data)
-
-      img_ranges <- img_all %>%
-        group_by(image) %>%
-        dplyr::summarize(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups = "drop")
-
-      if ("label" %in% names(img_data)) {
-        img_uvals <- img_data %>%
-          group_by(image) %>%
-          dplyr::summarize(uvals = unique(label), .groups="drop") %>%
-          na.omit()
-      } else {
-        img_uvals <- NULL
-      }
+      # lookup ranges of each layer and unique values of labels
+      img_ranges <- private$pvt_slices$get_ranges(slice_indices)
+      img_uvals <- private$pvt_slices$get_uvals(slice_indices)
 
       # generate a list of panel objects that combine layers and slice data
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
@@ -189,16 +163,31 @@ ggbrain_plot <- R6::R6Class(
             if (isTRUE(l_obj$use_labels)) {
               # unify factor levels
               f_levels <- img_uvals %>%
-                filter(image == !!l_obj$name) %>%
+                filter(layer == !!l_obj$name) %>%
                 pull(uvals)
               l_obj$data$value <- factor(l_obj$data$value, levels = f_levels)
-              l_obj$color_scale$drop <- FALSE # don't drop unused levels
+              l_obj$color_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
             } else {
-              lims <- img_ranges %>%
-                filter(image == !!l_obj$name) %>%
-                select(low, high) %>%
-                unlist()
-              l_obj$set_limits(lims)
+              if (isTRUE(l_obj$bisided)) {
+                pos_lims <- img_ranges %>%
+                  filter(layer == !!l_obj$name) %>%
+                  select(low_pos, high_pos) %>%
+                  unlist()
+                l_obj$set_pos_limits(pos_lims)
+
+                neg_lims <- img_ranges %>%
+                  filter(layer == !!l_obj$name) %>%
+                  select(low_neg, high_neg) %>%
+                  unlist()
+                l_obj$set_neg_limits(neg_lims)
+
+              } else {
+                lims <- img_ranges %>%
+                  filter(layer == !!l_obj$name) %>%
+                  select(low, high) %>%
+                  unlist()
+                l_obj$set_limits(lims)
+              }
             }
           }
 
