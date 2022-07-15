@@ -156,12 +156,12 @@ ggbrain_plot <- R6::R6Class(
 
       img_ranges <- img_all %>%
         group_by(image) %>%
-        summarise(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups="drop")
+        dplyr::summarize(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups = "drop")
 
       if ("label" %in% names(img_data)) {
         img_uvals <- img_data %>%
           group_by(image) %>%
-          summarise(uvals = unique(label)) %>%
+          dplyr::summarize(uvals = unique(label), .groups="drop") %>%
           na.omit()
       } else {
         img_uvals <- NULL

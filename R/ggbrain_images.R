@@ -137,7 +137,7 @@ ggbrain_images <- R6::R6Class(
       # pvt_img_labels = list(), # list of data.frames containing labels for a label image
       return(self)
     },
-    
+
     #' @description add a labels data.frame that connects an integer-valued image with a set of labels
     #' @param ... named arguments containing data.frame objects for each image to be labeled. The argument name should
     #'   match the image name to be labeled and the value should be a data.frame containing \code{img_value} and \code{label}. 
@@ -148,7 +148,7 @@ ggbrain_images <- R6::R6Class(
     #'   a row for each region represented in each slice.
     add_labels = function(...) {
       label_args <- list(...)
-      
+
       # return unchanged object if no input labels found
       if (is.null(label_args) || length(label_args) == 0L) return(self)
       label_names <- names(label_args)
