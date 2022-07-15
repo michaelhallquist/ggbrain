@@ -23,6 +23,7 @@ R6 class for a single panel of a ggbrain image
 \item \href{#method-ggbrain_panel-plot}{\code{ggbrain_panel$plot()}}
 \item \href{#method-ggbrain_panel-add_to_gg}{\code{ggbrain_panel$add_to_gg()}}
 \item \href{#method-ggbrain_panel-add_layer}{\code{ggbrain_panel$add_layer()}}
+\item \href{#method-ggbrain_panel-add_annotation}{\code{ggbrain_panel$add_annotation()}}
 \item \href{#method-ggbrain_panel-remove_layers}{\code{ggbrain_panel$remove_layers()}}
 \item \href{#method-ggbrain_panel-get_data}{\code{ggbrain_panel$get_data()}}
 \item \href{#method-ggbrain_panel-get_layer_names}{\code{ggbrain_panel$get_layer_names()}}
@@ -153,6 +154,60 @@ adds a ggplot_layer object to the panel
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_panel-add_annotation"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-add_annotation}{}}}
+\subsection{Method \code{add_annotation()}}{
+wraps the ggplot2 annotate function, allowing for annotations to be added to this panel
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$add_annotation(
+  geom,
+  x = NULL,
+  y = NULL,
+  xmin = NULL,
+  xmax = NULL,
+  ymin = NULL,
+  ymax = NULL,
+  xend = NULL,
+  yend = NULL,
+  ...,
+  na.rm = FALSE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{geom}}{name of geom to use for annotation}
+
+\item{\code{x}}{x aesthetic}
+
+\item{\code{y}}{y aesthetic}
+
+\item{\code{xmin}}{xmin aesthetic}
+
+\item{\code{xmax}}{xmax aesthetic}
+
+\item{\code{ymin}}{ymin aesthetic}
+
+\item{\code{ymax}}{ymax aesthetic}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+Note that panel annotations differ slightly from the standard ggplot2 annotate function in that
+the x* and y* aesthetics can be set to standardized values that allow for specific positioning without knowing
+the values of the x and y data (dim1 and dim2, respectively).
+
+The specific values that are supported are:
+\itemize{
+\item x only: 'left', 'right'
+\item y only: 'top', 'bottom'
+\item x and y: 'middle', 'q\link{0-1}' (for quantiles)
+}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_panel-remove_layers"></a>}}

@@ -25,6 +25,8 @@ R6 class for a single layer of a ggbrain panel
 
 \item{\code{unify_scales}}{a logical indicating whether to unify scale limits and levels when this layer
 is added across many panels}
+
+\item{\code{bisided}}{read-only access to whether this layer uses a bisided color scale}
 }
 \if{html}{\out{</div>}}
 }
@@ -33,7 +35,11 @@ is added across many panels}
 \itemize{
 \item \href{#method-ggbrain_layer-new}{\code{ggbrain_layer$new()}}
 \item \href{#method-ggbrain_layer-set_limits}{\code{ggbrain_layer$set_limits()}}
+\item \href{#method-ggbrain_layer-set_pos_limits}{\code{ggbrain_layer$set_pos_limits()}}
+\item \href{#method-ggbrain_layer-set_neg_limits}{\code{ggbrain_layer$set_neg_limits()}}
 \item \href{#method-ggbrain_layer-set_breaks}{\code{ggbrain_layer$set_breaks()}}
+\item \href{#method-ggbrain_layer-set_pos_breaks}{\code{ggbrain_layer$set_pos_breaks()}}
+\item \href{#method-ggbrain_layer-set_neg_breaks}{\code{ggbrain_layer$set_neg_breaks()}}
 \item \href{#method-ggbrain_layer-plot}{\code{ggbrain_layer$plot()}}
 \item \href{#method-ggbrain_layer-add_to_gg}{\code{ggbrain_layer$add_to_gg()}}
 \item \href{#method-ggbrain_layer-get_data}{\code{ggbrain_layer$get_data()}}
@@ -109,6 +115,40 @@ set the limits for this layer's scale
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_pos_limits"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_pos_limits}{}}}
+\subsection{Method \code{set_pos_limits()}}{
+set the limits for this layer's positive scale (only relevant to bisided)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_pos_limits(limits)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{limits}}{a 2-element numeric vector setting the lower and upper limits on the layer's positive scale}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_neg_limits"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_neg_limits}{}}}
+\subsection{Method \code{set_neg_limits()}}{
+set the limits for this layer's positive scale (only relevant to bisided)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_neg_limits(limits)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{limits}}{a 2-element numeric vector setting the lower and upper limits on the layer's positive scale}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_layer-set_breaks"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_layer-set_breaks}{}}}
 \subsection{Method \code{set_breaks()}}{
@@ -121,6 +161,40 @@ set the breaks element of this layer's scale
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{breaks}}{a function used to label the breaks}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_pos_breaks"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_pos_breaks}{}}}
+\subsection{Method \code{set_pos_breaks()}}{
+set the breaks element of this layer's positive scale (only relevant to bisided)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_pos_breaks(breaks)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{breaks}}{a function used to label the positive breaks}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_layer-set_neg_breaks"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer-set_neg_breaks}{}}}
+\subsection{Method \code{set_neg_breaks()}}{
+set the breaks element of this layer's negative scale (only relevant to bisided)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer$set_neg_breaks(breaks)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{breaks}}{a function used to label the negative breaks}
 }
 \if{html}{\out{</div>}}
 }

@@ -48,6 +48,8 @@ that slice and the list elements within are each a given image}
 \item \href{#method-ggbrain_slices-compute_contrasts}{\code{ggbrain_slices$compute_contrasts()}}
 \item \href{#method-ggbrain_slices-as_tibble}{\code{ggbrain_slices$as_tibble()}}
 \item \href{#method-ggbrain_slices-get_image_names}{\code{ggbrain_slices$get_image_names()}}
+\item \href{#method-ggbrain_slices-get_ranges}{\code{ggbrain_slices$get_ranges()}}
+\item \href{#method-ggbrain_slices-get_uvals}{\code{ggbrain_slices$get_uvals()}}
 \item \href{#method-ggbrain_slices-clone}{\code{ggbrain_slices$clone()}}
 }
 }
@@ -122,6 +124,45 @@ ggbrain_slices object.
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_image_names()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_slices-get_ranges"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_slices-get_ranges}{}}}
+\subsection{Method \code{get_ranges()}}{
+calculates the numeric ranges of each image/contrast in this object, across all
+constituent slices. This is useful for setting scale limits that are shared across panels
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_ranges(slice_indices = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{slice_indices}}{an optional integer vector of slice indices to be used as a subset in the calculation}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+a tibble keyed by 'layer' with overall low and high values, as well as split by pos/neg
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_slices-get_uvals"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_slices-get_uvals}{}}}
+\subsection{Method \code{get_uvals()}}{
+returns a data.frame with the unique values for each label layer, across all
+constituent slices
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_uvals(slice_indices = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{slice_indices}}{an optional integer vector of slice indices to be used as a subset in the calculation}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_slices-clone"></a>}}

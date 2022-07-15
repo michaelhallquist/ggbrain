@@ -23,12 +23,17 @@ image arithmetic and logical subsetting
 }
 \examples{
 \dontrun{
-  data <- matrix(rnorm(1000), ncol=5) \%>\% data.frame() \%>\%
-    setNames(c("a", "f", "dsf", "abc", "b"))
-  data$sdf <- rbinom(200, 1, .5)
- res <- contrast_parser("a + f + dsf [ sdf == 1 ]  * abc[ abc > 1 ] + b",data)
- res <- contrast_parser("dsf [ sdf == 1 ] + b", data)
+ data <- matrix(rnorm(1000), ncol=5) \%>\% data.frame() \%>\%
+   setNames(c("a", "f", "dsf", "abc", "b"))
+ data$bin1 <- rbinom(200, 1, .5)
+ data$bin2 <- rbinom(200, 1, .5)
+ data$dim1 <- rep(1:20, each=10)
+ data$dim2 <- rep(1:10, 20)
+
+ res <- contrast_parser("a + f + dsf [ bin1 == 1 ] * abc[ abc > 1 ] + b", data)
+ res <- contrast_parser("dsf [ bin1 == 1 ] + b", data)
  res <- contrast_parser("dsf * abc", data)
+ res <- contrast_parser("1 = a > 3; 2 = b > 3; 3 = a > 3 & b > 3")
 }
 }
 \author{

@@ -26,7 +26,16 @@ this object becomes a simple storage class that contains all relevant objects
 
 \item{\code{ggb_plot}}{a ggbrain_plot object containing the specification of the plot}
 
+\item{\code{ggb_annotation}}{a list of annotation objects}
+
 \item{\code{action}}{what should this ggb object contribute to another when added with it?}
+}
+\if{html}{\out{</div>}}
+}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{ggb_annotation}}{a list of annotation objects}
 }
 \if{html}{\out{</div>}}
 }
@@ -54,7 +63,9 @@ unintended modify-in-place behaviors of R6 classes.
   slices = NULL,
   layers = NULL,
   labels = NULL,
-  action = NULL
+  action = NULL,
+  bg_color = "grey50",
+  text_color = "black"
 )}\if{html}{\out{</div>}}
 }
 

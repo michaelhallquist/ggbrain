@@ -55,31 +55,31 @@ ggbrain_legacy <- function(underlay=NULL, overlay=NULL,
   checkmate::assert_class(underlay_colorscale, "ScaleContinuous")
   checkmate::assert_class(negative_colorscale, "ScaleContinuous")
   checkmate::assert_class(positive_colorscale, "ScaleContinuous")
-  
+
   # force transparency for NA values on each layer to make things visible
   if (underlay_colorscale$na.value != "transparent") { 
     underlay_colorscale$na.value <- "transparent"
   }
-  
-  if (positive_colorscale$na.value != "transparent") { 
+
+  if (positive_colorscale$na.value != "transparent") {
     positive_colorscale$na.value <- "transparent"
   }
-  
-  if (negative_colorscale$na.value != "transparent") { 
+
+  if (negative_colorscale$na.value != "transparent") {
     negative_colorscale$na.value <- "transparent"
   }
-  
+
   # handle data.frame
   if (is.list(slices)) {
     slices <- bind_rows(slices)
   }
-  
+
   if (is.null(slices$coord_label)) {
     slices$coord_label <- TRUE # default to labeling slices
   }
-  
+
   max_bg <- "gray95" # brightest value on underlay
-  
+
   checkmate::assert_file_exists(underlay)
   checkmate::assert_file_exists(overlay)
   checkmate::assert_class(theme_custom, "theme", null.ok = TRUE)
@@ -95,7 +95,7 @@ ggbrain_legacy <- function(underlay=NULL, overlay=NULL,
 
   # set any tiny value in underlay to NA
   gg_imgs$na_images("underlay", 1e-8)
-  
+
   # sigmoid transform
   #underlay2 <- underlay + underlay*underlay_contrast*(1/(1+exp(-underlay)))
   #underlay <- underlay*5*(1/(1+exp(-underlay)))
@@ -201,17 +201,20 @@ ggbrain_legacy <- function(underlay=NULL, overlay=NULL,
     }
 
     slice_info <- attr(slice_data, "slice_info")
-    
+
     if (isTRUE(slices$coord_label[i])) {
       # annotate will expand the coordinates of the plot, if needed
-      xrange <- diff(range(a_df$dim1, na.rm=T))
-      yrange <- diff(range(a_df$dim2, na.rm=T))
-      label_x_pos <- max(a_df$dim1, na.rm=T) + .01*xrange  # place slightly to the right of the furthest point
-      label_y_pos <- min(a_df$dim2, na.rm=T) - .07*yrange  # place slightly below the lowest point
-      
-      panel$gg <- panel$gg + annotate(geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i], 
-                        hjust = 1, vjust = 0, color=text_color, size = (base_size*.6)/ggplot2::.pt)
+      xrange <- diff(range(a_df$dim1, na.rm = T))
+      yrange <- diff(range(a_df$dim2, na.rm = T))
+      label_x_pos <- max(a_df$dim1, na.rm = T) + .01 * xrange # place slightly to the right of the furthest point
+      label_y_pos <- min(a_df$dim2, na.rm = T) - .07 * yrange # place slightly below the lowest point
+
+      panel$gg <- panel$gg + annotate(
+        geom = "text", x = label_x_pos, y = label_y_pos, label = slice_info$coord_label[i],
+        hjust = 1, vjust = 0, color = text_color, size = (base_size * .6) / ggplot2::.pt
+      )
     }
+    
     
     # cache legend
     leg <- get_legend(panel$gg)

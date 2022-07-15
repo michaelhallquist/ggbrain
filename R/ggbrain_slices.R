@@ -2,7 +2,7 @@
 #' @importFrom dplyr bind_rows full_join group_by across mutate summarize filter
 #' @importFrom tidyr pivot_wider pivot_longer unnest
 #' @importFrom tibble tibble
-#' @importFrom tidyselect across
+#' @importFrom tidyselect matches
 #' @author Michael Hallquist
 #' @keywords internal
 ggbrain_slices <- R6::R6Class(
