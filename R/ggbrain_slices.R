@@ -18,6 +18,7 @@ ggbrain_slices <- R6::R6Class(
     pvt_slice_labels = list(),
     pvt_is_contrast = NULL, # denotes whether each layer in slice_data is a contrast or an image
     pvt_layer_names = NULL, # names of layers/images within each slice
+    pvt_contrast_definitions = NULL,
 
     # helper function to combine slice image and contrast data
     # TODO: sort out how to avoid calculating this twice for labels and numeric values
@@ -147,11 +148,22 @@ ggbrain_slices <- R6::R6Class(
         contrast_list <- as.list(contrast_list) # tolerate named character vector input
       }
 
-      # force unique names of input contrats
+      # force unique names of input contrasts
       checkmate::assert_list(contrast_list, names = "unique")
       if (length(private$pvt_slice_data) == 0L) {
         stop("Cannot use $compute_contrasts() if there are no slice_data in the object")
       }
+
+      # quietly ensure that we are not recomputing the same contrast
+      for (cc in seq_along(contrast_list)) {
+        nm_match <- which(names(private$pvt_contrast_definitions) == names(contrast_list)[cc])
+        if (length(nm_match) == 1L && trimws(private$pvt_contrast_definitions[[nm_match]]) == trimws(contrast_list[[cc]])) {
+          # identical contrast with the same name -- no need to do anything further with this one
+          contrast_list[[cc]] <- NULL
+        }
+      }
+
+      if (length(contrast_list) == 0L) return(self) # skip out if no contrasts to compute
 
       # check overlap with non-contrast data
       img_overlap <- intersect(names(contrast_list), private$pvt_layer_names[!private$pvt_is_contrast])
@@ -200,6 +212,8 @@ ggbrain_slices <- R6::R6Class(
 
       private$pvt_layer_names <- names(private$pvt_slice_data[[1]]) # update object with new names
       private$pvt_is_contrast[names(contrast_list)] <- TRUE
+      private$pvt_contrast_definitions[names(contrast_list)] <- contrast_list # keep track of definitions
+      return(self)
     },
 
     #' @description convert the slices object into a data.frame with list-columns for slice data elements

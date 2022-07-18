@@ -8,7 +8,8 @@ ggbrain_layer <- R6::R6Class(
   private = list(
     pvt_name = NULL,
     pvt_definition = NULL,
-    pvt_data = NULL,
+    pvt_source = NULL, # character string specifying which layer (image/contrast) within ggbrain_slices pertains
+    pvt_data = NULL, # the data.frame containing values for this layer
     pvt_use_labels = NULL, # whether to use value or label column of data
     pvt_unify_scales = NULL, # whether to equate scale limits or level across panels
     pvt_color_scale = NULL,
@@ -95,6 +96,19 @@ ggbrain_layer <- R6::R6Class(
         checkmate::assert_string(value)
         private$pvt_definition <- value
       }
+    },
+
+    #' @field source a character string specifying the layer source within a relevant ggbrain_slices object.
+    #'   This is used to lookup the right layer information when combining slices and layers together
+    #'   Note that multiple layers can potentially have the same source, which is why a 1:1 mapping to name does not work
+    source = function(value) {
+      if (missing(value)) {
+        return(private$pvt_source)
+      } else {
+        checkmate::assert_string(value)
+        private$pvt_source <- value
+      }
+
     },
 
     #' @field data the data.frame containing relevant data for this layer.

@@ -57,7 +57,9 @@ ggbrain_plot <- R6::R6Class(
         l_li <- sapply(value, function(x) inherits(x, "list"))
         l_names <- sapply(value, "[[", "name")
         if (any(dupes <- duplicated(l_names))) {
-          stop(glue::glue("Layer names cannot be duplicates. Problem with: {paste(l_names[dupes], collapse=', ')}"))
+          #warning(glue::glue("Layer names cannot be duplicates. We will make the following names unique: {paste(l_names[dupes], collapse=', ')}"))
+          l_names <- make.unique(l_names)
+          for (ii in seq_along(value)) value[[ii]]$name <- l_names[ii] # assign unique names back into layer object
         }
 
         if (all(l_gg)) {
@@ -124,8 +126,8 @@ ggbrain_plot <- R6::R6Class(
         stop("Unclear layers input to generate_plot()")
       }
       checkmate::assert_list(layers)
-      plot_layer_names <- sapply(layers, "[[", "name")
-
+      layer_sources <- sapply(layers, "[[", "source")
+      
       # each slice forms a ggbrain_panel
       slice_df <- private$pvt_slices$as_tibble()
 
@@ -142,8 +144,8 @@ ggbrain_plot <- R6::R6Class(
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
         # match slice data with layers
 
-        comb_data <- slice_df$slice_data[[i]][plot_layer_names] # subset to only relevant data
-        
+        comb_data <- slice_df$slice_data[[i]][layer_sources] # subset to only relevant data
+
         # list of layers
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
@@ -151,7 +153,7 @@ ggbrain_plot <- R6::R6Class(
           if (isTRUE(l_obj$use_labels)) {
             stopifnot("label" %in% names(df))
             # swap out label into value position for plotting
-            df <- df %>% select(-value) %>% rename(value=label)
+            df <- df %>% dplyr::select(-value) %>% dplyr::rename(value=label)
           }
           l_obj$data <- df # add slice-specific data to this this layer
 
@@ -159,27 +161,27 @@ ggbrain_plot <- R6::R6Class(
             if (isTRUE(l_obj$use_labels)) {
               # unify factor levels
               f_levels <- img_uvals %>%
-                filter(layer == !!l_obj$name) %>%
+                filter(layer == !!l_obj$source) %>%
                 pull(uvals)
               l_obj$data$value <- factor(l_obj$data$value, levels = f_levels)
               l_obj$color_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
             } else {
               if (isTRUE(l_obj$bisided)) {
                 pos_lims <- img_ranges %>%
-                  filter(layer == !!l_obj$name) %>%
+                  filter(layer == !!l_obj$source) %>%
                   select(low_pos, high_pos) %>%
                   unlist()
                 l_obj$set_pos_limits(pos_lims)
 
                 neg_lims <- img_ranges %>%
-                  filter(layer == !!l_obj$name) %>%
+                  filter(layer == !!l_obj$source) %>%
                   select(low_neg, high_neg) %>%
                   unlist()
                 l_obj$set_neg_limits(neg_lims)
 
               } else {
                 lims <- img_ranges %>%
-                  filter(layer == !!l_obj$name) %>%
+                  filter(layer == !!l_obj$source) %>%
                   select(low, high) %>%
                   unlist()
                 l_obj$set_limits(lims)

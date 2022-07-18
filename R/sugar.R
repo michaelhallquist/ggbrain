@@ -76,13 +76,9 @@ ggb <- R6::R6Class(
       }
 
       if (!is.null(layers)) {
-        if (checkmate::test_class(layers, "ggbrain_layer")) {
-          layers <- list(layers) # form one-element list
-        }
-
-        # should be a list of layer objects
-        sapply(layers, function(x) checkmate::assert_class(x, "ggbrain_layer"))
-        self$ggb_layers <- layers
+        # form one-element list if a ggbrain_object is passed
+        if (checkmate::test_class(layers, "ggbrain_layer")) layers <- list(layers)
+        self$add_layers(layers)
       }
 
       if (!is.null(labels)) {
@@ -99,17 +95,15 @@ ggb <- R6::R6Class(
     #' @description add layers from another ggb object to this one
     #' @param ilist a list of ggbrain_layer objects. If a ggb object is passed, we
     #'   will get this list from obj$ggb_layers
-    add_layer = function(ilist) {
+    add_layers = function(ilist) {
       if (checkmate::test_class(ilist, "ggb")) {
         ilist <- ilist$ggb_layers
       }
       checkmate::assert_list(ilist)
+      sapply(ilist, function(x) checkmate::assert_class(x, "ggbrain_layer"))
 
       self$ggb_layers <- c(self$ggb_layers, ilist)
-      # internally, ggb objects name each layer in ascending sequence
-      # for (i in seq_along(self$ggb_layers)) {
-      #   self$ggb_layers[[i]]$name <- paste0("layer", i)
-      # }
+
       names(self$ggb_layers) <- sapply(self$ggb_layers, "[[", "name")
       return(self)
     },
@@ -157,27 +151,46 @@ ggb <- R6::R6Class(
       do.call(img$add_labels, self$ggb_labels)
       slc <- img$get_slices()
 
-      # internally, all layers are treated as contrasts named in ascending sequence
-      layer_defs <- sapply(self$ggb_layers, "[[", "definition")
-      layer_names <- names(layer_defs)
-      is_contrast <- !layer_defs %in% img$get_image_names()
+      # image/contrast definitions for each layer
+      layer_defs <- trimws(sapply(self$ggb_layers, "[[", "definition"))
+      is_contrast <- !layer_defs %in% img$get_image_names() # if definition is just an image name, it's not a contrast to be computed
+      layer_sources <- rep(NA_character_, length(layer_defs))
+
+      # data sources for simple image layers
+      layer_sources[!is_contrast] <- layer_defs[!is_contrast]
+
+      # compute any contrasts requested
       if (any(is_contrast)) {
-        contrast_list <- layer_defs[is_contrast]
-        # names(contrast_list) <- paste0("layer", seq_along(contrast_list))
+        # allow for definitions of the form "con1 := overlay*2"
+        contrast_list <- lapply(layer_defs[is_contrast], function(x) {
+          if (grepl("^\\s*\\w+\\s*:=.*$", x, perl = TRUE)) {
+            con_name <- sub("^\\s*(\\w+)\\s*:=.*$", "\\1", x, perl = TRUE) # parse name
+            con_val <- trimws(sub("^\\s*\\w+\\s*:=\\s*(.*)$", "\\1", x, perl = TRUE)) # parse contrast
+          } else {
+            con_name <- ""
+            con_val <- x
+          }
+
+          return(c(name = con_name, value = con_val))
+        })
+
+        con_names <- sapply(contrast_list, "[[", "name")
+        con_names[con_names == ""] <- make.unique(rep("con", sum(con_names == "")))
+        contrast_list <- lapply(contrast_list, "[[", "value")
+        names(contrast_list) <- con_names
+
+        # fill in layer_sources with appropriate contrast names
+        layer_sources[is_contrast] <- con_names
 
         slc$compute_contrasts(contrast_list)
       }
 
-      # for any direct image, change its layer name to match
-      layer_names[!is_contrast] <- layer_defs[!is_contrast]
-
-      for (i in seq_along(layer_names)) {
-        self$ggb_layers[[i]]$name <- layer_names[i] # assign by reference
+      # populate source fields in layers so that the appropriate layer can be looked up from slices
+      for (ii in seq_along(layer_sources)) {
+        self$ggb_layers[[ii]]$source <- layer_sources[ii]
       }
-      names(self$ggb_layers) <- layer_names
 
       # need to line up layer names with data name in slice_data
-
       plot_obj <- ggbrain_plot$new(slc)
       plot_obj$layers <- self$ggb_layers
       plot_obj$generate_plot()
@@ -220,8 +233,8 @@ ggb <- R6::R6Class(
     } else if (o2$action == "add_images") {
       # use direct addition approach (by reference) -- yields single ggbrain_images object
       oc$ggb_images$add(o2$ggb_images)
-    } else if (o2$action == "add_layer") {
-      oc$add_layer(o2$ggb_layers)
+    } else if (o2$action == "add_layers") {
+      oc$add_layers(o2$ggb_layers)
     } else if (o2$action == "add_labels") {
       do.call(oc$add_labels, o2$ggb_labels)
     } else if (o2$action == "render") {
@@ -282,14 +295,14 @@ add_images <- function(images = NULL) {
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 #'   created using the typical + scale_fill_X syntax, and similarly for scale limits.
-#' @return a ggb object populated with the ggb_layer and the action of 'add_layer'
+#' @return a ggb object populated with the ggb_layer and the action of 'add_layers'
 #' @export
 #geom_brain <- function(name=NULL, definition=NULL, ) {
 geom_brain <- function(...) {
   inp_args <- list(...)
   l_obj <- do.call(ggbrain_layer$new, inp_args)
 
-  ret <- ggb$new(layers = l_obj, action="add_layer")
+  ggb$new(layers = l_obj, action="add_layers")
 }
 
 #' Adds the coordinate labels (e.g., x = -6) to each panel
