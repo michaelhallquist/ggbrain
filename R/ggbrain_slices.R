@@ -8,15 +8,16 @@
 ggbrain_slices <- R6::R6Class(
   classname="ggbrain_slices",
   private = list(
-    pvt_slice_index=NULL,
-    pvt_coord_input=NULL,
-    pvt_coord_label=NULL,
-    pvt_plane=NULL,
-    pvt_slice_number=NULL,
-    pvt_slice_data=list(),
-    pvt_slice_matrix=list(),
-    pvt_slice_labels=list(),
-    pvt_contrast_data=list(),
+    pvt_slice_index = NULL,
+    pvt_coord_input = NULL,
+    pvt_coord_label = NULL,
+    pvt_plane = NULL,
+    pvt_slice_number = NULL,
+    pvt_slice_data = list(),
+    pvt_slice_matrix = list(),
+    pvt_slice_labels = list(),
+    pvt_is_contrast = NULL, # denotes whether each layer in slice_data is a contrast or an image
+    pvt_layer_names = NULL, # names of layers/images within each slice
 
     # helper function to combine slice image and contrast data
     # TODO: sort out how to avoid calculating this twice for labels and numeric values
@@ -46,36 +47,17 @@ ggbrain_slices <- R6::R6Class(
         img_data <- NULL
       }
 
-      img_contrast <- private$pvt_contrast_data[slice_indices]
-      if (all(sapply(img_contrast, length) > 0L)) {
-        # con_data <- purrr::transpose(img_contrast) %>% bind_rows(.id = "slice_index")
-        con_data <- img_contrast %>% bind_rows(.id = "slice_index")
-      } else {
-        con_data <- NULL
-      }
-
-      if (!is.null(img_data) && !is.null(con_data)) {
-        img_all <- img_data %>% inner_join(con_data, by = "slice_index")
-      } else if (is.null(img_data)) {
-        img_all <- con_data
-      } else if (is.null(con_data)) {
-        img_all <- img_data
-      } else {
-        stop("In $get_ranges, both $slice_data and $contrast_data are empty!")
-      }
-
       # get names of all columns (layers) except the index
-      layer_names <- grep("slice_index", names(img_all), invert = TRUE, value = TRUE)
+      layer_names <- grep("slice_index", names(img_data), invert = TRUE, value = TRUE)
 
       # convert into a long data frame with layer and slice_index as keys, drop NAs
-      img_all <- img_all %>%
+      img_data <- img_data %>%
         tidyr::pivot_longer(cols = all_of(layer_names), names_to = "layer", values_to = "slice_data") %>%
         tidyr::unnest(slice_data) %>%
         dplyr::mutate(slice_index = as.integer(slice_index)) %>%
         dplyr::filter(!is.na(value)) # no point in keeping all the empty/NA data
 
-      return(img_all)
-
+      return(img_data)
     }
   ),
 
@@ -116,9 +98,9 @@ ggbrain_slices <- R6::R6Class(
       if (missing(value)) private$pvt_slice_labels
       else stop("Cannot assign slice_labels")
     },
-    contrast_data = function(value) {
-      if (missing(value)) private$pvt_contrast_data
-      else stop("Cannot assign contrast_data")
+    layer_names = function(value) {
+      if (missing(value)) private$pvt_layer_names
+      else stop("Cannot assign layer_names")
     }
   ),
   public = list(
@@ -127,6 +109,15 @@ ggbrain_slices <- R6::R6Class(
     #' @details If this becomes a user-facing/exported class, we may want a more friendly constructor
     initialize = function(slice_df = NULL) {
       checkmate::assert_data_frame(slice_df)
+
+      # ensure that layers within each slice match
+      nm <- lapply(slice_df$slice_data, function(el) names(el))
+      all_match <- all(sapply(nm, function(x) identical(x, nm[[1]])))
+      if (!all_match) stop("Names of layers in $slice_data are not identical")
+
+      # all slice_data provided at $initialize are treated as primary image data, not contrasts
+      private$pvt_layer_names <- nm[[1]]
+      private$pvt_is_contrast <- rep(FALSE, length(nm[[1]])) %>% setNames(private$pvt_layer_names)
 
       # empty lists for populating unused fields -- match length of slice_df for consistency
       empty_list <- lapply(seq_len(nrow(slice_df)), function(i) list())
@@ -140,7 +131,6 @@ ggbrain_slices <- R6::R6Class(
       private$pvt_slice_data <- if ("slice_data" %in% df_names) slice_df$slice_data else empty_list
       private$pvt_slice_labels <- if ("slice_labels" %in% df_names) slice_df$slice_labels else empty_list
       private$pvt_slice_matrix <- if ("slice_matrix" %in% df_names) slice_df$slice_matrix else empty_list
-      private$pvt_contrast_data <- if ("contrast_data" %in% df_names) slice_df$contrast_data else empty_list
     },
 
     #' @description computes contrasts of the sliced image data
@@ -163,6 +153,21 @@ ggbrain_slices <- R6::R6Class(
         stop("Cannot use $compute_contrasts() if there are no slice_data in the object")
       }
 
+      # check overlap with non-contrast data
+      img_overlap <- intersect(names(contrast_list), private$pvt_layer_names[!private$pvt_is_contrast])
+      if (length(img_overlap) > 0L) {
+        warning(
+          "The following contrast(s) overlap with the primary $slice_data (from images): ", paste(img_overlap, collapse = ", "), ".",
+          " This will overwrite the original data with the contrast."
+        )
+      }
+
+      # check overlap with contrast data
+      con_overlap <- intersect(names(contrast_list), private$pvt_layer_names[private$pvt_is_contrast])
+      if (length(con_overlap) > 0L) {
+        warning("Existing contrast data will be replaced for the following contrasts: ", paste(con_overlap, collapse = ", "))
+      }
+
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
         ss <- slc_xx %>% dplyr::bind_rows()
@@ -183,31 +188,23 @@ ggbrain_slices <- R6::R6Class(
         return(ss)
       })
 
-      if (any(names(contrast_list) %in% names(private$pvt_contrast_data))) {
-        overlap <- intersect(names(contrast_list), names(private$pvt_contrast_data))
-        warning("Existing contrast data will be replaced for the following contrasts: ", paste(overlap, collapse=", "))
-      }
-
-      private$pvt_contrast_data <- lapply(seq_along(wide), function(ww) {
+      # loop over slices in the wide structure
+      for (ww in seq_along(wide)) {
         c_data <- lapply(seq_along(contrast_list), function(cc) {
           contrast_parser(contrast_list[[cc]], data = wide[[ww]]) %>%
             mutate(image = names(contrast_list)[cc]) # tag contrasts with a label column
         }) %>% setNames(names(contrast_list))
 
-        if (length(private$pvt_contrast_data) > 0L) {
-          e_data <- private$pvt_contrast_data[[ww]]
-        } else {
-          e_data <- list()
-        }
-        e_data[names(c_data)] <- c_data # update relevant elements of extant data
-        return(e_data)
-      })
+        private$pvt_slice_data[[ww]][names(c_data)] <- c_data # update/set relevant elements of slice data
+      }
 
+      private$pvt_layer_names <- names(private$pvt_slice_data[[1]]) # update object with new names
+      private$pvt_is_contrast[names(contrast_list)] <- TRUE
     },
 
     #' @description convert the slices object into a data.frame with list-columns for slice data elements
     as_tibble = function() {
-      tibble::tibble(
+      tb <- tibble::tibble(
         coord_input=private$pvt_coord_input,
         coord_label=private$pvt_coord_label,
         plane=private$pvt_plane,
@@ -215,27 +212,12 @@ ggbrain_slices <- R6::R6Class(
         slice_number=private$pvt_plane,
         slice_data=private$pvt_slice_data,
         slice_labels=private$pvt_slice_labels,
-        slice_matrix=private$pvt_slice_matrix,
-        contrast_data=private$pvt_contrast_data
+        slice_matrix=private$pvt_slice_matrix
       )
-    },
 
-    #' @description returns a vector of the names of all image and contrast data available in this
-    #'   ggbrain_slices object.
-    get_image_names = function() {
-      if (length(private$pvt_contrast_data) > 0L) {
-        nmc <- names(private$pvt_contrast_data[[1]]) # first slice should be representative
-      } else {
-        nmc <- NULL
-      }
-
-      if (length(private$pvt_slice_data) > 0L) {
-        nms <- names(private$pvt_slice_data[[1]]) # first slice should be representative
-      } else {
-        nms <- NULL
-      }
-
-      return(c(nms, nmc))
+      attr(tb, "layer_names") <- private$pvt_layer_names
+      attr(tb, "is_contrast") <- private$pvt_is_contrast
+      return(tb)
     },
 
     #' @description calculates the numeric ranges of each image/contrast in this object, across all
@@ -243,14 +225,14 @@ ggbrain_slices <- R6::R6Class(
     #' @param slice_indices an optional integer vector of slice indices to be used as a subset in the calculation
     #' @return a tibble keyed by 'layer' with overall low and high values, as well as split by pos/neg
     get_ranges = function(slice_indices = NULL) {
-      img_all <- private$get_combined_data(slice_indices)
+      img_data <- private$get_combined_data(slice_indices)
 
-      img_ranges <- img_all %>%
+      img_ranges <- img_data %>%
         dplyr::group_by(layer) %>%
         dplyr::summarize(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups = "drop")
 
       # for bisided layers, we need pos and neg ranges -- N.B. this does not support arbitrary cutpoints!
-      img_ranges_posneg <- img_all %>%
+      img_ranges_posneg <- img_data %>%
         dplyr::filter(value > 2 * .Machine$double.eps | value < -2 * .Machine$double.eps) %>% # filter exact zeros so that we get true > and <
         dplyr::mutate(above_zero = factor(value > 0, levels = c(TRUE, FALSE), labels = c("pos", "neg"))) %>%
         dplyr::group_by(layer, above_zero, .drop=FALSE) %>%
@@ -277,15 +259,14 @@ ggbrain_slices <- R6::R6Class(
       if (!any(has_labels)) {
         return(data.frame()) # return empty data.frame
       } else {
-        img_all <- private$get_combined_data(slice_indices, only_labeled = TRUE)
-        img_uvals <- img_all %>%
+        img_data <- private$get_combined_data(slice_indices, only_labeled = TRUE)
+        img_uvals <- img_data %>%
           group_by(layer) %>%
           dplyr::summarize(uvals = unique(label), .groups = "drop") %>%
           na.omit()
       }
 
       return(img_uvals)
-
     }
   )
 )

@@ -26,13 +26,13 @@ ggbrain_label <- R6::R6Class(
       private$pvt_label_df <- label_df
       private$pvt_geom <- geom
     },
-    
+
     #' @description add this annotation to an existing ggplot object
     #' @param base_gg the ggplot object to which we add the layer
     add_to_gg = function(base_gg) {
       checkmate::assert_class(base_gg, "gg")
       n_layers <- length(base_gg$layers)
-      
+
       # return the modified ggplot object with the labels added
       base_gg +
         do.call(paste0("geom_", private$pvt_geom), 

@@ -16,10 +16,7 @@ ggbrain_plot <- R6::R6Class(
 
       # flatten data into a list of data.frames for all possible layers across
       # this swaps the nesting so that we have [layers][slices]
-      all_data <- lapply(seq_len(private$pvt_nslices), function(i) {
-        c(private$pvt_slices$slice_data[[i]], private$pvt_slices$contrast_data[[i]])
-      })
-      img_data <- purrr::transpose(all_data)[[layer_def$name]] %>% bind_rows()
+      img_data <- purrr::transpose(private$pvt_slices$slice_data)[[layer_def$name]] %>% bind_rows()
 
       message(glue("For layer {layer_def$name}, no color_scale specified. We will pick a default."))
       # detect appropriate default scale
@@ -145,9 +142,8 @@ ggbrain_plot <- R6::R6Class(
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
         # match slice data with layers
 
-        comb_data <- c(slice_df$slice_data[[i]], slice_df$contrast_data[[i]])
-        comb_data <- comb_data[plot_layer_names] # subset to only relevant data
-
+        comb_data <- slice_df$slice_data[[i]][plot_layer_names] # subset to only relevant data
+        
         # list of layers
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)

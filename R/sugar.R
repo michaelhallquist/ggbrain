@@ -176,7 +176,7 @@ ggb <- R6::R6Class(
       }
       names(self$ggb_layers) <- layer_names
 
-      # need to line up layer names with data name in slice_data and contrast_data
+      # need to line up layer names with data name in slice_data
 
       plot_obj <- ggbrain_plot$new(slc)
       plot_obj$layers <- self$ggb_layers
