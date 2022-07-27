@@ -177,6 +177,10 @@ ggbrain_images <- R6::R6Class(
   public = list(
     #' @description create ggbrain_images object consisting of one or more NIfTI images
     #' @param images a character vector of file names containing NIfTI images to read
+    #' @param fill_holes If TRUE, will fill holes on the interior of regions in the sliced data [WIP: also, can pass number for hole size]
+    #' @param clean_specks If TRUE, will delete tiny spots in the sliced data [WIP]
+    #' @param labels A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
+    #'   a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond
     initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL, labels=NULL) {
       private$set_images(images, fill_holes, clean_specks)
       if (!is.null(labels)) {

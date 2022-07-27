@@ -64,6 +64,13 @@ create ggbrain_images object consisting of one or more NIfTI images
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+
+\item{\code{fill_holes}}{If TRUE, will fill holes on the interior of regions in the sliced data \link{WIP: also, can pass number for hole size}}
+
+\item{\code{clean_specks}}{If TRUE, will delete tiny spots in the sliced data \link{WIP}}
+
+\item{\code{labels}}{A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
+a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond}
 }
 \if{html}{\out{</div>}}
 }

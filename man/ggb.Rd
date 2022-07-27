@@ -60,9 +60,9 @@ unintended modify-in-place behaviors of R6 classes.
   slices = NULL,
   layers = NULL,
   labels = NULL,
-  action = NULL,
   annotations = NULL,
   region_labels = NULL,
+  action = NULL,
   bg_color = "grey50",
   text_color = "black"
 )}\if{html}{\out{</div>}}
@@ -76,6 +76,12 @@ unintended modify-in-place behaviors of R6 classes.
 \item{\code{slices}}{a character vector of slices to extract}
 
 \item{\code{layers}}{a list of ggbrain_layer objects}
+
+\item{\code{labels}}{a list of data.frames with labels that align with one or more images}
+
+\item{\code{annotations}}{a list of data.frames with annotations that will be added to specific slices}
+
+\item{\code{region_labels}}{a list of ggbrain_label objects with text-based labels to be drawn on the plot}
 
 \item{\code{action}}{the action to be taken when adding this object to an existing ggb}
 }
@@ -158,15 +164,27 @@ add labels to a given image
 \if{html}{\out{<a id="method-ggb-add_region_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-ggb-add_region_labels}{}}}
 \subsection{Method \code{add_region_labels()}}{
+add a list of ggbrain_label objects to the overall ggb for compiling a plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggb$add_region_labels(labels = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{labels}}{a list of data.frames with region labels that should be plotted on each slice. This is generated
+internally by ggbrain_images$get_slices() in the $slice_labels field.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggb-render"></a>}}
 \if{latex}{\out{\hypertarget{method-ggb-render}{}}}
 \subsection{Method \code{render()}}{
+this method converts the ggb object into a compiled ggplot2 object that can then be passed to other
+functions from cowplot, ggplot2, and patchwork. Once the object is rendered, it no longer retains the underlying ggb
+fields that contain the elemental data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggb$render()}\if{html}{\out{</div>}}
 }

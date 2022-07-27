@@ -49,15 +49,24 @@ instantiate a new instance of a ggbrain_plot object
 \if{html}{\out{<a id="method-ggbrain_plot-add_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_plot-add_layers}{}}}
 \subsection{Method \code{add_layers()}}{
+adds one or more ggbrain_layer objects to this plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$add_layers(layers = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{layers}}{a list of ggbrain_layer objects (can also be a list that just specifies names, definitions, etc.)}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_plot-reset_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_plot-reset_layers}{}}}
 \subsection{Method \code{reset_layers()}}{
+removes all existing layers from this ggbrain_plot object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$reset_layers()}\if{html}{\out{</div>}}
 }

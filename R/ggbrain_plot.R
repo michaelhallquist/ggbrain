@@ -143,6 +143,8 @@ ggbrain_plot <- R6::R6Class(
       private$pvt_nslices <- length(slice_data$slice_index)
     },
 
+    #' @description adds one or more ggbrain_layer objects to this plot
+    #' @param layers a list of ggbrain_layer objects (can also be a list that just specifies names, definitions, etc.)
     add_layers = function(layers = NULL) {
       if (!is.null(layers)) {
         checkmate::assert_list(layers)
@@ -152,6 +154,7 @@ ggbrain_plot <- R6::R6Class(
       return(self)
     },
 
+    #' @description removes all existing layers from this ggbrain_plot object
     reset_layers = function() {
       private$pvt_layers <- NULL
     },

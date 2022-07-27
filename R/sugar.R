@@ -5,6 +5,8 @@
 #'   images should be included in this plot
 #' @param labels a list of data.frames for labels?
 #' @param slices a set of slices to be added to the plot
+#' @param bg_color The background color of the overall plot
+#' @param text_color The default text color of the overall plot (passes through to panels)
 #' @export
 ggbrain <- function(images = NULL, labels = NULL, slices = NULL, bg_color="grey8", text_color="grey92") {
   if (inherits(images, "ggbrain_images")) {
@@ -66,9 +68,12 @@ ggb <- R6::R6Class(
     #' @param images a ggbrain_images object containing relevant images
     #' @param slices a character vector of slices to extract
     #' @param layers a list of ggbrain_layer objects
+    #' @param labels a list of data.frames with labels that align with one or more images
+    #' @param annotations a list of data.frames with annotations that will be added to specific slices
+    #' @param region_labels a list of ggbrain_label objects with text-based labels to be drawn on the plot
     #' @param action the action to be taken when adding this object to an existing ggb
-    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL, annotations=NULL, region_labels = NULL,
-      bg_color="grey50", text_color="black") {
+    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, annotations=NULL, region_labels = NULL,
+      action=NULL, bg_color="grey50", text_color="black") {
       if (!is.null(images)) {
         checkmate::assert_class(images, "ggbrain_images")
         self$ggb_images <- images$clone(deep=TRUE)
@@ -97,7 +102,6 @@ ggb <- R6::R6Class(
       if (!is.null(region_labels)) {
         self$add_region_labels(region_labels)
       }
-
 
       # for tracking addition actions
       if (!is.null(action)) {
@@ -182,6 +186,9 @@ ggb <- R6::R6Class(
       return(self)
     },
 
+    #' @description add a list of ggbrain_label objects to the overall ggb for compiling a plot
+    #' @param labels a list of data.frames with region labels that should be plotted on each slice. This is generated
+    #'   internally by ggbrain_images$get_slices() in the $slice_labels field.
     add_region_labels = function(labels = NULL) {
       if (checkmate::test_class(labels, "ggbrain_label")) {
         labels <- list(labels) # make into one-element list for consistency
@@ -191,6 +198,9 @@ ggb <- R6::R6Class(
       self$ggb_region_labels <- c(self$ggb_region_labels, labels)
     },
 
+    #' @description this method converts the ggb object into a compiled ggplot2 object that can then be passed to other
+    #'   functions from cowplot, ggplot2, and patchwork. Once the object is rendered, it no longer retains the underlying ggb
+    #'   fields that contain the elemental data.
     render = function() {
       if (is.null(self$ggb_layers) || length(self$ggb_layers) == 0L) {
         stop("No brain layers added to this object yet. Use + geom_brain() to add.")
@@ -381,8 +391,44 @@ geom_outline <- function(...) {
   ggb$new(layers = l_obj, action = "add_layers")
 }
 
-geom_region_labels <- function(label_column = "label", image = NULL, ...) {
-  l_obj <- ggbrain_label$new(label_column = label_column, image = image, ...)
+#' Variant of geom_text used for plotting region labels on slices
+#' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
+#' @param label_column The column name name for the labels to use within the slice data
+#' @param ... All other parameters passed through to geom_text
+#' @export
+geom_region_text <- function(image, label_column = "label", ...) {
+  l_obj <- ggbrain_label$new(geom = "text", image = image, label_column = label_column, ...)
+  ggb$new(region_labels = l_obj, action = "add_region_labels")
+}
+
+#' Variant of geom_label used for plotting region labels on slices
+#' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
+#' @param label_column The column name name for the labels to use within the slice data
+#' @param ... All other parameters passed through to geom_label
+#' @export
+geom_region_label <- function(image, label_column = "label", ...) {
+  l_obj <- ggbrain_label$new(geom = "label", image = image, label_column = label_column, ...)
+  ggb$new(region_labels = l_obj, action = "add_region_labels")
+}
+
+#' Variant of geom_text_repel used for plotting region labels on slices with separation from other labels
+#' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
+#' @param label_column The column name name for the labels to use within the slice data
+#' @param ... All other parameters passed through to geom_text_repel
+#' @export
+geom_region_text_repel <- function(image, label_column = "label", ...) {
+  l_obj <- ggbrain_label$new(geom = "text_repel", image = image, label_column = label_column, ...)
+  ggb$new(region_labels = l_obj, action = "add_region_labels")
+}
+
+
+#' Variant of geom_label_repel used for plotting region labels on slices with separation from other labels
+#' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
+#' @param label_column The column name name for the labels to use within the slice data
+#' @param ... All other parameters passed through to geom_label_repel
+#' @export
+geom_region_label_repel <- function(image, label_column = "label", ...) {
+  l_obj <- ggbrain_label$new(geom = "label_repel", image = image, label_column = label_column, ...)
   ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
 
