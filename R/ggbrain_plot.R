@@ -6,10 +6,51 @@
 ggbrain_plot <- R6::R6Class(
   classname="ggbrain_plot",
   private = list(
-    pvt_slices = NULL,
+    pvt_slices = NULL, # ggbrain_slices object with data that define plot
     pvt_layers = NULL, # list of ggbrain_layer objects
     pvt_ggbrain_panels = NULL,
     pvt_nslices = NULL,
+    pvt_annotations = NULL, # list of annotations that are added to each panel -- should be one element per slice
+
+    # compile all anotations into a slice-wise list that can be added to each panel
+    compiled_annotations = function() {
+      all_ann <- dplyr::bind_rows(lapply(private$pvt_annotations, function(adf) {
+        stopifnot(inherits(adf, "data.frame")) # sanity check
+
+        # replicate annotations settings for all slices if slice_index is absent -- assume that user wants it on all slices
+        if (!"slice_index" %in% names(adf)) {
+          adf <- dplyr::bind_rows(lapply(seq_len(private$pvt_nslices), function(ss) {
+            df_ss <- adf
+            df_ss$slice_index <- ss
+            return(df_ss)
+          }))
+        } else {
+          checkmate::assert_integerish(adf$slice_index, lower=1L, upper=private$pvt_nslices)
+        }
+
+        # fill in coord_label from slice data
+        if (any(adf$label == ".coord_label")) {
+          lab_df <- data.frame(slice_index = private$pvt_slices$slice_index, .coord_label = private$pvt_slices$coord_label)
+          adf <- adf %>%
+            dplyr::left_join(lab_df, by = "slice_index") %>%
+            dplyr::mutate(label = if_else(label == ".coord_label", .coord_label, label)) %>% # selectively replace '.coord_label' with its value
+            dplyr::select(-.coord_label)
+        }
+
+        # Always convert into a nested data.frame with slice_index as key and all other columns as a list. This allows for
+        #   different data types across each element of the pvt_annotations list (e.g., x as character versus x as numeric).
+        adf <- adf %>% tidyr::nest(annotate_settings=-slice_index)
+
+        return(adf)
+      }))
+
+      # split by slice for adding to panels -- use .drop=FALSE and create a factor so that the list is always the length
+      # of the number of slices, with empty elements for any panel that lacks annotation
+      all_ann %>%
+        mutate(slice_index = factor(slice_index, levels=seq_len(private$pvt_nslices))) %>%
+        group_by(slice_index, .drop=FALSE) %>%
+        group_split(.keep=FALSE)
+    },
 
     set_default_scale = function(layer_def) {
       if (!is.null(layer_def$color_scale)) return(layer_def) # don't modify extant scale
@@ -74,6 +115,14 @@ ggbrain_plot <- R6::R6Class(
         }
         names(private$pvt_layers) <- l_names # use $name element to name list of layers
       }
+    },
+    annotations = function(value) {
+      if (missing(value)) {
+        return(private$pvt_annotations)
+      } else {
+        checkmate::assert_list(value)
+        private$pvt_annotations <- value
+      }
     }
   ),
   public=list(
@@ -127,7 +176,7 @@ ggbrain_plot <- R6::R6Class(
       }
       checkmate::assert_list(layers)
       layer_sources <- sapply(layers, "[[", "source")
-      
+
       # each slice forms a ggbrain_panel
       slice_df <- private$pvt_slices$as_tibble()
 
@@ -135,6 +184,9 @@ ggbrain_plot <- R6::R6Class(
         slice_df <- slice_df %>%
           dplyr::filter(slice_index %in% !!slice_indices)
       }
+
+      # get a list of the same length as the slice data that contains annotations for each slice
+      all_annotations <- private$compiled_annotations()
 
       # lookup ranges of each layer and unique values of labels
       img_ranges <- private$pvt_slices$get_ranges(slice_indices)
@@ -150,10 +202,20 @@ ggbrain_plot <- R6::R6Class(
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
           df <- comb_data[[j]]
+
+          # put the right label column into the value field for plotting
           if (isTRUE(l_obj$use_labels)) {
-            stopifnot("label" %in% names(df))
+            if (l_obj$label_col == ".default") {
+              lcol <- attr(df, "label_cols")[1L] # use first label column
+            } else if (is.null(l_obj$label_col) || is.na(l_obj$label_col)) {
+              # slightly risky, but just use the first column other than the core metadata
+              lcol <- setdiff(names(df), c("dim1", "dim2", "value", "image"))[1L]
+            } else {
+              lcol <- l_obj$label_col
+            }
+
             # swap out label into value position for plotting
-            df <- df %>% dplyr::select(-value) %>% dplyr::rename(value=label)
+            df <- df %>% dplyr::select(-value) %>% dplyr::rename(value=!!lcol)
           }
           l_obj$data <- df # add slice-specific data to this this layer
 
@@ -165,6 +227,7 @@ ggbrain_plot <- R6::R6Class(
                 pull(uvals)
               l_obj$data$value <- factor(l_obj$data$value, levels = f_levels)
               l_obj$color_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
+              l_obj$color_scale$na.translate <- FALSE
             } else {
               if (isTRUE(l_obj$bisided)) {
                 pos_lims <- img_ranges %>%
@@ -199,7 +262,8 @@ ggbrain_plot <- R6::R6Class(
           #title = "Testing",
           bg_color = "black",
           text_color = "white",
-          draw_border = FALSE
+          draw_border = FALSE,
+          annotations = all_annotations[[i]]$annotate_settings, # get slice-relevant annotations as list of tibbles
           #xlab = "X lab",
           #ylab = "Y lab"
         )

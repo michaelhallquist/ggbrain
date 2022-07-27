@@ -22,13 +22,13 @@ R6 class for adding labels to a ggbrain_panel
 \subsection{Method \code{new()}}{
 create a new ggbrain_label object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_label$new(label_df = NULL, geom = "text", ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_label$new(data = NULL, geom = "text", label_column = NULL, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{label_df}}{a data.frame containing labels to be printed on the panel. Must contain dim1, dim2, and label as columns.
+\item{\code{data}}{a data.frame containing labels to be printed on the panel. Must contain dim1, dim2, and label as columns.
 The dim1 and dim2 columns control where the labels will appear on the panel}
 
 \item{\code{geom}}{The geom type to be plotted. Must be "text" or "label", corresponding to geom_text and geom_label, respectively.}
@@ -42,7 +42,7 @@ The dim1 and dim2 columns control where the labels will appear on the panel}
 \if{html}{\out{<a id="method-ggbrain_label-add_to_gg"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_label-add_to_gg}{}}}
 \subsection{Method \code{add_to_gg()}}{
-add this annotation to an existing ggplot object
+add this text layer to an existing ggplot object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_label$add_to_gg(base_gg)}\if{html}{\out{</div>}}
 }

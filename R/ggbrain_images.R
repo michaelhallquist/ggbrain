@@ -7,7 +7,7 @@
 #' @importFrom tidyr unnest
 #' @importFrom tibble remove_rownames
 #' @importFrom tidyselect everything
-#' 
+#'
 #' @export
 ggbrain_images <- R6::R6Class(
   classname = "ggbrain_images",
@@ -20,9 +20,63 @@ ggbrain_images <- R6::R6Class(
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
     pvt_slices = NULL, # allows caching of slices for + approach
     pvt_contrasts = NULL, # allows caching of contrasts for + approach
+    pvt_fill_holes = NULL, # vector of settings for each img indicating whether to run slices through the imager::fill() function
+    pvt_clean_specks = NULL, # vector of settings for each img indicating whether to run slices through the imager::clean() function
 
-    set_images = function(images = NULL) {
-      if (is.null(images)) { return(NULL) } # skip out
+    # TODO: make this not extrapolate beyond original
+    # Best approach: use flood fill from boundary of image to find pixels that cannot be reached when filling the background.
+
+    fill_img_holes = function(img, size=NULL) {
+      browser()
+      slc_cimg <- as.cimg(img)
+      orig_px <- as.pixset(slc_cimg) # pixels before interp
+      f <- fill(slc_cimg, 5, boundary=FALSE)
+      f <- fill(slc_cimg, 5, boundary = TRUE)
+      to_fill <- as.pixset(f - orig_px)
+      filled <- slc_cimg
+      filled[to_fill] <- NA
+      filled2 <- inpaint(filled, 2)
+      plot(slc_cimg)
+      plot(filled)
+            plot(filled2)
+
+
+      locations <- which(to_fill, arr.ind = TRUE) %>%
+        as.data.frame() %>%
+        setNames(c("x", "y", "z", "c"))
+      x <- slc_cimg
+      x[as.matrix(locations)] <- NA
+      filled <- interp(x, locations)
+
+
+    },
+
+    determine_fill_clean = function(val, img_names = NULL) {
+      if (is.null(val)) {
+        val <- rep(0L, length(img_names)) %>% setNames(img_names) # all zeros
+      } else {
+        if (length(val) > 1L && length(val) != length(img_names)) {
+          stop("Length of fill_holes/clean_specks doesn't match length of images")
+        }
+
+        # if user passes in TRUE/FALSE, then use default numeric hole size of 2 (2x2 holes)
+        if (checkmate::test_logical(val)) {
+          if (length(val) == 1L) val <- rep(val, length(img_names)) # replicate T/F for all images
+          val <- ifelse(val == TRUE, 2, 0)
+        } else if (checkmate::test_integerish(val)) {
+          val <- as.integer(val)
+          checkmate::assert_integer(val, lower = 0L)
+        } else {
+          stop("Cannot interpret fill_holes/clean_specks")
+        }
+
+        names(val) <- img_names
+      }
+      return(val)
+    },
+
+    set_images = function(images = NULL, fill_holes = NULL, clean_specks = NULL) {
+      if (is.null(images)) return(NULL) # skip out
 
       if (checkmate::test_character(images)) {
         checkmate::assert_file_exists(images)
@@ -49,9 +103,13 @@ ggbrain_images <- R6::R6Class(
         }, simplify = FALSE)
       } else if (checkmate::test_list(images)) {
         checkmate::assert_named(images, type = "unique") # unique names
-        sapply(images, function(x) { checkmate::assert_class(x, "niftiImage") }) # enforce RNifti objects
+        sapply(images, function(x) checkmate::assert_class(x, "niftiImage") ) # enforce RNifti objects
         img_list <- images
       }
+
+      # determine how to handle specks and holes for these images
+      fill_holes <- determine_fill_clean(fill_holes, names(img_list))
+      clean_specks <- determine_fill_clean(clean_specks, names(img_list))
 
       img_dims <- cbind(sapply(img_list, dim), extant=private$pvt_dims) # xyz x images matrix augmented by stored dims
       dim_match <- apply(img_dims, 1, function(row) {
@@ -66,6 +124,8 @@ ggbrain_images <- R6::R6Class(
       }
 
       private$pvt_imgs[names(img_list)] <- img_list
+      private$pvt_fill_holes[names(fill_holes)] <- fill_holes
+      private$pvt_clean_specks[names(clean_specks)] <- clean_specks
       private$pvt_img_names <- names(private$pvt_imgs)
       private$pvt_nz_range <- self$get_nz_indices()
     }
@@ -98,15 +158,29 @@ ggbrain_images <- R6::R6Class(
         checkmate::assert_character(value) # probably need better validation...
         private$pvt_contrasts <- value
       }
+    },
+    clean_specks = function(value) {
+      if (missing(value)) {
+        private$pvt_clean_specks
+      } else {
+        private$pvt_clean_specks <- determine_fill_clean(value, private$pvt_img_names)
+      }
+    },
+    fill_holes = function(value) {
+      if (missing(value)) {
+        private$pvt_fill_holes
+      } else {
+        private$pvt_fill_holes <- determine_fill_clean(value, private$pvt_img_names)
+      }
     }
   ),
   public = list(
     #' @description create ggbrain_images object consisting of one or more NIfTI images
     #' @param images a character vector of file names containing NIfTI images to read 
-    initialize = function(images = NULL) {
-      private$set_images(images)
+    initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL) {
+      private$set_images(images, fill_holes, clean_specks)
     },
-    
+
     #' @description method to add another ggbrain_images object to this one
     #' @param obj the ggbrain_images object to combine with this one
     add = function(obj) {
@@ -118,31 +192,31 @@ ggbrain_images <- R6::R6Class(
         stop(glue::glue("Dimensions of existing object ({paste(self$dim(), collapse=',')})",
                   "do not match object to add ({paste(obj$dim(), collapse=',')})"))
       }
-      
+
       if (!identical(obj$zero_tol, self$zero_tol)) {
         new_tol <- min(obj$zero_tol, self$zero_tol)
         message(glue("Using lesser of zero tolerances ({new_tol}) in combined object"))
         self$zero_tol <- new_tol
       }
-      
+
       # add any slice specifications from other object
       self$add_slices(obj$slices)
 
       # get image list (list of Niftis) of object to be added
-      self$add_images(obj$get_images(drop=FALSE))
+      self$add_images(obj$get_images(drop=FALSE), obj$fill_holes, obj$clean_specks)
 
       # use do.call to build a named ... list of arguments
       do.call(self$add_labels, obj$get_labels())
-      
+
       # pvt_img_labels = list(), # list of data.frames containing labels for a label image
       return(self)
     },
 
     #' @description add a labels data.frame that connects an integer-valued image with a set of labels
     #' @param ... named arguments containing data.frame objects for each image to be labeled. The argument name should
-    #'   match the image name to be labeled and the value should be a data.frame containing \code{img_value} and \code{label}. 
+    #'   match the image name to be labeled and the value should be a data.frame containing \code{value} and \code{label}. 
     #' @details
-    #' 
+    #'
     #'   As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
     #'   text-based labels in the label data. In addition, a new attribute will be returned called "slice_labels" that contains
     #'   a row for each region represented in each slice.
@@ -158,38 +232,42 @@ ggbrain_images <- R6::R6Class(
 
       # all label arguments must match an image name
       checkmate::assert_subset(label_names, private$pvt_img_names)
-      sapply(label_args, function(x) { checkmate::assert_data_frame(x) })
-      sapply(label_args, function(x) { checkmate::assert_subset(c("img_value", "label"), names(x)) })
-
+      sapply(label_args, function(x) checkmate::assert_data_frame(x) )
+      sapply(label_args, function(x) checkmate::assert_subset("value", names(x)))
+      
       for (x in seq_along(label_args)) {
         cur_vals <- private$pvt_img_labels[[ label_names[x] ]]
         if (!is.null(cur_vals)) {
           message(glue("Image {label_names[x]} has labels, which will replaced"))
         }
 
+        # encode label columns for each input data.frame -- only character and factor/ordered allowed
+        col_classes <- sapply(label_args[[x]], function(v) inherits(v, c("character", "ordered", "factor")))
+        attr(label_args[[x]], "label_columns") <- names(label_args[[x]][col_classes])
+
         private$pvt_img_labels[[ label_names[x] ]] <- label_args[[x]]
       }
 
       return(self)
     },
-    
+
     #' @description add one or more images to this ggbrain_images object
     #' @param images a character vector of file names containing NIfTI images to read 
-    add_images = function(images = NULL) {
-      private$set_images(images)
+    add_images = function(images = NULL, fill_holes = NULL, clean_specks = NULL) {
+      private$set_images(images, fill_holes, clean_specks)
       return(self)
     },
-    
+
     #' @description return the 3D dimensions of the images contained in this object
     dim = function() {
       private$pvt_dims
     },
-    
+
     #' @description return the names of the images contained in this object
     get_image_names = function() {
       private$pvt_img_names
     },
-    
+
     #' @description return the RNifti objects of one or more images contained in this object
     #' @param img_names The names of images to return. Use \code{$get_image_names()} if you're uncertain
     #'   about what is available.
@@ -210,7 +288,7 @@ ggbrain_images <- R6::R6Class(
 
       return(ret)
     },
-    
+
     #' @description return the NIfTI headers for one or more images contained in this object
     #' @param img_names The names of images whose header are returned. Use \code{$get_image_names()} if you're uncertain
     #'   about what is available.
@@ -251,7 +329,7 @@ ggbrain_images <- R6::R6Class(
       }
 
     },
-    
+
     #' @description winsorize the tails of a set of images to pull in extreme values
     #' @param img_names The names of images in the ggbrain_images object to be winsorized
     #' @param quantiles The lower and upper quantiles used to define the thresholds for winsorizing.
@@ -299,7 +377,7 @@ ggbrain_images <- R6::R6Class(
       cat("\nImages in object:\n")
       print(private$pvt_imgs)
     },
-    
+
     #' @description return the indices of non-zero voxels
     #' @param img_names The names of images in the ggbrain_images object whose non-zero indices should be looked up
     #' @details Note that this function looks for non-zero voxels in any of the images specified by \code{img_names}.
@@ -369,12 +447,21 @@ ggbrain_images <- R6::R6Class(
     #' @param contrasts a named character vector of contrasts to be calculated for each slice
     #' @param make_square If TRUE, make all images square and of the same size
     #' @param remove_null_space If TRUE, remove slices where all values are approximately zero
+    #' @param fill_holes An integer. If > 0, slice data will be passed through a hole-filling algorithm
+    #'   that dilates the mask of slice data by this amount, then shrinks back to the original size. For
+    #'   example if `fill_holes = 3` then any hole that is 3x3 or larger (along the slice extents)
+    #'   will be filled in.
+    #' @param clean_specks An integer. If > 0L, any object greater than this size will be removed from the slice
+    #'   for visualization (since it would be hard to see.) For example, if `clean_specks = 3`, then
+    #'   any object 3x3 or larger (along the slice extents) will be removed.
     #' @details This function always returns a data.frame where each row represents a slice requested
     #'   by the user. The $slice_data element is a list-column where each element is itself a list
     #'   of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
     #'   is a list-column where each element is a list of 2-D matrices, one per layer/image.
-    #'  @return a ggbrain_slices object containing the requested slices and contrasts 
-    get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
+    #'  @return a ggbrain_slices object containing the requested slices and contrasts
+    get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, fill_labels = FALSE,
+      make_square = TRUE, remove_null_space = TRUE, fill_holes = NULL, clean_specks = NULL) {
+
       if (is.null(slices)) {
         if (!is.null(private$pvt_slices)) {
           slices <- private$pvt_slices # use cached slice settings
@@ -396,16 +483,31 @@ ggbrain_images <- R6::R6Class(
       }
       checkmate::assert_character(contrasts, names="unique", null.ok = TRUE)
       checkmate::assert_logical(make_square, len=1L)
-      checkmate::assert_logical(remove_null_space, len=1L)
+      checkmate::assert_logical(remove_null_space, len = 1L)
 
       coords <- slice_df %>%
         group_by(slice_index) %>%
         group_split()
 
+      # populate fill and clean from parent object
+      if (is.null(fill_holes)) fill_holes <- self$fill_holes[img_names]
+      if (is.null(clean_specks)) clean_specks <- self$clean_specks[img_names]
+
       slc <- lapply(coords, function(slc) {
         self$get_slices_inplane(img_names, slc$slice_number, slc$plane, drop = TRUE)
       })
-      
+
+      # WIP
+      # if (any(fill_holes > 0L)) {
+      #   which_fill <- which(fill_holes > 0L)
+      #   slc <- lapply(slc, function(ss) {
+      #     ss[which_fill] <- lapply(which_fill, function(i) {
+      #       private$fill_img_holes(ss[[i]], fill_holes[i])
+      #     })
+
+      #   })
+      # }
+
       # remove blank space from matrices if requested (this must come before making the slices square)
       if (isTRUE(remove_null_space)) {
         # find voxels in each image that are different from zero
@@ -415,8 +517,8 @@ ggbrain_images <- R6::R6Class(
           })
 
           img_any <- Reduce("|", img_nz)
-          good_rows <- rowSums(img_any, na.rm = T) > 0L
-          good_cols <- colSums(img_any, na.rm = T) > 0L
+          good_rows <- rowSums(img_any, na.rm = TRUE) > 0L
+          good_cols <- colSums(img_any, na.rm = TRUE) > 0L
 
           lapply(ilist, function(mat) {
             mat[good_rows, good_cols]
@@ -441,15 +543,16 @@ ggbrain_images <- R6::R6Class(
         # which images contain integer-valued data that should be labeled?
         label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
 
-        # compute CoM statistics for label images
+        # compute CoM statistics for label images based on unique numeric values
         label_slc <- lapply(slc, "[", label_imgs)
         com_stats <- lapply(seq_along(label_slc), function(dd) {
           lapply(label_slc[[dd]], function(xx) {
             uvals <- unique(as.vector(xx))
-            uvals <- uvals[! uvals %in% c(NA, 0)]
+            uvals <- uvals[!uvals %in% c(NA, 0)]
+            if (length(uvals) == 0L) return(NULL) # no matching positions on this slice
             sapply(uvals, function(u) { colMeans(which(xx == u, arr.ind=TRUE)) }) %>%
               t() %>% data.frame() %>% setNames(c("dim1", "dim2")) %>% 
-              dplyr::bind_cols(img_value=uvals, slice_index=dd) %>% dplyr::arrange(uvals)
+              dplyr::bind_cols(value = uvals, slice_index = dd) %>% dplyr::arrange(uvals)
           })
         })
       } else {
@@ -479,26 +582,46 @@ ggbrain_images <- R6::R6Class(
             # always set 0 to NA in labeled image
             this_img$value[this_img$value == 0] <- NA
 
-            # get labels
-            lb <- private$pvt_img_labels[[ label_name ]]
-            
-            # fill in missing labels, keeping the numeric values in string form
+            # unique values represented in this image
             all_vals <- sort(unique(this_img$value)) # note that sort drops NA by default
-            all_labs <- as.character(all_vals)
-            all_df <- data.frame(img_value = all_vals, label=all_labs)
-            
-            # keep the non-matching rows from all_df as defaults, then bind the hand-labeled areas
-            comb_df <- all_df %>% dplyr::anti_join(lb, by="img_value") %>%
-              dplyr::bind_rows(lb) %>% dplyr::arrange(img_value)
-            
-            # replace numeric value column with labeled character column
-            this_img <- this_img %>%
-              dplyr::mutate(
-                label = comb_df$label[match(value, comb_df$img_value)]
-              ) %>% 
-              dplyr::select(dim1, dim2, value, label, image)
-            
-            #this_img$value <- comb_df$label[match(this_img$value, comb_df$img_value)]
+
+            # get labels data.frame
+            lb <- private$pvt_img_labels[[label_name]]
+
+            # which columns in the data.frame are labels
+            l_cols <- attr(lb, "label_columns")
+
+            # in the fill_labels == TRUE case, fill in labels that are present in the label data.frame, but
+            # add a default label (the value) for any values in the image that lack a label
+            if (isTRUE(fill_labels)) {
+              # fill in missing labels, keeping the numeric values in string form
+              all_df <- data.frame(value = all_vals)
+              all_labs <- as.character(all_vals)
+              all_df <- data.frame(value = all_vals, label = all_labs)
+
+              # replace numeric value column with labeled character column
+              for (ll in l_cols) {
+                # keep the non-matching rows from all_df as defaults, then bind the hand-labeled areas
+                lb_ll <- lb %>%
+                  select(all_of(c("value", ll))) %>%
+                  dplyr::rename(label = !!ll)
+
+                comb_df <- all_df %>%
+                  dplyr::anti_join(lb_ll, by = "value") %>%
+                  dplyr::bind_rows(lb_ll) %>%
+                  dplyr::arrange(value)
+
+                this_img <- this_img %>%
+                  dplyr::mutate(!!ll := comb_df$label[match(value, comb_df$value)])
+              }
+
+              this_img <- this_img %>%
+                dplyr::select(dim1, dim2, value, image, everything())
+            } else {
+              this_img <- this_img %>% left_join(lb, by="value") # this will have NA labels for any values that lack a match in lb
+            }
+
+            attr(this_img, "label_cols") <- l_cols
 
             slc_nestlist[[ii]][[label_name]] <- this_img
           }
@@ -512,15 +635,15 @@ ggbrain_images <- R6::R6Class(
       # always keep slices as a list of 2D matrices (one per layer/image)
       slice_df$slice_matrix <- slc
       slice_df$slice_labels <- com_stats
-      
+
       slice_obj <- ggbrain_slices$new(slice_df)
       if (!is.null(contrasts)) { # compute contrasts, if requested
         slice_obj$compute_contrasts(contrasts)
       }
-      
+
       return(slice_obj)
     },
-    
+
     #' @description get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane
     #' @param imgs The names of images to slice
     #' @param slice_numbers The numbers of slices in the specified plant to grab
@@ -694,7 +817,7 @@ summary.ggbrain_images <- function(gg, args) {
 
 
 # testing
-# test <- data.frame(img_value=100, label="hello")
+# test <- data.frame(value=100, label="hello")
 # 
 # i1 <- ggbrain_images$new(images=c(underlay = "template_brain.nii.gz"))
 # i1$add_slices("x=10")

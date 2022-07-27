@@ -23,7 +23,6 @@ R6 class for a single panel of a ggbrain image
 \item \href{#method-ggbrain_panel-plot}{\code{ggbrain_panel$plot()}}
 \item \href{#method-ggbrain_panel-add_to_gg}{\code{ggbrain_panel$add_to_gg()}}
 \item \href{#method-ggbrain_panel-add_layer}{\code{ggbrain_panel$add_layer()}}
-\item \href{#method-ggbrain_panel-add_annotation}{\code{ggbrain_panel$add_annotation()}}
 \item \href{#method-ggbrain_panel-remove_layers}{\code{ggbrain_panel$remove_layers()}}
 \item \href{#method-ggbrain_panel-get_data}{\code{ggbrain_panel$get_data()}}
 \item \href{#method-ggbrain_panel-get_layer_names}{\code{ggbrain_panel$get_layer_names()}}
@@ -48,7 +47,8 @@ create a new ggbrain_panel object
   draw_border = NULL,
   xlab = NULL,
   ylab = NULL,
-  theme_custom = NULL
+  theme_custom = NULL,
+  annotations = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -76,6 +76,9 @@ drawn around the plot. Default: FALSE}
 \item{\code{ylab}}{The label to place on y axis. Default is NULL.}
 
 \item{\code{theme_custom}}{Any custom theme() settings to be added to the plot}
+
+\item{\code{annotations}}{a data.frame containing all annotations to be added to this plot. Each row is cleaned up
+and passed to ggplot2::annotate()}
 }
 \if{html}{\out{</div>}}
 }
@@ -156,29 +159,22 @@ adds a ggplot_layer object to the panel
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_panel-add_annotation"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_panel-add_annotation}{}}}
-\subsection{Method \code{add_annotation()}}{
+\if{html}{\out{<a id="method-ggbrain_panel-remove_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_panel-remove_layers}{}}}
+\subsection{Method \code{remove_layers()}}{
 wraps the ggplot2 annotate function, allowing for annotations to be added to this panel
+
+
+removes one or more layers by name
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$add_annotation(
-  geom,
-  x = NULL,
-  y = NULL,
-  xmin = NULL,
-  xmax = NULL,
-  ymin = NULL,
-  ymax = NULL,
-  xend = NULL,
-  yend = NULL,
-  ...,
-  na.rm = FALSE
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$remove_layers(layer_names)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{layer_names}}{a character string of the layers to remove from the panel}
+
 \item{\code{geom}}{name of geom to use for annotation}
 
 \item{\code{x}}{x aesthetic}
@@ -208,23 +204,6 @@ The specific values that are supported are:
 }
 }
 
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_panel-remove_layers"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_panel-remove_layers}{}}}
-\subsection{Method \code{remove_layers()}}{
-removes one or more layers by name
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$remove_layers(layer_names)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_names}}{a character string of the layers to remove from the panel}
-}
-\if{html}{\out{</div>}}
-}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_panel-get_data"></a>}}

@@ -183,11 +183,15 @@ ggbrain_slices <- R6::R6Class(
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
         ss <- slc_xx %>% dplyr::bind_rows()
-        if ("label" %in% names(ss)) { # only pivot label if it is present
-          vcols <- c("value", "label")
-        } else {
-          vcols <- c("value")
-        }
+
+        # TODO: taking out support for contrasts that index on label columns to avoid complexity of multiple labels
+        # if ("label" %in% names(ss)) { # only pivot label if it is present
+        #   vcols <- c("value", "label")
+        # } else {
+        #   vcols <- c("value")
+        # }
+
+        vcols <- c("value")
         ss <- ss %>%
           tidyr::pivot_wider(
             id_cols = c(dim1, dim2),

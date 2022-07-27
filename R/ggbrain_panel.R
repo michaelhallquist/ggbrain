@@ -1,6 +1,7 @@
 #' R6 class for a single panel of a ggbrain image
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
+#' @importFrom rlang has_name
 #' @export
 ggbrain_panel <- R6::R6Class(
   #classname = c("ggbrain_panel", "gg", "ggplot"),
@@ -20,7 +21,7 @@ ggbrain_panel <- R6::R6Class(
     pvt_ylab = NULL,
     pvt_theme_custom = NULL,
     pvt_default_theme = NULL,
-    pvt_annotations = NULL,
+    pvt_annotations = NULL, # a data.frame of annotations to add to this panel
 
     # helper function to initialize default theme. needs to be executed after
     # private list is initialized to avoid failed cross-referencing
@@ -70,8 +71,9 @@ ggbrain_panel <- R6::R6Class(
       gg <- gg + private$pvt_addl
 
       if (!is.null(private$pvt_annotations)) {
-        # finalize annotations looks up dim1/dim2 positions for any aesthetics that use convenience mappings like 'left'
-        gg + private$finalize_annotations()
+        # add_annotations looks up dim1/dim2 positions for any aesthetics that use convenience mappings like 'left'
+        # it then returns a list of ggplot2 annotate objects that are added to the panel
+        gg <- gg + private$add_annotations()
       }
 
       self$gg <- gg
@@ -79,52 +81,79 @@ ggbrain_panel <- R6::R6Class(
 
     # lookup annotation positions just before adding it to the ggplot object
     # this allows us to use the internal 'left', 'right' etc. naming
-    finalize_annotations = function() {
+    add_annotations = function() {
       if (is.null(private$pvt_annotations)) return(NULL) # no annotations
 
-      df <- self$get_data()
+      # data associated with this panel
+      dat_list <- self$get_data()
+      df <- bind_rows(lapply(dat_list, function(x) x[, c("dim1", "dim2")] )) #just the dimensions are needed for position calculations
 
-      a_list <- lapply(private$pvt_annotations, function(a) {
-        # the $data element of the annotation object contains the mappings we'd like to look up
-        aes_names <- names(a$data)
-        for (ii in seq_along(a$data)) {
-          this_pos <- a$data[[ii]]
-          if (this_pos == "left") {
-            stopifnot(grepl("^x", aes_names[ii]))
-            this_pos <- min(df$dim1, na.rm=TRUE)
-          } else if (this_pos == "right") {
-            stopifnot(grepl("^x", aes_names[ii]))
-            this_pos <- max(df$dim1, na.rm=TRUE)
-          } else if (this_pos == "top") {
-            stopifnot(grepl("^y", aes_names[ii]))
-            this_pos <- min(df$dim2, na.rm = TRUE)
-          } else if (this_pos == "bottom") {
-            stopifnot(grepl("^y", aes_names[ii]))
-            this_pos <- max(df$dim2, na.rm = TRUE)
-          } else if (this_pos == "middle") {
-            if (grepl("^x", aes_names[ii])) {
-              this_pos <- quantile(df$dim1, 0.5, na.rm = TRUE)
-            } else if (grepl("^y", aes_names[ii])) {
-              this_pos <- quantile(df$dim1, 0.5, na.rm = TRUE)
+      # helper subfunction to map user-friendly positions (e.g., 'left') to x or y coordinates (dim1, dim2)
+      map_pos <- function(aes_name, vec) {
+        sapply(vec, function(pos) {
+          if (pos == "left") {
+            stopifnot(grepl("^x", aes_name))
+            pos <- quantile(df$dim1, 0.02, na.rm = TRUE)
+          } else if (pos == "right") {
+            stopifnot(grepl("^x", aes_name))
+            pos <- quantile(df$dim1, 0.98, na.rm = TRUE)
+          } else if (pos == "top") {
+            stopifnot(grepl("^y", aes_name))
+            pos <- quantile(df$dim2, 0.98, na.rm = TRUE)
+          } else if (pos == "bottom") {
+            stopifnot(grepl("^y", aes_name))
+            pos <- quantile(df$dim2, 0.02, na.rm = TRUE)
+          } else if (pos == "middle") {
+            if (grepl("^x", aes_name)) {
+              pos <- quantile(df$dim1, 0.5, na.rm = TRUE)
+            } else if (grepl("^y", aes_name)) {
+              pos <- quantile(df$dim2, 0.5, na.rm = TRUE)
             } else {
-              stop(paste("aesthetic", aes_names[ii], "is 'middle', but is not x* or y*"))
+              stop(paste("aesthetic", aes_name, "is 'middle', but is not x* or y*"))
             }
-          } else if (grepl("^q[\\d\\.]+$", this_pos)) {
-            qnum <- as.numeric(sub("^q", "", this_pos))
-            if (is.na(qnum)) stop("Could not parse quantile specification: ", this_pos)
-            if (grepl("^x", aes_names[ii])) {
-              this_pos <- quantile(df$dim1, qnum, na.rm = TRUE)
+          } else if (grepl("^q[\\d\\.]+$", pos, perl=TRUE)) {
+            qnum <- as.numeric(sub("^q", "", pos))
+            if (qnum > 1) qnum <- qnum/100 # provided as percentage
+            if (is.na(qnum)) stop("Could not parse quantile specification: ", pos)
+            if (grepl("^x", aes_name)) {
+              pos <- quantile(df$dim1, qnum, na.rm = TRUE)
             } else {
-              this_pos <- quantile(df$dim2, qnum, na.rm = TRUE)
+              pos <- quantile(df$dim2, qnum, na.rm = TRUE)
             }
+          } else if (is.numeric(pos)) {
+            if (grepl("^x", aes_name)) {
+              checkmate::assert_number(pos, lower = min(df$dim1, na.rm=TRUE), upper=max(df$dim1, na.rm=TRUE))
+            } else {
+              checkmate::assert_number(pos, lower = min(df$dim2, na.rm = TRUE), upper = max(df$dim2, na.rm = TRUE))
+            }
+          } else {
+            stop(glue::glue("Cannot figure out how to map position {pos}"))
           }
 
-          # refresh aesthetic mapping data element with mapped position
-          a$data[[ii]] <- this_pos
-        }
-      })
+          return(pos)
+        })
+      }
 
-      return(a_list)
+      # pvt_annotations is a list. Each element should be a tibble reflecting an annotate_panels operation.
+      # Each row of the tibble is an annotation to add to the plot
+
+      # use do.call c to combine lower-level annotations (rows of annotation within a given type/operation)
+      gg_ann_list <- do.call(c, lapply(private$pvt_annotations, function(ann_df) {
+        # touch up aes mapping columns
+        aes_cols <- grep("^(x|y)", names(ann_df), value = TRUE)
+        for (aa in aes_cols) {
+          ann_df[[aa]] <- map_pos(aa, ann_df[[aa]])
+        }
+
+        lapply(seq_len(nrow(ann_df)), function(i) {
+          this_ann <- as.list(ann_df[i, , drop = FALSE])
+          this_ann <- this_ann[!is.na(this_ann)] # remove any NA elements that occur from a bind_rows operation
+          if (is.null(this_ann$color)) this_ann$color <- private$pvt_text_color
+          do.call(ggplot2::annotate, this_ann)
+        })
+      }))
+
+      return(gg_ann_list)
     }
   ),
   public = list(
@@ -144,9 +173,11 @@ ggbrain_panel <- R6::R6Class(
     #' @param xlab The label to place on x axis. Default is NULL.
     #' @param ylab The label to place on y axis. Default is NULL.
     #' @param theme_custom Any custom theme() settings to be added to the plot
+    #' @param annotations a data.frame containing all annotations to be added to this plot. Each row is cleaned up
+    #'   and passed to ggplot2::annotate()
     initialize = function(
       layers = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL, border_size = NULL,
-      draw_border = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL
+      draw_border = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL, annotations = NULL
     ) {
       # convert singleton layer object into a list
       if (checkmate::test_class(layers, "ggbrain_layer")) {
@@ -208,6 +239,22 @@ ggbrain_panel <- R6::R6Class(
       if (!is.null(theme_custom)) {
         checkmate::assert_class(theme_custom, "theme")
         private$pvt_theme_custom <- theme_custom
+      }
+
+      if (!is.null(annotations)) {
+        # convert data.frame to single-element list
+        if (checkmate::test_data_frame(annotations)) annotations <- list(annotations)
+
+        # fill in defaults
+        annotations <- lapply(annotations, function(aa) {
+          if (!rlang::has_name(aa, "x")) aa$x <- 0.5 # default center (annotation positions should really be setup by user)
+          if (!rlang::has_name(aa, "y")) aa$y <- 0.5
+          if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text labels
+          if (!rlang::has_name(aa, "size")) aa$size <- 3 # size of text/marks
+          return(aa)
+        })
+
+        private$pvt_annotations <- annotations
       }
 
       # populate default theme object (propagates background and text color)
@@ -274,17 +321,17 @@ ggbrain_panel <- R6::R6Class(
     #'   - y only: 'top', 'bottom'
     #'   - x and y: 'middle', 'q[0-1]' (for quantiles)
 
-    add_annotation = function(geom, x = NULL, y = NULL, xmin = NULL, xmax = NULL,
-        ymin = NULL, ymax = NULL, xend = NULL, yend = NULL, ..., na.rm = FALSE) {
+    # add_annotation = function(geom, x = NULL, y = NULL, xmin = NULL, xmax = NULL,
+    #     ymin = NULL, ymax = NULL, xend = NULL, yend = NULL, ..., na.rm = FALSE) {
       
-      # a <- named_list(x, y, xmin, xmax, ymin, ymax, xend, yend)
-      # for (ii in seq_along(a)) {
-      #   if ()
-      # }
-      # browser()
-      do.call(ggplot2::annotate, named_list(x,y,xmin))
+    #   # a <- named_list(x, y, xmin, xmax, ymin, ymax, xend, yend)
+    #   # for (ii in seq_along(a)) {
+    #   #   if ()
+    #   # }
+    #   # browser()
+    #   do.call(ggplot2::annotate, named_list(x,y,xmin))
 
-    },
+    # },
 
     #' @description removes one or more layers by name
     #' @param layer_names a character string of the layers to remove from the panel
@@ -301,9 +348,7 @@ ggbrain_panel <- R6::R6Class(
 
     #' @description returns the data for all layers in the object
     get_data = function() {
-      dplyr::bind_rows(
-        lapply(private$pvt_layer_objs, function(x) x$get_data(add_layer_name = TRUE))
-      )
+      lapply(private$pvt_layer_objs, function(x) x$get_data(add_layer_name = TRUE))
     },
 
     #' @description returns the names of the layers in this panel, ordered from bottom to top

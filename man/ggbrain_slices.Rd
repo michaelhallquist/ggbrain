@@ -47,7 +47,6 @@ that slice and the list elements within are each a given image}
 \item \href{#method-ggbrain_slices-new}{\code{ggbrain_slices$new()}}
 \item \href{#method-ggbrain_slices-compute_contrasts}{\code{ggbrain_slices$compute_contrasts()}}
 \item \href{#method-ggbrain_slices-as_tibble}{\code{ggbrain_slices$as_tibble()}}
-\item \href{#method-ggbrain_slices-get_image_names}{\code{ggbrain_slices$get_image_names()}}
 \item \href{#method-ggbrain_slices-get_ranges}{\code{ggbrain_slices$get_ranges()}}
 \item \href{#method-ggbrain_slices-get_uvals}{\code{ggbrain_slices$get_uvals()}}
 \item \href{#method-ggbrain_slices-clone}{\code{ggbrain_slices$clone()}}
@@ -111,17 +110,6 @@ that use standard R syntax for logical tests, subsetting, and arithmetic}
 convert the slices object into a data.frame with list-columns for slice data elements
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$as_tibble()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_slices-get_image_names"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_slices-get_image_names}{}}}
-\subsection{Method \code{get_image_names()}}{
-returns a vector of the names of all image and contrast data available in this
-ggbrain_slices object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_image_names()}\if{html}{\out{</div>}}
 }
 
 }

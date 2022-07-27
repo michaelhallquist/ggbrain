@@ -8,6 +8,13 @@ R6 class for a single layer of a ggbrain panel
 
 R6 class for a single layer of a ggbrain panel
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{controls}}{size of outline drawn around non-NA (valid) voxels}
+}
+\if{html}{\out{</div>}}
+}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
@@ -15,18 +22,32 @@ R6 class for a single layer of a ggbrain panel
 
 \item{\code{definition}}{a character string specifying the image name or contrast that defines this layer}
 
+\item{\code{source}}{a character string specifying the layer source within a relevant ggbrain_slices object.
+This is used to lookup the right layer information when combining slices and layers together
+Note that multiple layers can potentially have the same source, which is why a 1:1 mapping to name does not work}
+
 \item{\code{data}}{the data.frame containing relevant data for this layer.}
 
 \item{\code{color_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
 
 \item{\code{show_legend}}{a logical indicating whether to show or hide the fill/color scale}
 
-\item{\code{use_labels}}{if TRUE, use the $label column as the color on the plot for this layer}
+\item{\code{use_labels}}{if TRUE, use the $label column as the color on the plot for this layer. If a character string is passed,
+this specifies the label column to plot from the label data.frame associated with the corresponding image}
+
+\item{\code{label_col}}{A string indicating which column in the layer's data.frame should be used for plotting labeled
+data for this layer. If not provided/specified, the first label column in the data will be used.}
 
 \item{\code{unify_scales}}{a logical indicating whether to unify scale limits and levels when this layer
 is added across many panels}
 
 \item{\code{bisided}}{read-only access to whether this layer uses a bisided color scale}
+
+\item{\code{controls}}{size of outline drawn around non-NA (valid) voxels}
+
+\item{\code{outline_color}}{controls color of outline draw around non-NA (valid) voxels}
+
+\item{\code{outline_only}}{if TRUE, then only the outline is drawn for this layer, not the fill}
 }
 \if{html}{\out{</div>}}
 }
@@ -63,7 +84,11 @@ create a new ggbrain_layer object
   show_legend = TRUE,
   interpolate = NULL,
   use_labels = FALSE,
-  unify_scales = TRUE
+  label_col = NULL,
+  unify_scales = TRUE,
+  outline_size = NULL,
+  outline_color = NULL,
+  outline_only = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -92,7 +117,15 @@ layer.}
 
 \item{\code{use_labels}}{if TRUE, plot the label column as the color}
 
+\item{\code{label_col}}{a character string indicating which label within the layer data.frame to use for plotting}
+
 \item{\code{unify_scales}}{if TRUE, when this layer is reused across panels, unify the scales to match}
+
+\item{\code{outline_size}}{controls the thickness of outlines}
+
+\item{\code{outline_color}}{controls the color of outlines}
+
+\item{\code{outline_only}}{controls whether only the outline is drawn}
 }
 \if{html}{\out{</div>}}
 }

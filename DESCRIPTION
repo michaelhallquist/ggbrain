@@ -14,6 +14,7 @@ Imports:
     dplyr,
     ggplot2,
     ggnewscale,
+    imager,
     patchwork,
     purrr,
     rlang,

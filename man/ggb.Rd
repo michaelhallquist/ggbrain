@@ -26,16 +26,9 @@ this object becomes a simple storage class that contains all relevant objects
 
 \item{\code{ggb_plot}}{a ggbrain_plot object containing the specification of the plot}
 
-\item{\code{ggb_annotation}}{a list of annotation objects}
+\item{\code{ggb_annotations}}{a list of annotation objects}
 
 \item{\code{action}}{what should this ggb object contribute to another when added with it?}
-}
-\if{html}{\out{</div>}}
-}
-\section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{ggb_annotation}}{a list of annotation objects}
 }
 \if{html}{\out{</div>}}
 }
@@ -43,8 +36,9 @@ this object becomes a simple storage class that contains all relevant objects
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggb-new}{\code{ggb$new()}}
-\item \href{#method-ggb-add_layer}{\code{ggb$add_layer()}}
+\item \href{#method-ggb-add_layers}{\code{ggb$add_layers()}}
 \item \href{#method-ggb-add_slices}{\code{ggb$add_slices()}}
+\item \href{#method-ggb-add_annotations}{\code{ggb$add_annotations()}}
 \item \href{#method-ggb-add_labels}{\code{ggb$add_labels()}}
 \item \href{#method-ggb-render}{\code{ggb$render()}}
 \item \href{#method-ggb-plot}{\code{ggb$plot()}}
@@ -64,6 +58,7 @@ unintended modify-in-place behaviors of R6 classes.
   layers = NULL,
   labels = NULL,
   action = NULL,
+  annotations = NULL,
   bg_color = "grey50",
   text_color = "black"
 )}\if{html}{\out{</div>}}
@@ -84,12 +79,12 @@ unintended modify-in-place behaviors of R6 classes.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggb-add_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-ggb-add_layer}{}}}
-\subsection{Method \code{add_layer()}}{
+\if{html}{\out{<a id="method-ggb-add_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_layers}{}}}
+\subsection{Method \code{add_layers()}}{
 add layers from another ggb object to this one
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggb$add_layer(ilist)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_layers(ilist)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -114,6 +109,26 @@ add slices to the existing vector of slices
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{slices}}{a character vector of slices to be appended to the existing slices}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_annotations"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_annotations}{}}}
+\subsection{Method \code{add_annotations()}}{
+add annotations to panels
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_annotations(annotations = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{annotations}}{a list or data.frame containing the annotations to add to each panel. Minimally,
+the list or data.frame must contain \code{position} and \code{label} columns that define the position
+and text to be added. Other arguments that pass through to ggplot2::annotate() can be provided as columns/elements
+in \code{annotations} and these will be passed through to annotate}
 }
 \if{html}{\out{</div>}}
 }

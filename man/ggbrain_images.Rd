@@ -52,7 +52,7 @@ This value is used to set small values in the images to exactly zero for proper 
 \subsection{Method \code{new()}}{
 create ggbrain_images object consisting of one or more NIfTI images
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL, fill_holes = NULL, clean_specks = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -93,7 +93,7 @@ add a labels data.frame that connects an integer-valued image with a set of labe
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{...}}{named arguments containing data.frame objects for each image to be labeled. The argument name should
-match the image name to be labeled and the value should be a data.frame containing \code{img_value} and \code{label}.}
+match the image name to be labeled and the value should be a data.frame containing \code{value} and \code{label}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -110,7 +110,11 @@ a row for each region represented in each slice.
 \subsection{Method \code{add_images()}}{
 add one or more images to this ggbrain_images object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(
+  images = NULL,
+  fill_holes = NULL,
+  clean_specks = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -328,8 +332,11 @@ get slice data for one or more slices based on their coordinates
   slices = NULL,
   img_names = NULL,
   contrasts = NULL,
+  fill_labels = FALSE,
   make_square = TRUE,
-  remove_null_space = TRUE
+  remove_null_space = TRUE,
+  fill_holes = NULL,
+  clean_specks = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -345,6 +352,15 @@ get slice data for one or more slices based on their coordinates
 \item{\code{make_square}}{If TRUE, make all images square and of the same size}
 
 \item{\code{remove_null_space}}{If TRUE, remove slices where all values are approximately zero}
+
+\item{\code{fill_holes}}{An integer. If > 0, slice data will be passed through a hole-filling algorithm
+that dilates the mask of slice data by this amount, then shrinks back to the original size. For
+example if \code{fill_holes = 3} then any hole that is 3x3 or larger (along the slice extents)
+will be filled in.}
+
+\item{\code{clean_specks}}{An integer. If > 0L, any object greater than this size will be removed from the slice
+for visualization (since it would be hard to see.) For example, if \code{clean_specks = 3}, then
+any object 3x3 or larger (along the slice extents) will be removed.}
 }
 \if{html}{\out{</div>}}
 }

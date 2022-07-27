@@ -4,7 +4,7 @@
 \alias{add_images}
 \title{Add images to a ggb object}
 \usage{
-add_images(images = NULL)
+add_images(images = NULL, fill_holes = FALSE, clean_specks = FALSE)
 }
 \arguments{
 \item{images}{a character vector or ggbrain_images object containing NIfTI images to add to this plot}

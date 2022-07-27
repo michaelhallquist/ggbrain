@@ -52,8 +52,8 @@ ggb <- R6::R6Class(
     #' @field ggb_plot a ggbrain_plot object containing the specification of the plot
     ggb_plot = NULL,
 
-    #' @field ggb_annotation a list of annotation objects
-    ggb_annotate = NULL,
+    #' @field ggb_annotations a list of annotation objects
+    ggb_annotations = NULL,
 
     #' @field action what should this ggb object contribute to another when added with it?
     action = NULL,
@@ -64,7 +64,7 @@ ggb <- R6::R6Class(
     #' @param slices a character vector of slices to extract
     #' @param layers a list of ggbrain_layer objects
     #' @param action the action to be taken when adding this object to an existing ggb
-    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL, bg_color="grey50", text_color="black") {
+    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL, annotations=NULL, bg_color="grey50", text_color="black") {
       if (!is.null(images)) {
         checkmate::assert_class(images, "ggbrain_images")
         self$ggb_images <- images$clone(deep=TRUE)
@@ -84,6 +84,10 @@ ggb <- R6::R6Class(
       if (!is.null(labels)) {
         checkmate::assert_list(labels, names = "unique")
         do.call(self$add_labels, labels)
+      }
+
+      if (!is.null(annotations)) {
+        self$add_annotations(annotations)
       }
 
       # for tracking addition actions
@@ -116,6 +120,37 @@ ggb <- R6::R6Class(
       return(self)
     },
 
+    #' @description add annotations to panels
+    #' @param annotations a list or data.frame containing the annotations to add to each panel. Minimally,
+    #'   the list or data.frame must contain \code{position} and \code{label} columns that define the position
+    #'   and text to be added. Other arguments that pass through to ggplot2::annotate() can be provided as columns/elements
+    #'   in \code{annotations} and these will be passed through to annotate
+    add_annotations = function(annotations = NULL) {
+      if (is.null(annotations)) {
+        return(self) # no change
+      }
+
+      # wrap data.frame input as single-element list for type consistency
+      if (checkmate::test_data_frame(annotations)) annotations <- list(annotations)
+
+      checkmate::assert_list(annotations)
+
+      # convert each element to a tibble
+      ann <- lapply(annotations, function(aa) {
+        checkmate::assert_multi_class(aa, c("data.frame", "list"))
+
+        if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text geom
+        if (aa$geom %in% c("label", "text")) {
+          # enforce that label and position are present for text/label
+          checkmate::assert_subset(c("label", "x", "y"), names(aa))
+        }
+        tibble::as_tibble(aa) # convert lists to tibbles so that singular values in one field are replicated if other fields are many
+      })
+
+      # append annotations
+      self$ggb_annotations <- c(self$ggb_annotations, ann)
+    },
+
     #' @description add labels to a given image
     #' @param labels a named list of data.frame objects where the names denote corresponding images
     add_labels = function(...) {
@@ -125,17 +160,15 @@ ggb <- R6::R6Class(
       if (is.null(label_args) || length(label_args) == 0L) {
         return(self)
       }
+
       label_names <- names(label_args)
       if (is.null(label_names) || any(label_names == "")) {
         stop("All arguments must be named, with the name referring to the image to be labeled.")
       }
 
-      sapply(label_args, function(x) {
-        checkmate::assert_data_frame(x)
-      })
-      sapply(label_args, function(x) {
-        checkmate::assert_subset(c("img_value", "label"), names(x))
-      })
+      sapply(label_args, function(x) checkmate::assert_data_frame(x) )
+
+      sapply(label_args, function(x) checkmate::assert_subset(c("value"), names(x)))
 
       self$ggb_labels <- c(self$ggb_labels, label_args)
       return(self)
@@ -148,7 +181,8 @@ ggb <- R6::R6Class(
 
       img <- self$ggb_images$clone(deep = TRUE)
       img$add_slices(self$ggb_slices)
-      do.call(img$add_labels, self$ggb_labels)
+
+      if (!is.null(self$ggb_labels))  do.call(img$add_labels, self$ggb_labels)
       slc <- img$get_slices()
 
       # image/contrast definitions for each layer
@@ -193,6 +227,7 @@ ggb <- R6::R6Class(
       # need to line up layer names with data name in slice_data
       plot_obj <- ggbrain_plot$new(slc)
       plot_obj$layers <- self$ggb_layers
+      plot_obj$annotations <- self$ggb_annotations # pass through annotations
       plot_obj$generate_plot()
 
       return(plot_obj$plot())
@@ -213,6 +248,7 @@ ggb <- R6::R6Class(
     }
   )
 )
+
 
 #' addition operator for ggb object to support ggplot-like syntax
 #' @param o1 the first object inheriting the ggb class
@@ -237,6 +273,8 @@ ggb <- R6::R6Class(
       oc$add_layers(o2$ggb_layers)
     } else if (o2$action == "add_labels") {
       do.call(oc$add_labels, o2$ggb_labels)
+    } else if (o2$action == "add_annotations") {
+      oc$add_annotations(o2$ggb_annotations)
     } else if (o2$action == "render") {
       # transform in to patchwork object
       oc <- oc$render()
@@ -272,11 +310,11 @@ add_slices <- function(slices = NULL) {
 #' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
 #' @return a ggb object with the relevant images and an action of 'add_images'
 #' @export
-add_images <- function(images = NULL) {
+add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
   } else {
-    img_obj <- ggbrain_images$new(images)
+    img_obj <- ggbrain_images$new(images, fill_holes, clean_specks)
   }
 
   ret <- ggb$new(images = img_obj, action = "add_images")
@@ -299,20 +337,64 @@ add_images <- function(images = NULL) {
 #' @export
 #geom_brain <- function(name=NULL, definition=NULL, ) {
 geom_brain <- function(...) {
-  inp_args <- list(...)
-  l_obj <- do.call(ggbrain_layer$new, inp_args)
+  #inp_args <- list(...)
+  #l_obj <- do.call(ggbrain_layer$new, inp_args)
+  l_obj <- ggbrain_layer$new(...)
 
   ggb$new(layers = l_obj, action="add_layers")
 }
 
-#' Adds the coordinate labels (e.g., x = -6) to each panel
-#' @details Note that the data that define the label should be in the ggbrain_slices object that is returned as
-#'   part of the add_slices() argument. If you wish to add a custom label, pass it through the add_slices(coord_label)
-#'   argument.
-annotate_panels <- function(..., position="lower_right") {
+#' Variant of geom_brain that only draws outlines, but does not fill them with stats
+#' @export
+geom_outline <- function(...) {
+  #inp_args <- list(...)
+  #l_obj <- do.call(ggbrain_layer$new, inp_args)
+  l_obj <- ggbrain_layer$new(...)
+  l_obj$outline_only <- TRUE
 
+  ggb$new(layers = l_obj, action = "add_layers")
+}
 
+geom_region_labels <- function(label_column = "label", image = NULL, ...) {
+  l_obj <- ggbrain_label$new(label_column = label_column, image = image, ...)
+  ggb$new(labels = l_obj, action = "add_labels")
+}
 
+#' Adds custom annotations to a single panel on the ggbrain plot
+#' @param x the x position of the annotation. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
+#'   In addition, convenience values of 'left', 'right', or 'q[1-100]' can be used to look up the left-most, right-most, or quantile-based
+#'   positions along the x axis.
+#' @param y the y position of the annotation. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
+#'   In addition, convenience values of 'left', 'right', or 'q[1-100]' can be used to look up the left-most, right-most, or quantile-based
+#'   positions along the x axis.
+#' @param slice_index the slice number to which this annotation is added. These are numbered in the wrapping order from 
+#'   patchwork::wrap_plots, which will normally go from top-left to bottom-right.
+#' @details Note that this only handles a single annotation on a single panel! If you want to annotate en masse, use annotate_panels
+#'   with a data.frame where each row is an annotation.
+#' @export
+annotate_panel <- function(x = "middle", y = "middle", slice_index=NULL, ...) {
+  checkmate::assert_number(slice_index, lower=1)
+  ggb$new(annotations = list(list(x = x, y = y, slice_index=slice_index, ...)), action = "add_annotations")
+}
+
+#' Adds custom annotations to one or more panels on the ggbrain plot
+#' @param panel_data a list or data.frame containing annotations to be added
+#' @export
+annotate_panels <- function(panel_data) {
+
+}
+
+#' Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)
+#' @param x the x position of the coordinate label. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
+#'   In addition, convenience values of 'left', 'right', or 'q[1-100]' can be used to look up the left-most, right-most, or quantile-based
+#'   positions along the x axis.
+#' @param y the y position of the coordinate label. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
+#'   In addition, convenience values of 'top', 'bottom', or 'q[1-100]' can be used to look up the top-most, bottom-most, or quantile-based
+#'   positions along the y axis.
+#' @param ... any other arguments to ggplot2::annotate, which will be passed through to each panel
+#' @export
+annotate_coordinates <- function(x="right", y="bottom", ...) {
+  ggb$new(annotations = list(list(label = ".coord_label", x = x, y = y, ...)), action = "add_annotations")
 }
 
 #' Function to convert ggb object to ggplot/patchwork object

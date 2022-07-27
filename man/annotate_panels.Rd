@@ -2,15 +2,13 @@
 % Please edit documentation in R/sugar.R
 \name{annotate_panels}
 \alias{annotate_panels}
-\title{Adds the coordinate labels (e.g., x = -6) to each panel}
+\title{Adds custom annotations to one or more panels on the ggbrain plot}
 \usage{
-annotate_panels(..., position = "lower_right")
+annotate_panels(panel_data)
+}
+\arguments{
+\item{panel_data}{a list or data.frame containing annotations to be added}
 }
 \description{
-Adds the coordinate labels (e.g., x = -6) to each panel
-}
-\details{
-Note that the data that define the label should be in the ggbrain_slices object that is returned as
-part of the add_slices() argument. If you wish to add a custom label, pass it through the add_slices(coord_label)
-argument.
+Adds custom annotations to one or more panels on the ggbrain plot
 }

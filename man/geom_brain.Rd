@@ -17,7 +17,7 @@ Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overl
 \item{show_legend}{whether to show the color scale for this layer in the legend}
 }
 \value{
-a ggb object populated with the ggb_layer and the action of 'add_layer'
+a ggb object populated with the ggb_layer and the action of 'add_layers'
 }
 \description{
 Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer
