@@ -1,6 +1,7 @@
 #' R6 class for adding labels to a ggbrain_panel
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
+#' @importFrom ggrepel geom_text_repel geom_label_repel
 #' @export
 ggbrain_label <- R6::R6Class(
   classname = "ggbrain_label",
@@ -8,7 +9,6 @@ ggbrain_label <- R6::R6Class(
     pvt_data = NULL, # data.frame containing label data with coordinates of label positions
     pvt_image = NULL, # placeholder for image that contains relevant slice data
     pvt_geom = NULL,
-    pvt_addl_args = NULL,
     pvt_label_column = "label"
   ),
   active = list(
@@ -51,35 +51,41 @@ ggbrain_label <- R6::R6Class(
 
   ),
   public = list(
+    #' @field addl_args a named list of additional argument to be passed to geom_text/geom_label at render
+    addl_args = NULL,
+
     #' @description create a new ggbrain_label object
     #' @param data a data.frame containing labels to be printed on the panel. Must contain dim1, dim2, and label as columns.
     #'   The dim1 and dim2 columns control where the labels will appear on the panel
     #' @param geom The geom type to be plotted. Must be "text" or "label", corresponding to geom_text and geom_label, respectively.
     #' @param ... All other arguments that will be passed directly to geom_text or geom_label such as hjust, size, and color
-    initialize = function(data = NULL, geom="text", label_column = NULL, ...) {
-      private$pvt_addl_args <- list(...)
+    initialize = function(data = NULL, geom="text", image = NULL, label_column = NULL, ...) {
+      self$addl_args <- list(...)
       self$data <- data
       if (!is.null(label_column)) self$label_column <- label_column
       checkmate::assert_string(geom)
-      checkmate::assert_subset(geom, c("text", "label"))
+      checkmate::assert_subset(geom, c("text", "label", "text_repel", "label_repel"))
       private$pvt_geom <- geom
+      self$image <- image
     },
 
     #' @description add this text layer to an existing ggplot object
     #' @param base_gg the ggplot object to which we add the layer
     add_to_gg = function(base_gg) {
+      # if no data are provided, then there is nothing to label
+      if (is.null(private$pvt_data)) return(base_gg)
       checkmate::assert_class(base_gg, "gg")
       n_layers <- length(base_gg$layers)
 
       # enforce presence of label column at the stage of adding labels
-      if (!private$pvt_label_column %in% private$pvt_data) {
-        stop(glue::glue("Requested label_column: {value} does not exist in label data.frame"))
+      if (!private$pvt_label_column %in% names(private$pvt_data)) {
+        stop(glue::glue("Requested label_column: {private$pvt_label_column} does not exist in label data.frame"))
       }
 
       # return the modified ggplot object with the labels added
       base_gg +
         do.call(paste0("geom_", private$pvt_geom),
-                args = c(list(data = private$pvt_data, mapping = aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), private$pvt_addl_args)
+                args = c(list(data = private$pvt_data, mapping = aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), self$addl_args)
         )
     }
   )

@@ -52,7 +52,12 @@ This value is used to set small values in the images to exactly zero for proper 
 \subsection{Method \code{new()}}{
 create ggbrain_images object consisting of one or more NIfTI images
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL, fill_holes = NULL, clean_specks = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(
+  images = NULL,
+  fill_holes = NULL,
+  clean_specks = NULL,
+  labels = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

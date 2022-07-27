@@ -11,6 +11,7 @@ ggbrain_plot <- R6::R6Class(
     pvt_ggbrain_panels = NULL,
     pvt_nslices = NULL,
     pvt_annotations = NULL, # list of annotations that are added to each panel -- should be one element per slice
+    pvt_region_labels = NULL, # list of ggbrain_label objects that should be added to plot for labeling regions
 
     # compile all anotations into a slice-wise list that can be added to each panel
     compiled_annotations = function() {
@@ -122,6 +123,14 @@ ggbrain_plot <- R6::R6Class(
       } else {
         checkmate::assert_list(value)
         private$pvt_annotations <- value
+      }
+    },
+    region_labels = function(value) {
+      if (missing(value)) {
+        return(private$pvt_region_labels)
+      } else {
+        checkmate::assert_list(value, null.ok=TRUE)
+        private$pvt_region_labels <- value
       }
     }
   ),
@@ -255,10 +264,20 @@ ggbrain_plot <- R6::R6Class(
           return(l_obj)
         })
 
+        if (!is.null(private$pvt_region_labels)) {
+          slc_labels <- lapply(private$pvt_region_labels, function(ll) {
+            ll$data <- slice_df$slice_labels[[i]][[ll$image]]
+            return(ll)
+          })
+        } else {
+          slc_labels <- NULL
+        }
+
         unify_scales <- sapply(layers, "[[", "unify_scales")
 
         ggbrain_panel$new(
           layers = slc_layers,
+          region_labels = slc_labels,
           #title = "Testing",
           bg_color = "black",
           text_color = "white",

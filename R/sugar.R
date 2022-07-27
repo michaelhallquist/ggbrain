@@ -40,8 +40,8 @@ ggb <- R6::R6Class(
     #' @field ggb_images ggbrain_images object for this plot
     ggb_images = NULL,
 
-    #' @field ggb_labels a named list of data.frames that label corresponding images
-    ggb_labels = NULL,
+    #' @field ggb_image_labels a named list of data.frames that label corresponding images
+    ggb_image_labels = NULL,
 
     #' @field ggb_slices character string of slices to extract
     ggb_slices = NULL,
@@ -55,6 +55,9 @@ ggb <- R6::R6Class(
     #' @field ggb_annotations a list of annotation objects
     ggb_annotations = NULL,
 
+    #' @field ggb_region_labels a list of ggbrain_label objects to be added as text to label regions
+    ggb_region_labels = NULL,
+
     #' @field action what should this ggb object contribute to another when added with it?
     action = NULL,
 
@@ -64,7 +67,8 @@ ggb <- R6::R6Class(
     #' @param slices a character vector of slices to extract
     #' @param layers a list of ggbrain_layer objects
     #' @param action the action to be taken when adding this object to an existing ggb
-    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL, annotations=NULL, bg_color="grey50", text_color="black") {
+    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, action=NULL, annotations=NULL, region_labels = NULL,
+      bg_color="grey50", text_color="black") {
       if (!is.null(images)) {
         checkmate::assert_class(images, "ggbrain_images")
         self$ggb_images <- images$clone(deep=TRUE)
@@ -83,12 +87,17 @@ ggb <- R6::R6Class(
 
       if (!is.null(labels)) {
         checkmate::assert_list(labels, names = "unique")
-        do.call(self$add_labels, labels)
+        do.call(self$add_image_labels, labels)
       }
 
       if (!is.null(annotations)) {
         self$add_annotations(annotations)
       }
+
+      if (!is.null(region_labels)) {
+        self$add_region_labels(region_labels)
+      }
+
 
       # for tracking addition actions
       if (!is.null(action)) {
@@ -153,7 +162,7 @@ ggb <- R6::R6Class(
 
     #' @description add labels to a given image
     #' @param labels a named list of data.frame objects where the names denote corresponding images
-    add_labels = function(...) {
+    add_image_labels = function(...) {
       label_args <- list(...)
 
       # return unchanged object if no input labels found
@@ -167,11 +176,19 @@ ggb <- R6::R6Class(
       }
 
       sapply(label_args, function(x) checkmate::assert_data_frame(x) )
-
       sapply(label_args, function(x) checkmate::assert_subset(c("value"), names(x)))
 
-      self$ggb_labels <- c(self$ggb_labels, label_args)
+      self$ggb_image_labels <- c(self$ggb_image_labels, label_args)
       return(self)
+    },
+
+    add_region_labels = function(labels = NULL) {
+      if (checkmate::test_class(labels, "ggbrain_label")) {
+        labels <- list(labels) # make into one-element list for consistency
+      }
+
+      sapply(labels, function(x) checkmate::assert_class(x, "ggbrain_label"))
+      self$ggb_region_labels <- c(self$ggb_region_labels, labels)
     },
 
     render = function() {
@@ -182,7 +199,7 @@ ggb <- R6::R6Class(
       img <- self$ggb_images$clone(deep = TRUE)
       img$add_slices(self$ggb_slices)
 
-      if (!is.null(self$ggb_labels))  do.call(img$add_labels, self$ggb_labels)
+      if (!is.null(self$ggb_image_labels))  do.call(img$add_labels, self$ggb_image_labels)
       slc <- img$get_slices()
 
       # image/contrast definitions for each layer
@@ -228,6 +245,7 @@ ggb <- R6::R6Class(
       plot_obj <- ggbrain_plot$new(slc)
       plot_obj$layers <- self$ggb_layers
       plot_obj$annotations <- self$ggb_annotations # pass through annotations
+      plot_obj$region_labels <- self$ggb_region_labels # pass through region labels
       plot_obj$generate_plot()
 
       return(plot_obj$plot())
@@ -271,10 +289,12 @@ ggb <- R6::R6Class(
       oc$ggb_images$add(o2$ggb_images)
     } else if (o2$action == "add_layers") {
       oc$add_layers(o2$ggb_layers)
-    } else if (o2$action == "add_labels") {
-      do.call(oc$add_labels, o2$ggb_labels)
+    } else if (o2$action == "add_image_labels") {
+      do.call(oc$add_image_labels, o2$ggb_image_labels)
     } else if (o2$action == "add_annotations") {
       oc$add_annotations(o2$ggb_annotations)
+    } else if (o2$action == "add_region_labels") {
+      oc$add_region_labels(o2$ggb_region_labels)
     } else if (o2$action == "render") {
       # transform in to patchwork object
       oc <- oc$render()
@@ -289,7 +309,7 @@ ggb <- R6::R6Class(
 
 add_labels <- function(...) {
   args <- list(...)
-  ret <- ggb$new(labels=args, action = "add_labels")
+  ggb$new(labels=args, action = "add_image_labels")
 }
 
 #' Add slices to a ggb object
@@ -308,13 +328,19 @@ add_slices <- function(slices = NULL) {
 
 #' Add images to a ggb object
 #' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
+#' @param fill_holes if TRUE, fill in holes on a slice [WIP]
+#' @param clean_specks if TRUE, clean small specks on a slice [WIP]
+#' @param labels a data.frame or named list of data.frame objects corresponding to images that should be labeled.
+#'   You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
+#'   the \code{labels} list are used to align the labels with a given matching image.
 #' @return a ggb object with the relevant images and an action of 'add_images'
 #' @export
-add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE) {
+add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE, labels = NULL) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
+    if (!is.null(labels)) img_obj$add_labels(labels)
   } else {
-    img_obj <- ggbrain_images$new(images, fill_holes, clean_specks)
+    img_obj <- ggbrain_images$new(images, fill_holes, clean_specks, labels)
   }
 
   ret <- ggb$new(images = img_obj, action = "add_images")
@@ -357,7 +383,7 @@ geom_outline <- function(...) {
 
 geom_region_labels <- function(label_column = "label", image = NULL, ...) {
   l_obj <- ggbrain_label$new(label_column = label_column, image = image, ...)
-  ggb$new(labels = l_obj, action = "add_labels")
+  ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
 
 #' Adds custom annotations to a single panel on the ggbrain plot

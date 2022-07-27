@@ -8,6 +8,13 @@ R6 class for adding labels to a ggbrain_panel
 
 R6 class for adding labels to a ggbrain_panel
 }
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{addl_args}}{a named list of additional argument to be passed to geom_text/geom_label at render}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -22,7 +29,13 @@ R6 class for adding labels to a ggbrain_panel
 \subsection{Method \code{new()}}{
 create a new ggbrain_label object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_label$new(data = NULL, geom = "text", label_column = NULL, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_label$new(
+  data = NULL,
+  geom = "text",
+  image = NULL,
+  label_column = NULL,
+  ...
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

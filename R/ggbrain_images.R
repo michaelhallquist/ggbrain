@@ -176,9 +176,17 @@ ggbrain_images <- R6::R6Class(
   ),
   public = list(
     #' @description create ggbrain_images object consisting of one or more NIfTI images
-    #' @param images a character vector of file names containing NIfTI images to read 
-    initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL) {
+    #' @param images a character vector of file names containing NIfTI images to read
+    initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL, labels=NULL) {
       private$set_images(images, fill_holes, clean_specks)
+      if (!is.null(labels)) {
+        # if user provides a data.frame as label input, this works in the case of a single image, which is assumed to correspond
+        if (checkmate::test_data_frame(labels) && length(images) == 1L) {
+          labels <- list(labels) %>% setNames(self$get_image_names())
+        }
+        checkmate::assert_list(labels, names = "unique")
+        do.call(self$add_labels, labels)
+      }
     },
 
     #' @description method to add another ggbrain_images object to this one
@@ -234,7 +242,7 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_subset(label_names, private$pvt_img_names)
       sapply(label_args, function(x) checkmate::assert_data_frame(x) )
       sapply(label_args, function(x) checkmate::assert_subset("value", names(x)))
-      
+
       for (x in seq_along(label_args)) {
         cur_vals <- private$pvt_img_labels[[ label_names[x] ]]
         if (!is.null(cur_vals)) {
@@ -578,6 +586,7 @@ ggbrain_images <- R6::R6Class(
 
           for (label_name in which_lab) {
             this_img <- this_slc[[label_name]]
+            this_com <- com_stats[[ii]][[label_name]]
 
             # always set 0 to NA in labeled image
             this_img$value[this_img$value == 0] <- NA
@@ -618,12 +627,16 @@ ggbrain_images <- R6::R6Class(
               this_img <- this_img %>%
                 dplyr::select(dim1, dim2, value, image, everything())
             } else {
-              this_img <- this_img %>% left_join(lb, by="value") # this will have NA labels for any values that lack a match in lb
+              this_img <- this_img %>% left_join(lb, by = "value") # this will have NA labels for any values that lack a match in lb
             }
+
+            # also label CoM data.frame
+            if (!is.null(this_com)) this_com <- this_com %>% left_join(lb, by="value")
 
             attr(this_img, "label_cols") <- l_cols
 
             slc_nestlist[[ii]][[label_name]] <- this_img
+            com_stats[[ii]][[label_name]] <- this_com # update com stats
           }
         }
       }

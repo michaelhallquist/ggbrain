@@ -22,6 +22,7 @@ ggbrain_panel <- R6::R6Class(
     pvt_theme_custom = NULL,
     pvt_default_theme = NULL,
     pvt_annotations = NULL, # a data.frame of annotations to add to this panel
+    pvt_region_labels = NULL,
 
     # helper function to initialize default theme. needs to be executed after
     # private list is initialized to avoid failed cross-referencing
@@ -74,6 +75,10 @@ ggbrain_panel <- R6::R6Class(
         # add_annotations looks up dim1/dim2 positions for any aesthetics that use convenience mappings like 'left'
         # it then returns a list of ggplot2 annotate objects that are added to the panel
         gg <- gg + private$add_annotations()
+      }
+
+      if (!is.null(private$pvt_region_labels)) {        
+        gg <- gg + private$pvt_region_labels # use + method from ggbrain_label class
       }
 
       self$gg <- gg
@@ -175,9 +180,10 @@ ggbrain_panel <- R6::R6Class(
     #' @param theme_custom Any custom theme() settings to be added to the plot
     #' @param annotations a data.frame containing all annotations to be added to this plot. Each row is cleaned up
     #'   and passed to ggplot2::annotate()
+    #' @param region_labels a list of ggbrain_label objects with data for plotting region labels on this panel
     initialize = function(
       layers = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL, border_size = NULL,
-      draw_border = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL, annotations = NULL
+      draw_border = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL, annotations = NULL, region_labels = NULL
     ) {
       # convert singleton layer object into a list
       if (checkmate::test_class(layers, "ggbrain_layer")) {
@@ -255,6 +261,16 @@ ggbrain_panel <- R6::R6Class(
         })
 
         private$pvt_annotations <- annotations
+      }
+
+      if (!is.null(region_labels)) {
+        checkmate::assert_list(region_labels)
+        # populate default text color from panel
+        region_labels <- lapply(region_labels, function(x) {
+          if (is.null(x$addl_args$color)) x$addl_args$color <- private$pvt_text_color
+          return(x)
+        })
+        private$pvt_region_labels <- region_labels
       }
 
       # populate default theme object (propagates background and text color)

@@ -48,7 +48,8 @@ create a new ggbrain_panel object
   xlab = NULL,
   ylab = NULL,
   theme_custom = NULL,
-  annotations = NULL
+  annotations = NULL,
+  region_labels = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -79,6 +80,8 @@ drawn around the plot. Default: FALSE}
 
 \item{\code{annotations}}{a data.frame containing all annotations to be added to this plot. Each row is cleaned up
 and passed to ggplot2::annotate()}
+
+\item{\code{region_labels}}{a list of ggbrain_label objects with data for plotting region labels on this panel}
 }
 \if{html}{\out{</div>}}
 }

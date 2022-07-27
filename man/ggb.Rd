@@ -18,7 +18,7 @@ this object becomes a simple storage class that contains all relevant objects
 \describe{
 \item{\code{ggb_images}}{ggbrain_images object for this plot}
 
-\item{\code{ggb_labels}}{a named list of data.frames that label corresponding images}
+\item{\code{ggb_image_labels}}{a named list of data.frames that label corresponding images}
 
 \item{\code{ggb_slices}}{character string of slices to extract}
 
@@ -27,6 +27,8 @@ this object becomes a simple storage class that contains all relevant objects
 \item{\code{ggb_plot}}{a ggbrain_plot object containing the specification of the plot}
 
 \item{\code{ggb_annotations}}{a list of annotation objects}
+
+\item{\code{ggb_region_labels}}{a list of ggbrain_label objects to be added as text to label regions}
 
 \item{\code{action}}{what should this ggb object contribute to another when added with it?}
 }
@@ -39,7 +41,8 @@ this object becomes a simple storage class that contains all relevant objects
 \item \href{#method-ggb-add_layers}{\code{ggb$add_layers()}}
 \item \href{#method-ggb-add_slices}{\code{ggb$add_slices()}}
 \item \href{#method-ggb-add_annotations}{\code{ggb$add_annotations()}}
-\item \href{#method-ggb-add_labels}{\code{ggb$add_labels()}}
+\item \href{#method-ggb-add_image_labels}{\code{ggb$add_image_labels()}}
+\item \href{#method-ggb-add_region_labels}{\code{ggb$add_region_labels()}}
 \item \href{#method-ggb-render}{\code{ggb$render()}}
 \item \href{#method-ggb-plot}{\code{ggb$plot()}}
 \item \href{#method-ggb-clone}{\code{ggb$clone()}}
@@ -59,6 +62,7 @@ unintended modify-in-place behaviors of R6 classes.
   labels = NULL,
   action = NULL,
   annotations = NULL,
+  region_labels = NULL,
   bg_color = "grey50",
   text_color = "black"
 )}\if{html}{\out{</div>}}
@@ -134,12 +138,12 @@ in \code{annotations} and these will be passed through to annotate}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggb-add_labels"></a>}}
-\if{latex}{\out{\hypertarget{method-ggb-add_labels}{}}}
-\subsection{Method \code{add_labels()}}{
+\if{html}{\out{<a id="method-ggb-add_image_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_image_labels}{}}}
+\subsection{Method \code{add_image_labels()}}{
 add labels to a given image
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggb$add_labels(...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_image_labels(...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -149,6 +153,15 @@ add labels to a given image
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_region_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_region_labels}{}}}
+\subsection{Method \code{add_region_labels()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_region_labels(labels = NULL)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggb-render"></a>}}
