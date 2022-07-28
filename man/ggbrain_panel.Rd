@@ -165,9 +165,6 @@ adds a ggplot_layer object to the panel
 \if{html}{\out{<a id="method-ggbrain_panel-remove_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_panel-remove_layers}{}}}
 \subsection{Method \code{remove_layers()}}{
-wraps the ggplot2 annotate function, allowing for annotations to be added to this panel
-
-
 removes one or more layers by name
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_panel$remove_layers(layer_names)}\if{html}{\out{</div>}}
@@ -177,36 +174,9 @@ removes one or more layers by name
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{layer_names}}{a character string of the layers to remove from the panel}
-
-\item{\code{geom}}{name of geom to use for annotation}
-
-\item{\code{x}}{x aesthetic}
-
-\item{\code{y}}{y aesthetic}
-
-\item{\code{xmin}}{xmin aesthetic}
-
-\item{\code{xmax}}{xmax aesthetic}
-
-\item{\code{ymin}}{ymin aesthetic}
-
-\item{\code{ymax}}{ymax aesthetic}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Details}{
-Note that panel annotations differ slightly from the standard ggplot2 annotate function in that
-the x* and y* aesthetics can be set to standardized values that allow for specific positioning without knowing
-the values of the x and y data (dim1 and dim2, respectively).
-
-The specific values that are supported are:
-\itemize{
-\item x only: 'left', 'right'
-\item y only: 'top', 'bottom'
-\item x and y: 'middle', 'q\link{0-1}' (for quantiles)
-}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_panel-get_data"></a>}}

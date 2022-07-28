@@ -12,7 +12,7 @@ geom_brain(...)
 \item{definition}{a character string of the contrast or image definition used to define this layer.
 Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overlay\link{overlay > 5}')}
 
-\item{color_scale}{the color scale to be used for this layer (a scale_fill* object)}
+\item{fill_scale}{the color scale to be used for this layer (a scale_fill* object)}
 
 \item{show_legend}{whether to show the color scale for this layer in the legend}
 }
@@ -23,7 +23,7 @@ a ggb object populated with the ggb_layer and the action of 'add_layers'
 Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer
 }
 \details{
-Note that the color_scale and limits must be specified at the time of the geom_contrast creation
+Note that the fill_scale and limits must be specified at the time of the geom_contrast creation
 in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 created using the typical + scale_fill_X syntax, and similarly for scale limits.

@@ -28,7 +28,7 @@ Note that multiple layers can potentially have the same source, which is why a 1
 
 \item{\code{data}}{the data.frame containing relevant data for this layer.}
 
-\item{\code{color_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
+\item{\code{fill_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
 
 \item{\code{show_legend}}{a logical indicating whether to show or hide the fill/color scale}
 
@@ -48,6 +48,8 @@ is added across many panels}
 \item{\code{outline_color}}{controls color of outline draw around non-NA (valid) voxels}
 
 \item{\code{outline_only}}{if TRUE, then only the outline is drawn for this layer, not the fill}
+
+\item{\code{mapping}}{the ggplot2 aesthetic mapping between the data columns and the display}
 }
 \if{html}{\out{</div>}}
 }
@@ -78,7 +80,8 @@ create a new ggbrain_layer object
   name = NULL,
   definition = NULL,
   data = NULL,
-  color_scale = NULL,
+  mapping = NULL,
+  fill_scale = NULL,
   limits = NULL,
   breaks = NULL,
   show_legend = TRUE,
@@ -104,7 +107,12 @@ to allow layers to be defined without data in advance of the plot.}
 \item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
 and "value" as columns}
 
-\item{\code{color_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
+\item{\code{mapping}}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
+\code{fill} (color of filled pixels) and \code{outline} (color of outline around clusters). Default is
+\code{aes(fill=value)}, which maps the numeric value of the layer data to the fill color of the squares at
+each spatial position. For labeled data, you might use aes(fill=<label_col_name>).}
+
+\item{\code{fill_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
 layer.}
 
 \item{\code{limits}}{if provided, sets the upper and lower bounds on the scale}
@@ -129,6 +137,12 @@ layer.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+To set mapping, you must provide a ggplot2 aes() object. At present, we support
+\code{outline} and \code{fill} aesthetic mappings. \code{outline} controls the color of outlines drawn around
+regions and \code{fill} controls the color of regions.
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_layer-set_limits"></a>}}

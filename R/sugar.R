@@ -362,10 +362,10 @@ add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE, 
 #' @param name the name of this brain layer
 #' @param definition a character string of the contrast or image definition used to define this layer.
 #'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overlay[overlay > 5]')
-#' @param color_scale the color scale to be used for this layer (a scale_fill* object)
+#' @param fill_scale the color scale to be used for this layer (a scale_fill* object)
 #' @param show_legend whether to show the color scale for this layer in the legend
 
-#' @details Note that the color_scale and limits must be specified at the time of the geom_contrast creation
+#' @details Note that the fill_scale and limits must be specified at the time of the geom_contrast creation
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 #'   created using the typical + scale_fill_X syntax, and similarly for scale limits.
@@ -420,7 +420,6 @@ geom_region_text_repel <- function(image, label_column = "label", ...) {
   l_obj <- ggbrain_label$new(geom = "text_repel", image = image, label_column = label_column, ...)
   ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
-
 
 #' Variant of geom_label_repel used for plotting region labels on slices with separation from other labels
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions

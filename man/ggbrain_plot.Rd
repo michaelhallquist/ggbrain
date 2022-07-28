@@ -13,7 +13,7 @@ An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 \describe{
 \item{\code{layers}}{a list of ggbrain_layer objects for this plot. Note that in assignment, the
 input can be a list of ggbrain_layer objects, or a list of lists where each inner element
-specifies the settings for that layer. Example: \verb{list(list(name='hello', color_scale=scale_fill_distiller())}}
+specifies the settings for that layer. Example: \verb{list(list(name='hello', fill_scale=scale_fill_distiller())}}
 }
 \if{html}{\out{</div>}}
 }
@@ -97,7 +97,7 @@ a character string is passed, then those layers will be plotted with default sca
 }
 \subsection{Details}{
 In addition to \code{name}, the elements of a layer can include
-\code{color_scale} a ggplot2 scale object for coloring the layer. Should be a scale_fill_* object.
+\code{fill_scale} a ggplot2 scale object for coloring the layer. Should be a scale_fill_* object.
 \code{limits} the numeric limits to use for the color scale of this layer
 \code{breaks} the scale breaks to use for the color scale of this layer
 \code{show_legend} if FALSE, the color scale will not appear in the legend

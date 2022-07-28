@@ -169,9 +169,9 @@ ggbrain_legacy <- function(underlay=NULL, overlay=NULL,
     has_pos <- sum(!is.na(p_df$value)) > 0L
     has_neg <- sum(!is.na(n_df$value)) > 0L
 
-    a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, color_scale = underlay_colorscale, show_legend=FALSE)
-    n_layer <- ggbrain_layer$new(name = "negative", data = n_df, color_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_legend=TRUE)
-    p_layer <- ggbrain_layer$new(name = "positive", data = p_df, color_scale = positive_colorscale, limits = pos_limits, breaks = range_breaks(digits = stat_decimals), show_legend=TRUE)
+    a_layer <- ggbrain_layer$new(name = "underlay", data = a_df, fill_scale = underlay_colorscale, show_legend=FALSE)
+    n_layer <- ggbrain_layer$new(name = "negative", data = n_df, fill_scale = negative_colorscale, limits = neg_limits, breaks = range_breaks(digits = stat_decimals), show_legend=TRUE)
+    p_layer <- ggbrain_layer$new(name = "positive", data = p_df, fill_scale = positive_colorscale, limits = pos_limits, breaks = range_breaks(digits = stat_decimals), show_legend=TRUE)
     panel <- ggbrain_panel$new(
       layers = list(a_layer, n_layer, p_layer),
       title = slices$panel_title[i],

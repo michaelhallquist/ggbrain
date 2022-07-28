@@ -320,35 +320,6 @@ ggbrain_panel <- R6::R6Class(
       private$generate_ggplot()
     },
 
-    #' @description wraps the ggplot2 annotate function, allowing for annotations to be added to this panel
-    #' @param geom name of geom to use for annotation
-    #' @param x x aesthetic
-    #' @param y y aesthetic
-    #' @param xmin xmin aesthetic
-    #' @param xmax xmax aesthetic
-    #' @param ymin ymin aesthetic
-    #' @param ymax ymax aesthetic
-    #' @details Note that panel annotations differ slightly from the standard ggplot2 annotate function in that
-    #'   the x* and y* aesthetics can be set to standardized values that allow for specific positioning without knowing
-    #'   the values of the x and y data (dim1 and dim2, respectively).
-    #' 
-    #' The specific values that are supported are:
-    #'   - x only: 'left', 'right'
-    #'   - y only: 'top', 'bottom'
-    #'   - x and y: 'middle', 'q[0-1]' (for quantiles)
-
-    # add_annotation = function(geom, x = NULL, y = NULL, xmin = NULL, xmax = NULL,
-    #     ymin = NULL, ymax = NULL, xend = NULL, yend = NULL, ..., na.rm = FALSE) {
-      
-    #   # a <- named_list(x, y, xmin, xmax, ymin, ymax, xend, yend)
-    #   # for (ii in seq_along(a)) {
-    #   #   if ()
-    #   # }
-    #   # browser()
-    #   do.call(ggplot2::annotate, named_list(x,y,xmin))
-
-    # },
-
     #' @description removes one or more layers by name
     #' @param layer_names a character string of the layers to remove from the panel
     remove_layers = function(layer_names) {
@@ -427,39 +398,8 @@ ggplot_add.ggbrain_panel <- function(object, plot, object_name) {
   plot + object$gg
 }
 
-
 #' S3 method to allow for plot() syntax with ggbrain_panel objects
 #' @export
 plot.ggbrain_panel <- function(object) {
   object$plot()
 }
-
-
-# private method to add coordinate label to plot
-# add_coord_label = function() {
-#   if (is.null(self$coord_label)) {
-#     return(NULL) # ggplot() + NULL yields no effect (as desired)
-#   } else {
-#     # annotate will expand the coordinates of the plot, if needed
-#       xrange <- diff(range(df$dim1, na.rm = TRUE))
-#       yrange <- diff(range(df$dim2, na.rm = TRUE))
-#       label_x_pos <- max(df$dim1, na.rm = TRUE) + .01 * xrange # place slightly to the right of the furthest point
-#       label_y_pos <- min(df$dim2, na.rm = TRUE) - .07 * yrange # place slightly below the lowest point
-#
-#       a <- annotate(
-#         geom = "text", x = label_x_pos, y = label_y_pos, label = self$coord_label,
-#         hjust = 1, vjust = 0, color = text_color, size = (base_size * .6) / ggplot2::.pt
-#       )
-#
-#       return(a)
-#     }
-#   }
-
-# coord_label = function(value) {
-#   if (missing(value)) {
-#     private$pvt_coord_label
-#   } else {
-#     checkmate::assert_string(value)
-#     private$pvt_coord_label <- value
-#   }
-# }

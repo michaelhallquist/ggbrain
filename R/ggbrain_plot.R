@@ -54,26 +54,26 @@ ggbrain_plot <- R6::R6Class(
     },
 
     set_default_scale = function(layer_def) {
-      if (!is.null(layer_def$color_scale)) return(layer_def) # don't modify extant scale
+      if (!is.null(layer_def$fill_scale)) return(layer_def) # don't modify extant scale
 
       # flatten data into a list of data.frames for all possible layers across
       # this swaps the nesting so that we have [layers][slices]
       img_data <- purrr::transpose(private$pvt_slices$slice_data)[[layer_def$name]] %>% bind_rows()
 
-      message(glue("For layer {layer_def$name}, no color_scale specified. We will pick a default."))
+      message(glue("For layer {layer_def$name}, no fill_scale specified. We will pick a default."))
       # detect appropriate default scale
       if (layer_def$name == "underlay") {
-        layer_def$color_scale <- scale_fill_gradient(low="grey8", high="grey92")
+        layer_def$fill_scale <- scale_fill_gradient(low="grey8", high="grey92")
         layer_def$show_legend <- FALSE # default to hiding underlay scale
       } else {
         has_pos <- any(img_data$value > 0, na.rm=TRUE)
         has_neg <- any(img_data$value < 0, na.rm=TRUE)
         if (has_pos && has_neg) {
-          layer_def$color_scale <- scale_fill_distiller(palette="RdBu") # red-blue diverging
+          layer_def$fill_scale <- scale_fill_distiller(palette="RdBu") # red-blue diverging
         } else if (has_neg) {
-          layer_def$color_scale <- scale_fill_distiller(palette="Blues", direction = 1)
+          layer_def$fill_scale <- scale_fill_distiller(palette="Blues", direction = 1)
         } else if (has_pos) {
-          layer_def$color_scale <- scale_fill_distiller(palette="Reds")
+          layer_def$fill_scale <- scale_fill_distiller(palette="Reds")
         } else {
           stop("Cannot find positive or negative values") # TODO: support discrete/character labels
         }
@@ -85,7 +85,7 @@ ggbrain_plot <- R6::R6Class(
   active = list(
     #' @field layers a list of ggbrain_layer objects for this plot. Note that in assignment, the
     #'   input can be a list of ggbrain_layer objects, or a list of lists where each inner element
-    #'   specifies the settings for that layer. Example: `list(list(name='hello', color_scale=scale_fill_distiller())`
+    #'   specifies the settings for that layer. Example: `list(list(name='hello', fill_scale=scale_fill_distiller())`
     layers = function(value) {
       if (missing(value)) {
         private$pvt_layers
@@ -168,7 +168,7 @@ ggbrain_plot <- R6::R6Class(
     #'   a character string is passed, then those layers will be plotted with default scales.
     #' @param slice_indices An optional subset of slice indices to display from the stored slice data
     #' @details In addition to \code{name}, the elements of a layer can include
-    #'   \code{color_scale} a ggplot2 scale object for coloring the layer. Should be a scale_fill_* object.
+    #'   \code{fill_scale} a ggplot2 scale object for coloring the layer. Should be a scale_fill_* object.
     #'   \code{limits} the numeric limits to use for the color scale of this layer
     #'   \code{breaks} the scale breaks to use for the color scale of this layer
     #'   \code{show_legend} if FALSE, the color scale will not appear in the legend
@@ -233,13 +233,13 @@ ggbrain_plot <- R6::R6Class(
 
           if (isTRUE(l_obj$unify_scales)) {
             if (isTRUE(l_obj$use_labels)) {
-              # unify factor levels
+              # unify factor levels across slices
               f_levels <- img_uvals %>%
                 filter(layer == !!l_obj$source) %>%
                 pull(uvals)
               l_obj$data$value <- factor(l_obj$data$value, levels = f_levels)
-              l_obj$color_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
-              l_obj$color_scale$na.translate <- FALSE
+              l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
+              l_obj$fill_scale$na.translate <- FALSE
             } else {
               if (isTRUE(l_obj$bisided)) {
                 pos_lims <- img_ranges %>%
