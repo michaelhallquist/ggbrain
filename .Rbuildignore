@@ -2,3 +2,6 @@
 ^\.Rproj\.user$
 .lintr
 local
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
