@@ -108,8 +108,8 @@ ggbrain_images <- R6::R6Class(
       }
 
       # determine how to handle specks and holes for these images
-      fill_holes <- determine_fill_clean(fill_holes, names(img_list))
-      clean_specks <- determine_fill_clean(clean_specks, names(img_list))
+      fill_holes <- private$determine_fill_clean(fill_holes, names(img_list))
+      clean_specks <- private$determine_fill_clean(clean_specks, names(img_list))
 
       img_dims <- cbind(sapply(img_list, dim), extant=private$pvt_dims) # xyz x images matrix augmented by stored dims
       dim_match <- apply(img_dims, 1, function(row) {
@@ -163,14 +163,14 @@ ggbrain_images <- R6::R6Class(
       if (missing(value)) {
         private$pvt_clean_specks
       } else {
-        private$pvt_clean_specks <- determine_fill_clean(value, private$pvt_img_names)
+        private$pvt_clean_specks <- private$determine_fill_clean(value, private$pvt_img_names)
       }
     },
     fill_holes = function(value) {
       if (missing(value)) {
         private$pvt_fill_holes
       } else {
-        private$pvt_fill_holes <- determine_fill_clean(value, private$pvt_img_names)
+        private$pvt_fill_holes <- private$determine_fill_clean(value, private$pvt_img_names)
       }
     }
   ),
