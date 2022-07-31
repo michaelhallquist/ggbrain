@@ -375,7 +375,7 @@ add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE, 
 geom_brain <- function(...) {
   #inp_args <- list(...)
   #l_obj <- do.call(ggbrain_layer$new, inp_args)
-  l_obj <- ggbrain_layer$new(...)
+  l_obj <- ggbrain_layer_brain$new(...)
 
   ggb$new(layers = l_obj, action="add_layers")
 }
@@ -383,10 +383,13 @@ geom_brain <- function(...) {
 #' Variant of geom_brain that only draws outlines, but does not fill them with stats
 #' @export
 geom_outline <- function(...) {
-  #inp_args <- list(...)
-  #l_obj <- do.call(ggbrain_layer$new, inp_args)
-  l_obj <- ggbrain_layer$new(...)
-  l_obj$outline_only <- TRUE
+  # inp_args <- list(...)
+  # if (!"mapping" %in% names(inp_args)) {
+  #   inp_args$mapping <- ggplot2::aes(fill=NULL, outline=NULL)
+  # }
+  # l_obj <- do.call(ggbrain_layer$new, inp_args)
+  l_obj <- ggbrain_layer_outline$new(...)
+  #l_obj$outline_only <- TRUE
 
   ggb$new(layers = l_obj, action = "add_layers")
 }
@@ -477,6 +480,7 @@ render <- function() {
 #' little helper function to create named list from objects
 #' @param ... A set of arguments to be compiled into a list
 #' @details The names of the objects will form the names of the list elements
+#' @keywords internal
 named_list <- function(...) {
   vnames <- as.character(match.call())[-1]
   return(setNames(list(...), vnames))

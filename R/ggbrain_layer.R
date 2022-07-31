@@ -4,6 +4,7 @@
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg erode_square
+#' @importFrom rlang sym
 #' @export
 ggbrain_layer <- R6::R6Class(
   classname = "ggbrain_layer",
@@ -12,56 +13,116 @@ ggbrain_layer <- R6::R6Class(
     pvt_definition = NULL,
     pvt_source = NULL, # character string specifying which layer (image/contrast) within ggbrain_slices pertains
     pvt_data = NULL, # the data.frame containing values for this layer
-    pvt_use_labels = NULL, # whether to use value or label column of data
-    pvt_label_col = ".default", # the label column within the data that should be used for plotting -- .default uses the first label column available
-    pvt_mapping = ggplot2::aes(fill=value), # how to map the data columns to the display
+    pvt_mapping = NULL, # how to map the data columns to the display
+
+    pvt_fill_column = NULL, # the column within pvt_data containing the values to be mapped to the fill aesthetic in geom_raster
+    pvt_fill_scale = NULL, # a ggplot2 scale_fill* object for the layer fill
+    pvt_fill = NULL, # the fixed color (string) of the color to use on the fill layer -- setting, not mapping
+    pvt_has_fill = FALSE, # whether this layer has a fill geom
+    pvt_map_fill = TRUE, # whether the fill is mapped to a variable or fixed to a single color
+    pvt_categorical_fill = FALSE, # if mapped, whether the mapping is categorical
+
     pvt_unify_scales = NULL, # whether to equate scale limits or level across panels
-    pvt_fill_scale = NULL,
     pvt_show_legend = NULL,
     pvt_interpolate = FALSE,
     pvt_is_empty = NULL,
     pvt_bisided = FALSE, # only set by fill_scale active binding
-    pvt_outline_size = NULL,
-    pvt_outline_color = "white",
-    pvt_outline_only = FALSE, # whether this layer only generates an outline
 
-    # function that traces the outline of the slice, grouped by image
-    slice_to_outline = function(df, group_fac = TRUE) {
-      # if we have a factor, split on this and get outlines for each component
-      if (is.factor(df$value)) {
-        df_split <- df %>% group_split(value)
-        by_roi <- TRUE
-      } else {
-        df_split <- list(df)
-        by_roi <- FALSE
+    # general private method for returning data to plot on slice
+    # will be overloaded by subclasses for specific purposes
+    get_plot_data = function() {
+      vcol <- private$pvt_fill_column # which column in the dataset has the value to map onto the raster
+
+      if (isFALSE(private$pvt_has_fill)) {
+        return(NULL) # no fill data
       }
 
-      df_melt <- bind_rows(lapply(df_split, function(dd) {
-        df_drop <- dd %>% na.omit() # drop NAs so that only valid image points are preserved
-        # convert to a 0/1 matrix where 1s denote present voxels
-        slc_mat <- as.matrix(sparseMatrix(i = df_drop$dim1, j = df_drop$dim2, x = 1, dims = c(max(df$dim1), max(df$dim2))))
-        slc_img <- imager::as.cimg(slc_mat) # convert to cimg object
+      # Handle bisided situation
+      # Note that geom_raster does best when there is a value at every square. Otherwise, it throws:
+      # "Raster pixels are placed at uneven vertical intervals and will be shifted"
+      # This appears to be ignorable, but is concerning and slightly annoying as a warning message
+      # Thus, we create parallel data.frames with NAs, rather than a simple filter for pos or neg
+      if (isTRUE(private$pvt_bisided) && isFALSE(private$pvt_categorical_fill)) {
+        df <- NULL
+        df_neg <- private$pvt_data %>%
+          dplyr::mutate(!!vcol := if_else(!!sym(vcol) < 0, !!sym(vcol), NA_real_))
 
-        # follows this logic: https://stackoverflow.com/questions/29878844/how-do-i-find-the-perimeter-of-objects-in-a-binary-image
-        er <- imager::erode_square(slc_img, 3) # erode by very small square
-        # res1 <- abs(er - slc_img) # retained images become -1 -- not sure why this is needed...
-        res <- slc_img - er # retained images become -1
-        ret <- reshape2::melt(as.matrix(res), varnames = c("dim1", "dim2"))
-        if (isTRUE(by_roi)) {
-          ret <- ret %>%
-            mutate(value = as.integer(value), value = if_else(value == 0, NA_character_, as.character(dd$value[1])))
-        } else {
-          ret <- ret %>%
-            mutate(value = as.integer(value), value = if_else(value == 0, NA_integer_, 1L))
+        df_pos <- private$pvt_data %>%
+          dplyr::mutate(!!vcol := if_else(!!sym(vcol) > 0, !!sym(vcol), NA_real_))
+
+        private$symmetrize_limits(df, df_pos)
+
+        fill_scale <- NULL
+        fill_scale_neg <- private$pvt_fill_scale$neg_scale
+        fill_scale_pos <- private$pvt_fill_scale$pos_scale
+      } else {
+        df <- private$pvt_data
+        df_pos <- df_neg <- NULL
+        fill_scale <- private$pvt_fill_scale
+        fill_scale_pos <- fill_scale_neg <- NULL
+      }
+
+      bisided <- private$pvt_bisided
+
+      return(named_list(df, df_pos, df_neg, fill_scale, fill_scale_pos, fill_scale_neg, vcol, bisided))
+
+    },
+
+    set_scale = function(value) {
+      if (is.null(value)) {
+        private$pvt_fill_scale <- NULL # reset
+      } else if (checkmate::test_class(value, "Scale")) {
+        stopifnot(value$aesthetics == "fill")
+
+        # make sure that NAs are always drawn as transparent
+        # if na.value is NA, omit it so that NA is not shown as a factor level
+        if (!is.na(value$na.value) && value$na.value != "transparent") {
+          value$na.value <- "transparent"
         }
 
-        # plot(res)
-        return(ret)
-      }))
+        # default color scale to name of layer if not otherwise provided
+        if (is.null(value$name) || inherits(value$name, "waiver")) {
+          value$name <- self$name
+        }
 
-      # TODO: test this approach against the simpler boundary function in imager
+        if (inherits(value, "ScaleBisided")) {
+          private$pvt_bisided <- TRUE # flag this layer as bisided
 
-      return(df_melt)
+          # propagate na.value to pos and neg components
+          value$pos_scale$na.value <- value$na.value
+          value$neg_scale$na.value <- value$na.value
+          value$pos_scale$name <- value$name
+          value$neg_scale$name <- "" # no label on negative scale
+        } else {
+          private$pvt_bisided <- FALSE
+        }
+
+        private$pvt_fill_scale <- value
+      } else {
+        stop("Cannot understand scale input. Should be a scale_fill_* object.")
+      }
+    },
+
+    # finalizing function that inspects data just before attempting to plot it
+    validate_layer = function() {
+      if (self$is_empty()) return(invisible(NULL)) # nothing to do on empty object
+
+      private$pvt_has_fill <- FALSE
+      if (!is.null(private$pvt_fill_column)) {
+        if (!private$pvt_fill_column %in% names(private$pvt_data)) {
+          stop(glue::glue("Cannot find specified fill column {private$pvt_fill_column} in layer data"))
+        } else {
+          private$pvt_has_fill <- TRUE # we have a fill geom
+          private$pvt_map_fill <- TRUE # map fill color to data
+
+          # if fill column is character or factor, then fill is categorical
+          private$pvt_categorical_fill <- ifelse(checkmate::test_multi_class(private$pvt_data[[private$pvt_fill_column]], c("character", "factor")), TRUE, FALSE)
+        }
+      } else if (!is.null(private$pvt_fill)) {
+          private$pvt_has_fill <- TRUE # we have a fill geom
+          private$pvt_map_fill <- FALSE # fixed fill color
+          private$pvt_categorical_fill <- FALSE # just a fixed value, not a mapped categorical variable
+      }
     },
 
     # helper function to make positive and negative scales symmetric
@@ -95,30 +156,32 @@ ggbrain_layer <- R6::R6Class(
       # don't set default if no data exist or if an existing scale is present
       if (!is.null(private$pvt_fill_scale) || is.null(private$pvt_data)) {
         return(invisible(NULL)) # don't modify extant scale
-      } else if (isTRUE(private$pvt_outline_only) && !is.null(private$pvt_outline_color)) {
-        return(invisible(NULL)) # for outline only situation, don't try to set a scale
       }
 
       # detect appropriate default scale
       if (private$pvt_name == "underlay") {
-        self$fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
+        private$pvt_fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
         if (is.null(self$show_legend)) self$show_legend <- FALSE # default to hiding underlay scale
       } else {
         has_pos <- any(private$pvt_data$value > 0, na.rm = TRUE)
         has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)
-        if (has_pos && has_neg) {
-          #self$fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
-          self$fill_scale <- scale_fill_bisided(
+        all_na <- all(is.na(private$pvt_data$value))
+        if (isTRUE(private$pvt_categorical_fill)) {
+          private$pvt_fill_scale <- scale_fill_brewer(palette = "Set3")
+        } else if (has_pos && has_neg) {
+          #private$pvt_fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
+          private$pvt_fill_scale <- scale_fill_bisided(
             neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
             pos_scale = scale_fill_distiller(palette = "Reds")
           ) # internal scale stack
         } else if (has_neg) {
-          self$fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
+          private$pvt_fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
         } else if (has_pos) {
-          self$fill_scale <- scale_fill_distiller(palette = "Reds")
+          private$pvt_fill_scale <- scale_fill_distiller(palette = "Reds")
+        } else if (all_na) {
+          private$pvt_fill_scale <- scale_fill_distiller(palette = "Reds")
         } else {
-          warning("Cannot find positive or negative values") # TODO: support discrete/character labels
-          self$fill_scale <- scale_fill_brewer(palette = "Set3")
+          warning("Could not set default scale for layer")
         }
         if (is.null(self$show_legend)) self$show_legend <- TRUE
       }
@@ -175,46 +238,8 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_data <- value
           private$pvt_is_empty <- FALSE # always make is_empty FALSE when we have data
           private$set_default_scale() # add default scale, if needed, after modifying data
+          private$validate_layer() # always validate the layer based on the data (identifies the form of fill mapping)
         }
-      }
-    },
-
-    #' @field fill_scale a scale_fill_* object containing the ggplot2 fill scale for this layer
-    fill_scale = function(value) {
-      if (missing(value)) {
-        return(private$pvt_fill_scale)
-      } else if (is.null(value)) {
-        private$pvt_fill_scale <- NULL # reset
-      } else if (checkmate::test_class(value, "Scale")) {
-        stopifnot(value$aesthetics == "fill")
-
-        # make sure that NAs are always drawn as transparent
-        # if na.value is NA, omit it so that NA is not shown as a factor level
-        if (!is.na(value$na.value) && value$na.value != "transparent") {
-          value$na.value <- "transparent"
-        }
-
-        # default color scale to name of layer if not otherwise provided
-        if (is.null(value$name) || inherits(value$name, "waiver")) {
-          value$name <- self$name
-        }
-
-        if (inherits(value, "ScaleBisided")) {
-          private$pvt_bisided <- TRUE # flag this layer as bisided
-
-          # propagate na.value to pos and neg components
-          value$pos_scale$na.value <- value$na.value
-          value$neg_scale$na.value <- value$na.value
-          value$pos_scale$name <- value$name
-          value$neg_scale$name <- "" # no label on negative scale
-        } else {
-          private$pvt_bisided <- FALSE
-        }
-
-        private$pvt_fill_scale <- value
-      } else {
-        browser()
-        stop("Cannot understand fill_scale input. Should be a scale_fill_* object.")
       }
     },
 
@@ -225,33 +250,6 @@ ggbrain_layer <- R6::R6Class(
       } else {
         checkmate::assert_logical(value, len = 1L)
         private$pvt_show_legend <- value
-      }
-    },
-
-    #' @field use_labels if TRUE, use the $label column as the color on the plot for this layer. If a character string is passed,
-    #'   this specifies the label column to plot from the label data.frame associated with the corresponding image
-    use_labels = function(value) {
-      if (missing(value)) {
-        private$pvt_use_labels
-      } else {
-        if (checkmate::test_string(value)) {
-          private$pvt_use_labels <- TRUE
-          private$pvt_label_col <- value
-        } else {
-          checkmate::assert_logical(value, len = 1L)
-          private$pvt_use_labels <- value
-        }
-      }
-    },
-
-    #' @field label_col A string indicating which column in the layer's data.frame should be used for plotting labeled
-    #'   data for this layer. If not provided/specified, the first label column in the data will be used.
-    label_col = function(value) {
-      if (missing(value)) {
-        private$pvt_label_col
-      } else {
-        checkmate::assert_string(value)
-        private$pvt_label_col <- value
       }
     },
 
@@ -270,53 +268,8 @@ ggbrain_layer <- R6::R6Class(
     bisided = function(value) {
       if (missing(value)) private$pvt_bisided
       else stop("Cannot assign bisided")
-    },
-
-    #' @field controls size of outline drawn around non-NA (valid) voxels
-    outline_size = function(value) {
-      if (missing(value)) {
-        private$pvt_outline_size
-      } else {
-        checkmate::assert_integerish(value, len=1L, lower=1)
-        private$pvt_outline_size <- value
-      }
-    },
-
-    #' @field outline_color controls color of outline draw around non-NA (valid) voxels
-    outline_color = function(value) {
-      if (missing(value)) {
-        private$pvt_outline_color
-      } else {
-        checkmate::assert_string(value)
-        private$pvt_outline_color <- value
-      }
-    },
-
-    #' @field outline_only if TRUE, then only the outline is drawn for this layer, not the fill
-    outline_only = function(value) {
-      if (missing(value)) {
-        private$pvt_outline_only
-      } else {
-        checkmate::assert_logical(value, len = 1L)
-        private$pvt_outline_only <- value
-        # set default outline size if outline_only is turned on, but no outline_size is set
-        if (isTRUE(value) && is.null(private$pvt_outline_size)) private$pvt_outline_size <- 1L
-      }
-    },
-
-    #' @field mapping the ggplot2 aesthetic mapping between the data columns and the display
-    #' @details To set mapping, you must provide a ggplot2 aes() object. At present, we support
-    #'   `outline` and `fill` aesthetic mappings. `outline` controls the color of outlines drawn around
-    #'   regions and `fill` controls the color of regions.
-    mapping = function(value) {
-      if (missing(value)) {
-        private$pvt_mapping
-      } else {
-        checkmate::assert_class(value, "uneval")
-        private$pvt_mapping <- value
-      }
-
     }
+
   ),
   public = list(
     #' @description create a new ggbrain_layer object
@@ -326,25 +279,13 @@ ggbrain_layer <- R6::R6Class(
     #'   to allow layers to be defined without data in advance of the plot.
     #' @param data the data.frame containing image data for this layer. Must contain "dim1", "dim2",
     #'   and "value" as columns
-    #' @param mapping the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
-    #'   `fill` (color of filled pixels) and `outline` (color of outline around clusters). Default is
-    #'   `aes(fill=value)`, which maps the numeric value of the layer data to the fill color of the squares at
-    #'   each spatial position. For labeled data, you might use aes(fill=<label_col_name>).
-    #' @param fill_scale a ggplot scale object used for mapping the value column as the fill color for the
-    #'   layer.
     #' @param limits if provided, sets the upper and lower bounds on the scale
     #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_legend if TRUE, show the scale on the plot legend
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
-    #' @param use_labels if TRUE, plot the label column as the color
-    #' @param label_col a character string indicating which label within the layer data.frame to use for plotting
-    #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
-    #' @param outline_size controls the thickness of outlines
-    #' @param outline_color controls the color of outlines
-    #' @param outline_only controls whether only the outline is drawn
-    initialize = function(name = NULL, definition = NULL, data = NULL, mapping = NULL, fill_scale = NULL, limits = NULL,
-                          breaks = NULL, show_legend = TRUE, interpolate = NULL, use_labels = FALSE, label_col = NULL, unify_scales=TRUE,
-                          outline_size = NULL, outline_color = NULL, outline_only = FALSE) {
+    
+    initialize = function(name = NULL, definition = NULL, data = NULL, limits = NULL, breaks = NULL, 
+      show_legend = TRUE, interpolate = NULL, unify_scales=TRUE) {
 
       if (is.null(name)) name <- "layer"
       checkmate::assert_numeric(limits, len = 2L, null.ok = TRUE)
@@ -352,24 +293,16 @@ ggbrain_layer <- R6::R6Class(
 
       # uses active bindings to validate inputs
       self$name <- name
-      self$fill_scale <- fill_scale
       self$show_legend <- show_legend
       self$definition <- definition
-      self$use_labels <- use_labels
-      if (!is.null(label_col)) self$label_col <- label_col
       self$unify_scales <- unify_scales
 
       # allow for empty layers with data added later
       self$data <- data
 
-      if (!is.null(mapping)) self$mapping <- mapping # aesthetic mapping
-
       if (!is.null(interpolate)) private$pvt_interpolate <- interpolate
       if (!is.null(limits)) self$set_limits(limits)
       if (!is.null(breaks)) self$set_breaks(breaks)
-      if (!is.null(outline_size)) self$outline_size <- outline_size
-      if (!is.null(outline_color)) self$outline_color <- outline_color
-      if (!is.null(outline_only)) self$outline_only <- outline_only
     },
 
     #' @description set the limits for this layer's scale
@@ -445,41 +378,27 @@ ggbrain_layer <- R6::R6Class(
       n_scales <- length(base_gg$scales$scales) # will be less than n_layers when show.legend is FALSE
       ret <- base_gg # ggplot object to modify and return
 
-      # Handle bisided situation
-      # Note that geom_raster does best when there is a value at every square. Otherwise, this throws:
-      # "Raster pixels are placed at uneven vertical intervals and will be shifted"
-      # This appears to be ignorable, but is concerning and slightly annoying as a warning message
-      # Thus, we create parallel data.frames with NAs, rather than a simple filter for pos or neg
-      if (isTRUE(private$pvt_bisided)) {
-        df <- private$pvt_data %>%
-          dplyr::mutate(value=if_else(value < 0, value, NA_real_))
+      # determine fill settings based on data prior to plotting
+      private$validate_layer()
 
-        df_pos <- private$pvt_data %>%
-          dplyr::mutate(value=if_else(value > 0, value, NA_real_))
-
-        private$symmetrize_limits(df, df_pos)
-
-        cscale <- private$pvt_fill_scale$neg_scale
+      # if there is no fill data (mapped or set), there is nothing to add to the ggplot object
+      if (!private$pvt_has_fill) return(base_gg)
+      
+      # obtain data to plot
+      pdata <- private$get_plot_data()
+      if (isTRUE(pdata$bisided)) {
+        df <- pdata$df_neg
+        fill_scale <- pdata$fill_scale_neg
       } else {
-        df <- private$pvt_data
-        cscale <- private$pvt_fill_scale
+        df <- pdata$df
+        fill_scale <- pdata$fill_scale
       }
 
-      # compute outline data.frames if requested
-      if (!is.null(self$outline_size) && self$outline_size > 0L) {
-        df_outline <- private$slice_to_outline(df)
-
-        if (isTRUE(private$pvt_bisided)) {
-          df_outline_pos <- private$slice_to_outline(df_pos)
-        }
-      }
-
-      # only add fills if outline_only is FALSE
-      # TODO: allow outlines to be mapped to data values... need some sort of hook. Probably outline_color is NULL, but outline_only = TRUE
-      if (isFALSE(private$pvt_outline_only)) {
+      # only add fills if a fill setting/mapping exists
+      if (isTRUE(private$pvt_map_fill)) {
         new_val <- paste0("value", n_layers + 1L) # new_scale_fill depends on the fill aesthetic mapping differing by layer
         df <- df %>%
-          dplyr::rename(!!new_val := value)
+          dplyr::rename(!!new_val := !!pdata$vcol)
 
         if (n_layers > 0L) {
           # if there is already a layer, we need to create a new slot for a fill aesthetic
@@ -491,12 +410,12 @@ ggbrain_layer <- R6::R6Class(
             data = df, mapping = aes_string(x = "dim1", y = "dim2", fill = new_val),
             show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate
           ) +
-          cscale
+          fill_scale
 
         if (isTRUE(private$pvt_bisided)) {
           # add positive scale above negative to have it appear above it
           new_val <- paste0("value", n_layers + 2L) # additional layer for positive values
-          df_pos <- df_pos %>%
+          df_pos <- pdata$df_pos %>%
             dplyr::rename(!!new_val := value)
 
           ret <- ret + ggnewscale::new_scale_fill() +
@@ -504,7 +423,7 @@ ggbrain_layer <- R6::R6Class(
               data = df_pos, mapping = aes_string(x = "dim1", y = "dim2", fill = new_val),
               show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate
             ) +
-            private$pvt_fill_scale$pos_scale
+            pdata$fill_scale_pos
 
           if (isTRUE(private$pvt_show_legend)) {
             # force color bar order: +1 is negative, +2 is positive. Lower orders are positioned lower on legend
@@ -512,20 +431,15 @@ ggbrain_layer <- R6::R6Class(
             ret$scales$scales[[n_scales + 2]]$guide <- guide_colorbar(order = n_scales + 1, available_aes = c("fill", "fill_new"))
           }
         }
-
+      } else {
+        # fixed fill color
+        ret <- ret +
+          geom_raster(
+            data = df, mapping = aes_string(x = "dim1", y = "dim2", fill = NULL), fill = private$pvt_fill,
+            interpolate = private$pvt_interpolate
+          )
       }
-
-      if (!is.null(self$outline_size) && self$outline_size > 0L) {
-        # na.omit is needed for geom_raster to draw hollowed outlines
-        ret <- ret + geom_raster(data = df_outline %>% na.omit(), inherit.aes = FALSE, mapping = aes(x = dim1, y = dim2, fill = NULL), fill = self$outline_color, show.legend = FALSE)
-
-        if (isTRUE(private$pvt_bisided)) {
-          ret <- ret + geom_raster(data = df_outline_pos %>% na.omit(), inherit.aes = FALSE, mapping = aes(x = dim1, y = dim2, fill = NULL), fill = self$outline_color, show.legend = FALSE)
-          #ret <- ret + geom_raster(data = df_outline_pos, mapping = aes(fill = NULL), fill = outline_color, show.legend = FALSE)
-          #ret <- ret + geom_path(data = df_outline_pos %>% arrange(lu, dim1), color = outline_color, show.legend = FALSE, size = 2)
-        }
-      }
-
+      
       return(ret)
     },
 
@@ -557,18 +471,3 @@ ggbrain_layer <- R6::R6Class(
 ggplot_add.ggbrain_layer <- function(object, plot, object_name) {
   object$add_to_gg(plot) # adds the layer to the extant plot
 }
-
-## Trying to sort a two-sided scale with pos/neg gradients
-## The problem is that if we have thresholded values, then the min/max may not be 0, but something like 3.09 etc.
-# df <- data.frame(x=1:200, y = 1,
-#                  stat_vals=c(
-#                    sort(truncnorm::rtruncnorm(100, a=4, mean=6, sd=2)),
-#                    sort(truncnorm::rtruncnorm(100, b=-4, mean=-6, sd=2))
-#                  ))
-
-# df <- df %>% mutate(stat_res = scales::rescale(stat_vals, c(0, 1)))
-
-# #https://stackoverflow.com/questions/18700938/ggplot2-positive-and-negative-values-different-color-gradient
-# ggplot(df, aes(x=x, y=y, fill=stat_vals)) + geom_tile() +
-#   scale_fill_gradientn(colours=c("blue","cyan","white", "yellow","red"),
-#                        values=rescale(c(-1,0-.Machine$double.eps,0,0+.Machine$double.eps,1)))

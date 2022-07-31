@@ -15,3 +15,4 @@ little helper function to create named list from objects
 \details{
 The names of the objects will form the names of the list elements
 }
+\keyword{internal}

@@ -51,35 +51,6 @@ ggbrain_plot <- R6::R6Class(
         mutate(slice_index = factor(slice_index, levels=seq_len(private$pvt_nslices))) %>%
         group_by(slice_index, .drop=FALSE) %>%
         group_split(.keep=FALSE)
-    },
-
-    set_default_scale = function(layer_def) {
-      if (!is.null(layer_def$fill_scale)) return(layer_def) # don't modify extant scale
-
-      # flatten data into a list of data.frames for all possible layers across
-      # this swaps the nesting so that we have [layers][slices]
-      img_data <- purrr::transpose(private$pvt_slices$slice_data)[[layer_def$name]] %>% bind_rows()
-
-      message(glue("For layer {layer_def$name}, no fill_scale specified. We will pick a default."))
-      # detect appropriate default scale
-      if (layer_def$name == "underlay") {
-        layer_def$fill_scale <- scale_fill_gradient(low="grey8", high="grey92")
-        layer_def$show_legend <- FALSE # default to hiding underlay scale
-      } else {
-        has_pos <- any(img_data$value > 0, na.rm=TRUE)
-        has_neg <- any(img_data$value < 0, na.rm=TRUE)
-        if (has_pos && has_neg) {
-          layer_def$fill_scale <- scale_fill_distiller(palette="RdBu") # red-blue diverging
-        } else if (has_neg) {
-          layer_def$fill_scale <- scale_fill_distiller(palette="Blues", direction = 1)
-        } else if (has_pos) {
-          layer_def$fill_scale <- scale_fill_distiller(palette="Reds")
-        } else {
-          stop("Cannot find positive or negative values") # TODO: support discrete/character labels
-        }
-      }
-
-      return(layer_def) # modified with default scale
     }
   ),
   active = list(
@@ -214,22 +185,7 @@ ggbrain_plot <- R6::R6Class(
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
           df <- comb_data[[j]]
-
-          # put the right label column into the value field for plotting
-          if (isTRUE(l_obj$use_labels)) {
-            if (l_obj$label_col == ".default") {
-              lcol <- attr(df, "label_cols")[1L] # use first label column
-            } else if (is.null(l_obj$label_col) || is.na(l_obj$label_col)) {
-              # slightly risky, but just use the first column other than the core metadata
-              lcol <- setdiff(names(df), c("dim1", "dim2", "value", "image"))[1L]
-            } else {
-              lcol <- l_obj$label_col
-            }
-
-            # swap out label into value position for plotting
-            df <- df %>% dplyr::select(-value) %>% dplyr::rename(value=!!lcol)
-          }
-          l_obj$data <- df # add slice-specific data to this this layer
+          l_obj$data <- df # set slice-specific data (this will also set properties such as whether fill layer is categorical)
 
           if (isTRUE(l_obj$unify_scales)) {
             if (isTRUE(l_obj$use_labels)) {
