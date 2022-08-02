@@ -366,31 +366,6 @@ ggbrain_panel <- R6::R6Class(
   )
 )
 
-# allow for panel + ggplot() stuff -- this doesn't work as expected due to S3 precedence problems
-# @export
-# `+.ggbrain_panel` <-  function(panel, args) {
-#   panel_new <- panel$clone(deep=TRUE) # need a new object to modify the panels in memory (not by reference)
-#   new_plot <- panel_new$get_gg() + args # add args to panel
-#   panel_new$set_gg(new_plot)
-#   browser()
-#   return(panel_new)
-# }
-
-
-# this supports adding a ggbrain_panel object to an existing ggplot object, but that's not really
-# the most useful. And having this here means that the S3 dispatch gets tripped up when we
-# try to add 
-
-# tests
-# ggplot() + panel_obj
-# panel_obj + theme_void()
-# panel_obj + ggtitle("hello")
-# 
-# sloop::s3_dispatch(panel_obj + theme_void())
-# sloop::s3_dispatch(panel_obj + ggtitle("hello"))
-# sloop::s3_dispatch(ggplot() + panel_obj$get_layers()[[1]])
-# sloop::s3_dispatch(ggplot() + panel_obj)
-
 #' S3 method to support adding ggbrain_layer objects to an existing ggplot object
 #' @importFrom ggplot2 ggplot_add
 #' @export

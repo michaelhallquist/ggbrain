@@ -21,12 +21,15 @@ ggbrain_layer <- R6::R6Class(
     pvt_has_fill = FALSE, # whether this layer has a fill geom
     pvt_map_fill = TRUE, # whether the fill is mapped to a variable or fixed to a single color
     pvt_categorical_fill = FALSE, # if mapped, whether the mapping is categorical
+    pvt_alpha_column = NULL, # the column within pvt_data containing values to map to alpha aesthetic in geom_raster
+    pvt_alpha = NULL, # the fixed alpha transparency for this layer
 
     pvt_unify_scales = NULL, # whether to equate scale limits or level across panels
     pvt_show_legend = NULL,
     pvt_interpolate = FALSE,
     pvt_is_empty = NULL,
     pvt_bisided = FALSE, # only set by fill_scale active binding
+    pvt_blur_edge = NULL,
 
     # general private method for returning data to plot on slice
     # will be overloaded by subclasses for specific purposes
@@ -122,6 +125,11 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_has_fill <- TRUE # we have a fill geom
           private$pvt_map_fill <- FALSE # fixed fill color
           private$pvt_categorical_fill <- FALSE # just a fixed value, not a mapped categorical variable
+      }
+
+      # ensure that alpha is set to NA if we have an alpha mapping
+      if (!is.null(private$pvt_alpha_column)) {
+        private$pvt_alpha <- NULL
       }
     },
 
@@ -237,8 +245,8 @@ ggbrain_layer <- R6::R6Class(
 
           private$pvt_data <- value
           private$pvt_is_empty <- FALSE # always make is_empty FALSE when we have data
-          private$set_default_scale() # add default scale, if needed, after modifying data
           private$validate_layer() # always validate the layer based on the data (identifies the form of fill mapping)
+          private$set_default_scale() # add default scale, if needed, after modifying data
         }
       }
     },
@@ -268,6 +276,47 @@ ggbrain_layer <- R6::R6Class(
     bisided = function(value) {
       if (missing(value)) private$pvt_bisided
       else stop("Cannot assign bisided")
+    },
+
+    #' @field categorical_fill read-only access to whether this layer has a categorical fill scale
+    categorical_fill = function(value) {
+      if (missing(value)) private$pvt_categorical_fill
+      else stop("Cannot set categorical_fill field")
+    },
+
+    #' @field fill_column read-only access to layer fill column
+    fill_column = function(value) {
+      if (missing(value)) private$pvt_fill_column
+      else stop("Cannot set fill_column field")
+    },
+
+    #' @field fill_scale a scale_fill_* object containing the ggplot2 fill scale for this layer
+    fill_scale = function(value) {
+      if (missing(value)) {
+        return(private$pvt_fill_scale)
+      } else {
+        private$set_scale(value)
+      }
+    },
+
+    #' @field alpha sets the alpha transparency of this layer.
+    alpha = function(value) {
+      if (missing(value)) {
+        return(private$pvt_alpha)
+      } else {
+        checkmate::assert_number(value, lower = 0, upper = 1)
+        private$pvt_alpha <- value
+      }
+    },
+
+    #' @field blur_edge controls the standard deviation (sigma) of a Gaussian blur applied to the layer at the edge
+    blur_edge = function(value) {
+      if (missing(value)) {
+        return(private$pvt_blur_edge)
+      } else {
+        checkmate::assert_number(value, lower = 0)
+        private$pvt_blur_edge <- value
+      }
     }
 
   ),
@@ -283,9 +332,10 @@ ggbrain_layer <- R6::R6Class(
     #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_legend if TRUE, show the scale on the plot legend
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
-    
+    #' @param alpha fixed alpha transparency of this layer (use `mapping` for alpha mapping`)
+    #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
     initialize = function(name = NULL, definition = NULL, data = NULL, limits = NULL, breaks = NULL, 
-      show_legend = TRUE, interpolate = NULL, unify_scales=TRUE) {
+      show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL, blur_edge = NULL) {
 
       if (is.null(name)) name <- "layer"
       checkmate::assert_numeric(limits, len = 2L, null.ok = TRUE)
@@ -303,6 +353,8 @@ ggbrain_layer <- R6::R6Class(
       if (!is.null(interpolate)) private$pvt_interpolate <- interpolate
       if (!is.null(limits)) self$set_limits(limits)
       if (!is.null(breaks)) self$set_breaks(breaks)
+      if (!is.null(alpha)) self$alpha <- alpha
+      if (!is.null(blur_edge)) self$blur_edge <- blur_edge
     },
 
     #' @description set the limits for this layer's scale
@@ -383,7 +435,7 @@ ggbrain_layer <- R6::R6Class(
 
       # if there is no fill data (mapped or set), there is nothing to add to the ggplot object
       if (!private$pvt_has_fill) return(base_gg)
-      
+
       # obtain data to plot
       pdata <- private$get_plot_data()
       if (isTRUE(pdata$bisided)) {
@@ -393,6 +445,9 @@ ggbrain_layer <- R6::R6Class(
         df <- pdata$df
         fill_scale <- pdata$fill_scale
       }
+
+      raster_args <- list(interpolate = private$pvt_interpolate)
+      if (!is.null(private$pvt_alpha)) raster_args$alpha <- private$pvt_alpha # adding NULL or NA messes up alpha
 
       # only add fills if a fill setting/mapping exists
       if (isTRUE(private$pvt_map_fill)) {
@@ -405,25 +460,25 @@ ggbrain_layer <- R6::R6Class(
           ret <- base_gg + ggnewscale::new_scale_fill()
         }
 
-        ret <- ret +
-          geom_raster(
-            data = df, mapping = aes_string(x = "dim1", y = "dim2", fill = new_val),
-            show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate
-          ) +
-          fill_scale
+        raster_args$data <- df
+        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
+        raster_args$show.legend <- private$pvt_show_legend
+        robj <- do.call(geom_raster, raster_args)
+
+        ret <- ret + robj + fill_scale
 
         if (isTRUE(private$pvt_bisided)) {
           # add positive scale above negative to have it appear above it
           new_val <- paste0("value", n_layers + 2L) # additional layer for positive values
           df_pos <- pdata$df_pos %>%
-            dplyr::rename(!!new_val := value)
+            dplyr::rename(!!new_val := !!pdata$vcol)
 
-          ret <- ret + ggnewscale::new_scale_fill() +
-            geom_raster(
-              data = df_pos, mapping = aes_string(x = "dim1", y = "dim2", fill = new_val),
-              show.legend = private$pvt_show_legend, interpolate = private$pvt_interpolate
-            ) +
-            pdata$fill_scale_pos
+          raster_args$data <- df_pos
+          raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
+          raster_args$data <- df_pos
+          robj <- do.call(geom_raster, raster_args)
+
+          ret <- ret + ggnewscale::new_scale_fill() + robj + pdata$fill_scale_pos
 
           if (isTRUE(private$pvt_show_legend)) {
             # force color bar order: +1 is negative, +2 is positive. Lower orders are positioned lower on legend
@@ -432,14 +487,15 @@ ggbrain_layer <- R6::R6Class(
           }
         }
       } else {
+        raster_args$data <- df
+        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
+        raster_args$fill <- private$pvt_fill
+        robj <- do.call(geom_raster, raster_args)
+
         # fixed fill color
-        ret <- ret +
-          geom_raster(
-            data = df, mapping = aes_string(x = "dim1", y = "dim2", fill = NULL), fill = private$pvt_fill,
-            interpolate = private$pvt_interpolate
-          )
+        ret <- ret + robj
       }
-      
+
       return(ret)
     },
 

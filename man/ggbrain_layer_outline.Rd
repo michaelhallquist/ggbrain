@@ -69,10 +69,12 @@ create a new ggbrain_layer object
   show_legend = TRUE,
   interpolate = NULL,
   unify_scales = TRUE,
+  alpha = NULL,
   mapping = ggplot2::aes(outline = NULL, fill = NULL),
   outline = NULL,
   outline_scale = NULL,
-  outline_size = NULL
+  outline_size = NULL,
+  blur_edge = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -98,6 +100,8 @@ and "value" as columns}
 
 \item{\code{unify_scales}}{if TRUE, when this layer is reused across panels, unify the scales to match}
 
+\item{\code{alpha}}{a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1}
+
 \item{\code{mapping}}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
 \code{outline} (color of outline around clusters). Default is \code{aes(outline=value)}, which maps the numeric value of the layer data
 to the outline color of the squares at around spatial regions. For labeled data, you might use aes(fill=<label_col_name>).}
@@ -108,6 +112,8 @@ distinction to mapping=aes(outline=<variable>).}
 \item{\code{outline_scale}}{a ggplot scale object used for mapping the value column as the outline color for the layer.}
 
 \item{\code{outline_size}}{controls the thickness of outlines}
+
+\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
 }
 \if{html}{\out{</div>}}
 }

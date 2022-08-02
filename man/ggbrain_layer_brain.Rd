@@ -18,8 +18,6 @@ R6 class for a single layer of a ggbrain panel using fill geom
 \emph{sets} the fill color, while the mapping=aes(fill=<value>) would \emph{map} the fill to a column
 in the data, consistent with ggplot2 logic.}
 
-\item{\code{fill_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
-
 \item{\code{mapping}}{the ggplot2 aesthetic mapping between the data columns and the display}
 }
 \if{html}{\out{</div>}}
@@ -62,9 +60,11 @@ create a new ggbrain_layer object
   show_legend = TRUE,
   interpolate = NULL,
   unify_scales = TRUE,
+  alpha = NULL,
   mapping = ggplot2::aes(fill = value),
   fill = NULL,
-  fill_scale = NULL
+  fill_scale = NULL,
+  blur_edge = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -88,6 +88,10 @@ and "value" as columns}
 
 \item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
 
+\item{\code{unify_scales}}{if TRUE, when this layer is reused across panels, unify the scales to match}
+
+\item{\code{alpha}}{a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1}
+
 \item{\code{mapping}}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
 \code{fill} (color of filled pixels). Default is \code{aes(fill=value)}, which maps the numeric value of the layer data
 to the fill color of the squares at each spatial position. For labeled data, you might use aes(fill=<label_col_name>).}
@@ -97,6 +101,8 @@ distinction to mapping=aes(fill=<variable>).}
 
 \item{\code{fill_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
 layer.}
+
+\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
 }
 \if{html}{\out{</div>}}
 }

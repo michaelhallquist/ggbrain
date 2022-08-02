@@ -26,15 +26,6 @@ ggbrain_layer_brain <- R6::R6Class(
       }
     },
 
-    #' @field fill_scale a scale_fill_* object containing the ggplot2 fill scale for this layer
-    fill_scale = function(value) {
-      if (missing(value)) {
-        return(private$pvt_fill_scale)
-      } else {
-        super$set_scale(value)
-      }
-    },
-
     #' @field mapping the ggplot2 aesthetic mapping between the data columns and the display
     #' @details To set mapping, you must provide a ggplot2 aes() object. A geom_brain() layer requires
     #'   a `fill` aesthetic mapping, which controls the fill color of regions.
@@ -69,6 +60,8 @@ ggbrain_layer_brain <- R6::R6Class(
     #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_legend if TRUE, show the scale on the plot legend
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
+    #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
+    #' @param alpha a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1
     #' @param mapping the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
     #'   `fill` (color of filled pixels). Default is `aes(fill=value)`, which maps the numeric value of the layer data
     #'   to the fill color of the squares at each spatial position. For labeled data, you might use aes(fill=<label_col_name>).
@@ -76,12 +69,13 @@ ggbrain_layer_brain <- R6::R6Class(
     #'   distinction to mapping=aes(fill=<variable>).
     #' @param fill_scale a ggplot scale object used for mapping the value column as the fill color for the
     #'   layer.
-
-    initialize = function(name = NULL, definition = NULL, data = NULL, limits = NULL, breaks = NULL, show_legend = TRUE, 
-      interpolate = NULL, unify_scales=TRUE, mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL) {
+    #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
+    initialize = function(name = NULL, definition = NULL, data = NULL, 
+      limits = NULL, breaks = NULL, show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL,
+      mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL) {
 
       # common initialization steps
-      super$initialize(name, definition, data, limits, breaks, show_legend, interpolate, unify_scales)
+      super$initialize(name, definition, data, limits, breaks, show_legend, interpolate, unify_scales, alpha, blur_edge)
 
       # fill-specific initialization steps
       if (!is.null(fill)) self$fill <- fill # fixed fill

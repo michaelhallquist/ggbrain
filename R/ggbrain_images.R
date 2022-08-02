@@ -7,6 +7,7 @@
 #' @importFrom tidyr unnest
 #' @importFrom tibble remove_rownames
 #' @importFrom tidyselect everything
+#' @importFrom imager as.cimg as.pixset split_connected
 #'
 #' @export
 ggbrain_images <- R6::R6Class(
@@ -23,11 +24,36 @@ ggbrain_images <- R6::R6Class(
     pvt_fill_holes = NULL, # vector of settings for each img indicating whether to run slices through the imager::fill() function
     pvt_clean_specks = NULL, # vector of settings for each img indicating whether to run slices through the imager::clean() function
 
+    # private function to remove specks of a certain size from a slice
+    rm_specks = function(slc, size=NULL) {
+      slc_cimg <- imager::as.cimg(slc)
+      all_pix <- imager::as.pixset(slc_cimg) # TRUE for any non-zero pixel
+
+      # the clean approach uses erosion, which trims small squares/objects off the sides of bigger components...
+      # clean_pix <- imager::clean(all_pix, 5)
+      # rm_pix <- as.pixset(all_pix - clean_pix) # this pixset contains the pixels that should be removed
+      # slc_cimg[rm_pix] <- 0 # remove pixels
+
+      # lab_slc <- label(all_pix) # label connected components of slice
+      # objs <- split_connected(lab_slc) # split
+
+      # use a component labeler to find specks
+      objs <- imager::split_connected(all_pix) # split into a list of connected components
+      obj_size <- sapply(objs, sum) # how many pixels in each
+      specks <- which(obj_size <= size)
+
+      if (length(specks) > 0L) {
+        bad_pix <- Reduce("|", objs[specks])
+        slc_cimg[bad_pix] <- 0 # remove the specks
+      }
+
+      return(as.matrix(slc_cimg)) # convert back to matrix
+    },
+
     # TODO: make this not extrapolate beyond original
     # Best approach: use flood fill from boundary of image to find pixels that cannot be reached when filling the background.
 
     fill_img_holes = function(img, size=NULL) {
-      browser()
       slc_cimg <- as.cimg(img)
       orig_px <- as.pixset(slc_cimg) # pixels before interp
       f <- fill(slc_cimg, 5, boundary=FALSE)
@@ -59,10 +85,10 @@ ggbrain_images <- R6::R6Class(
           stop("Length of fill_holes/clean_specks doesn't match length of images")
         }
 
-        # if user passes in TRUE/FALSE, then use default numeric hole size of 2 (2x2 holes)
+        # if user passes in TRUE/FALSE, then use default size of 10 pixels
         if (checkmate::test_logical(val)) {
           if (length(val) == 1L) val <- rep(val, length(img_names)) # replicate T/F for all images
-          val <- ifelse(val == TRUE, 2, 0)
+          val <- ifelse(val == TRUE, 10L, 0L) # default to 10 pixels or smaller
         } else if (checkmate::test_integerish(val)) {
           val <- as.integer(val)
           checkmate::assert_integer(val, lower = 0L)
@@ -178,7 +204,8 @@ ggbrain_images <- R6::R6Class(
     #' @description create ggbrain_images object consisting of one or more NIfTI images
     #' @param images a character vector of file names containing NIfTI images to read
     #' @param fill_holes If TRUE, will fill holes on the interior of regions in the sliced data [WIP: also, can pass number for hole size]
-    #' @param clean_specks If TRUE, will delete tiny spots in the sliced data [WIP]
+    #' @param clean_specks If TRUE, will delete tiny spots in the sliced data (fewer than 10 pixels, by default). If a positive integer is provided
+    #'   (e.g., 20), then any regions smaller of this size or smaller (in pixels) will be removed.
     #' @param labels A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
     #'   a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond
     initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL, labels=NULL) {
@@ -516,9 +543,19 @@ ggbrain_images <- R6::R6Class(
       #     ss[which_fill] <- lapply(which_fill, function(i) {
       #       private$fill_img_holes(ss[[i]], fill_holes[i])
       #     })
-
+      #   return(ss)
       #   })
       # }
+
+      if (any(clean_specks > 0L)) {
+        which_clean <- which(clean_specks > 0L)
+        slc <- lapply(slc, function(ss) {
+          ss[which_clean] <- lapply(which_clean, function(i) {
+            private$rm_specks(ss[[i]], clean_specks[i])
+          })
+          return(ss)
+        })
+      }
 
       # remove blank space from matrices if requested (this must come before making the slices square)
       if (isTRUE(remove_null_space)) {
@@ -562,7 +599,7 @@ ggbrain_images <- R6::R6Class(
             uvals <- unique(as.vector(xx))
             uvals <- uvals[!uvals %in% c(NA, 0)]
             if (length(uvals) == 0L) return(NULL) # no matching positions on this slice
-            sapply(uvals, function(u) { colMeans(which(xx == u, arr.ind=TRUE)) }) %>%
+            sapply(uvals, function(u) colMeans(which(xx == u, arr.ind=TRUE)) ) %>%
               t() %>% data.frame() %>% setNames(c("dim1", "dim2")) %>% 
               dplyr::bind_cols(value = uvals, slice_index = dd) %>% dplyr::arrange(uvals)
           })

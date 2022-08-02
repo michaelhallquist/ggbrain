@@ -27,6 +27,16 @@ Note that multiple layers can potentially have the same source, which is why a 1
 is added across many panels}
 
 \item{\code{bisided}}{read-only access to whether this layer uses a bisided color scale}
+
+\item{\code{categorical_fill}}{read-only access to whether this layer has a categorical fill scale}
+
+\item{\code{fill_column}}{read-only access to layer fill column}
+
+\item{\code{fill_scale}}{a scale_fill_* object containing the ggplot2 fill scale for this layer}
+
+\item{\code{alpha}}{sets the alpha transparency of this layer.}
+
+\item{\code{blur_edge}}{controls the standard deviation (sigma) of a Gaussian blur applied to the layer at the edge}
 }
 \if{html}{\out{</div>}}
 }
@@ -61,7 +71,9 @@ create a new ggbrain_layer object
   breaks = NULL,
   show_legend = TRUE,
   interpolate = NULL,
-  unify_scales = TRUE
+  unify_scales = TRUE,
+  alpha = NULL,
+  blur_edge = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -84,6 +96,10 @@ and "value" as columns}
 \item{\code{show_legend}}{if TRUE, show the scale on the plot legend}
 
 \item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
+
+\item{\code{alpha}}{fixed alpha transparency of this layer (use \code{mapping} for alpha mapping`)}
+
+\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
 }
 \if{html}{\out{</div>}}
 }

@@ -15,6 +15,7 @@ ggbrain_plot <- R6::R6Class(
 
     # compile all anotations into a slice-wise list that can be added to each panel
     compiled_annotations = function() {
+      if (is.null(private$pvt_annotations)) return(NULL) # nothing to add
       all_ann <- dplyr::bind_rows(lapply(private$pvt_annotations, function(adf) {
         stopifnot(inherits(adf, "data.frame")) # sanity check
 
@@ -92,7 +93,7 @@ ggbrain_plot <- R6::R6Class(
       if (missing(value)) {
         return(private$pvt_annotations)
       } else {
-        checkmate::assert_list(value)
+        checkmate::assert_list(value, null.ok = TRUE)
         private$pvt_annotations <- value
       }
     },
@@ -188,12 +189,13 @@ ggbrain_plot <- R6::R6Class(
           l_obj$data <- df # set slice-specific data (this will also set properties such as whether fill layer is categorical)
 
           if (isTRUE(l_obj$unify_scales)) {
-            if (isTRUE(l_obj$use_labels)) {
+            if (isTRUE(l_obj$categorical_fill)) {
+              f_col <- l_obj$fill_column
               # unify factor levels across slices
               f_levels <- img_uvals %>%
                 filter(layer == !!l_obj$source) %>%
                 pull(uvals)
-              l_obj$data$value <- factor(l_obj$data$value, levels = f_levels)
+              l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
               l_obj$fill_scale$na.translate <- FALSE
             } else {
