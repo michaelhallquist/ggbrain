@@ -177,7 +177,6 @@ ggbrain_legacy <- function(underlay=NULL, overlay=NULL,
       title = slices$panel_title[i],
       bg_color = background_color,
       text_color = text_color,
-      draw_border = panel_borders,
       xlab = slices$xlab[i],
       ylab = slices$ylab[i],
       theme_custom = theme_custom

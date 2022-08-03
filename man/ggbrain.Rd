@@ -8,8 +8,10 @@ ggbrain(
   images = NULL,
   labels = NULL,
   slices = NULL,
+  title = NULL,
   bg_color = "grey8",
-  text_color = "grey92"
+  text_color = "grey92",
+  base_size = 14
 )
 }
 \arguments{

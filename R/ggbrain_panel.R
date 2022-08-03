@@ -2,6 +2,8 @@
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang has_name
+#' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin
+#' @importForm grid unit
 #' @export
 ggbrain_panel <- R6::R6Class(
   #classname = c("ggbrain_panel", "gg", "ggplot"),
@@ -15,8 +17,7 @@ ggbrain_panel <- R6::R6Class(
     pvt_bg_color = "gray10", # nearly black
     pvt_text_color = "white",
     pvt_border_color = "gray60", # default panel border color, if requested
-    pvt_border_size = 1.1,
-    pvt_draw_border = FALSE,
+    pvt_border_size = NULL, # no border
     pvt_xlab = NULL,
     pvt_ylab = NULL,
     pvt_theme_custom = NULL,
@@ -27,6 +28,10 @@ ggbrain_panel <- R6::R6Class(
     # helper function to initialize default theme. needs to be executed after
     # private list is initialized to avoid failed cross-referencing
     set_default_theme = function() {
+      has_border <- ifelse(checkmate::test_number(private$pvt_border_size, lower = 0.001), TRUE, FALSE)
+      border_color <- if (has_border) private$pvt_border_color else NULL
+      border_size <- if (has_border) private$pvt_border_size else NULL
+      half_line <- private$pvt_base_size/2
       private$pvt_default_theme <- list(
         theme_void(base_size = private$pvt_base_size),
         coord_fixed(),
@@ -35,9 +40,10 @@ ggbrain_panel <- R6::R6Class(
           strip.text.x = element_blank(),
           plot.background = element_rect(
             fill = private$pvt_bg_color,
-            color = ifelse(isTRUE(private$pvt_panel_border), private$pvt_border_color, NA),
-            size = private$pvt_border_size
+            color = border_color,
+            size = border_size
           ),
+          plot.title = ggplot2::element_text(size = rel(1.1), hjust = 0.5, vjust=1, margin = margin(t=half_line/2, b=half_line/2)),
           panel.background = element_rect(fill=private$pvt_bg_color, color=NA),
           text = element_text(color = private$pvt_text_color),
           legend.spacing.y = unit(0.1, "lines"),
@@ -172,9 +178,8 @@ ggbrain_panel <- R6::R6Class(
     #' @param text_color the color used for text displayed on the plot. Default: 'white'.
     #' @param border_color the color used for drawing a border around on the plot. Default: 'gray50' 
     #'   (though borders are not drawn by default).
-    #' @param border_size the size of the border line drawn around the panel. Default: 1.1.
-    #' @param draw_border if TRUE, a panel border of color \code{border_color} and \code{border_size} is
-    #'   drawn around the plot. Default: FALSE
+    #' @param border_size the size of the border line drawn around the panel. Default: NULL. If this value is
+    #'   greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel
     #' @param xlab The label to place on x axis. Default is NULL.
     #' @param ylab The label to place on y axis. Default is NULL.
     #' @param theme_custom Any custom theme() settings to be added to the plot
@@ -183,7 +188,7 @@ ggbrain_panel <- R6::R6Class(
     #' @param region_labels a list of ggbrain_label objects with data for plotting region labels on this panel
     initialize = function(
       layers = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL, border_size = NULL,
-      draw_border = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL, annotations = NULL, region_labels = NULL
+      xlab = NULL, ylab = NULL, theme_custom = NULL, annotations = NULL, region_labels = NULL
     ) {
       # convert singleton layer object into a list
       if (checkmate::test_class(layers, "ggbrain_layer")) {
@@ -223,13 +228,8 @@ ggbrain_panel <- R6::R6Class(
       }
 
       if (!is.null(border_size)) {
-        checkmate::assert_number(border_size, lower = 0.001)
+        checkmate::assert_number(border_size, lower = 0, na.ok=TRUE)
         private$pvt_border_size <- border_size
-      }
-
-      if (!is.null(draw_border)) {
-        checkmate::assert_logical(draw_border, len=1L)
-        private$pvt_draw_border <- draw_border
       }
 
       if (!is.null(xlab)) {

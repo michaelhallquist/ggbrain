@@ -1,6 +1,10 @@
-# ggbrain 0.5.2
+# ggbrain 0.5.2 (development)
 
-* added montage() function to make adding many slices in a plane easy
+* feature: montage() function to make adding many slices in a plane easy
+* feature: support plot() on ggbrain() objects so that the ggbrain settings can be amended prior to the render and plot steps
+* feature: support overall plot aesthetics including title, base_size, bg_color, and text_color. These are arguments to ggbrain()
+* feature: set tiny values on each slice to NA to support transparency at image boundaries (e.g., in 'dead space' on a structural)
+* feature: add_slice() function adds single slice and supports panel-specific aesthetics such as title and text_color
 
 # ggbrain 0.5.1 (2Aug2022)
 

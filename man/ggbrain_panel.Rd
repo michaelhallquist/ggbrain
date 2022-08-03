@@ -44,7 +44,6 @@ create a new ggbrain_panel object
   text_color = NULL,
   border_color = NULL,
   border_size = NULL,
-  draw_border = NULL,
   xlab = NULL,
   ylab = NULL,
   theme_custom = NULL,
@@ -67,10 +66,8 @@ create a new ggbrain_panel object
 \item{\code{border_color}}{the color used for drawing a border around on the plot. Default: 'gray50'
 (though borders are not drawn by default).}
 
-\item{\code{border_size}}{the size of the border line drawn around the panel. Default: 1.1.}
-
-\item{\code{draw_border}}{if TRUE, a panel border of color \code{border_color} and \code{border_size} is
-drawn around the plot. Default: FALSE}
+\item{\code{border_size}}{the size of the border line drawn around the panel. Default: NULL. If this value is
+greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel}
 
 \item{\code{xlab}}{The label to place on x axis. Default is NULL.}
 

@@ -4,12 +4,12 @@
 \alias{montage}
 \title{Convenience function to add many slices in a montage along one of the 3D planes}
 \usage{
-montage(plane = NULL, n = 20, min = 0.1, max = 0.9)
+montage(plane = NULL, n = 12, min = 0.1, max = 0.9)
 }
 \arguments{
 \item{plane}{a character string specifying the 3D plane: "sagittal", "axial", "coronal", "x", "y", or "z"}
 
-\item{n}{number of slices to add in this plane}
+\item{n}{number of slices to add in this plane. Default: 12}
 
 \item{min}{the lowest quantile to be included in the montage (between 0 and 1). Default: 0.1}
 

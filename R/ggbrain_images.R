@@ -610,8 +610,13 @@ ggbrain_images <- R6::R6Class(
         label_imgs <- NULL
       }
 
-      # set values to NA where the image is 0
-      #slc <- lapply(slc, function(x) browser())
+      # set values to NA where the image is 0 in order to create correct transparency on plot
+      slc <- lapply(slc, function(slc_i) {
+        lapply(slc_i, function(lay_i) {
+          lay_i[!is.na(lay_i) & abs(lay_i) < private$pvt_zero_tol] <- NA_real_
+          return(lay_i)
+        })
+      })
 
       # create a list of image data.frames for each slice
       slc_nestlist <- lapply(slc, function(dd) {
