@@ -336,6 +336,25 @@ add_slices <- function(slices = NULL) {
   return(ret)
 }
 
+#' Convenience function to add many slices in a montage along one of the 3D planes
+#' @param plane a character string specifying the 3D plane: "sagittal", "axial", "coronal", "x", "y", or "z"
+#' @param n number of slices to add in this plane
+#' @param min the lowest quantile to be included in the montage (between 0 and 1). Default: 0.1
+#' @param max the highest quantilt to be included in the montage (between 0 and 1). Default: 0.9
+#' @details this can be used with `add_slices` to make a quick montage, such as `add_slices(montage("axial", 10)`.
+#' @export
+montage <- function(plane = NULL, n = 20, min = 0.1, max = 0.9) {
+  checkmate::assert_string(plane)
+  plane <- tolower(plane)
+  checkmate::assert_subset(plane, c("sagittal", "axial", "coronal", "x", "y", "z"))
+  plane <- dplyr::recode(plane, sagittal = "x", coronal = "y", axial = "z") # convert to consistent x, y, z
+  checkmate::assert_integerish(n, lower = 1, upper = 1e5)
+  checkmate::assert_number(min, lower=0, upper=1)
+  checkmate::assert_number(max, lower = 0, upper = 1)
+
+  paste0(plane, " = ", round(seq(min, max, length.out = n) * 100, 3), "%")
+}
+
 #' Add images to a ggb object
 #' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
 #' @param fill_holes if TRUE, fill in holes on a slice [WIP]

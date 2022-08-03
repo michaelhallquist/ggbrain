@@ -398,6 +398,7 @@ ggbrain_images <- R6::R6Class(
     #' @param threshold The threshold value whose absolute value used to determine which voxels to set to NA.
     #'   If \code{NULL}, use the pvt_zero_tol field (default 1e-6).
     na_images = function(img_names, threshold = NULL) {
+      if (is.null(img_names) || length(img_names) == 0L) return(self) #nothing to do
       if (is.null(threshold)) {
         threshold <- private$pvt_zero_tol
       }
@@ -608,6 +609,9 @@ ggbrain_images <- R6::R6Class(
         com_stats <- NULL
         label_imgs <- NULL
       }
+
+      # set values to NA where the image is 0
+      #slc <- lapply(slc, function(x) browser())
 
       # create a list of image data.frames for each slice
       slc_nestlist <- lapply(slc, function(dd) {
