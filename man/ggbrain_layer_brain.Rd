@@ -15,7 +15,7 @@ R6 class for a single layer of a ggbrain panel using fill geom
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{fill}}{controls color of the filled in pixels for non-NA (valid) voxels. Note that this
-\emph{sets} the fill color, while the mapping=aes(fill=<value>) would \emph{map} the fill to a column
+\strong{sets} the fill color, while the \code{mapping=aes(fill=<value>)} would \strong{map} the fill to a column
 in the data, consistent with ggplot2 logic.}
 
 \item{\code{mapping}}{the ggplot2 aesthetic mapping between the data columns and the display}
@@ -56,7 +56,7 @@ create a new ggbrain_layer object
   definition = NULL,
   data = NULL,
   limits = NULL,
-  breaks = NULL,
+  breaks = integer_breaks(),
   show_legend = TRUE,
   interpolate = NULL,
   unify_scales = TRUE,
@@ -94,10 +94,10 @@ and "value" as columns}
 
 \item{\code{mapping}}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
 \code{fill} (color of filled pixels). Default is \code{aes(fill=value)}, which maps the numeric value of the layer data
-to the fill color of the squares at each spatial position. For labeled data, you might use aes(fill=<label_col_name>).}
+to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.}
 
 \item{\code{fill}}{A character string indicating the color used to fill all non-NA pixels in this layer. This is used in
-distinction to mapping=aes(fill=<variable>).}
+distinction to \code{mapping=aes(fill=<variable>)}.}
 
 \item{\code{fill_scale}}{a ggplot scale object used for mapping the value column as the fill color for the
 layer.}

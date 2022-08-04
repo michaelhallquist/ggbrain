@@ -151,7 +151,7 @@ ggbrain_layer_outline <- R6::R6Class(
       }
     },
 
-    #' @field controls size of outline drawn around non-NA (valid) voxels
+    #' @field outline_size controls size of outline drawn around non-NA (valid) voxels
     outline_size = function(value) {
       if (missing(value)) {
         private$pvt_outline_size
@@ -177,14 +177,14 @@ ggbrain_layer_outline <- R6::R6Class(
     #' @param alpha a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1
     #' @param mapping the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
     #'   `outline` (color of outline around clusters). Default is `aes(outline=value)`, which maps the numeric value of the layer data
-    #'   to the outline color of the squares at around spatial regions. For labeled data, you might use aes(fill=<label_col_name>).
+    #'   to the outline color of the squares at around spatial regions. For labeled data, you might use \code{aes(fill=<label_col_name>)}.
     #' @param outline A character string indicating the color used to outline all non-NA pixels in this layer. This is used in
-    #'   distinction to mapping=aes(outline=<variable>).
+    #'   distinction to \code{mapping=aes(outline=<variable>)}.
     #' @param outline_scale a ggplot scale object used for mapping the value column as the outline color for the layer.
     #' @param outline_size controls the thickness of outlines
     #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
     initialize = function(name = NULL, definition = NULL, data = NULL,
-      limits = NULL, breaks = NULL, show_legend = TRUE, interpolate = NULL, unify_scales = TRUE, alpha = NULL,
+      limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = NULL, unify_scales = TRUE, alpha = NULL,
       mapping = ggplot2::aes(outline = NULL, fill=NULL), outline = NULL, outline_scale = NULL, outline_size = NULL, blur_edge=NULL) {
 
       # common initialization steps

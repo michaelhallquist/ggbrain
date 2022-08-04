@@ -100,7 +100,23 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_bisided <- FALSE
         }
 
+        # preserve breaks if $set_breaks() is called before $set_scale()
+        if (!is.null(private$pvt_fill_scale) && !checkmate::test_class(private$pvt_fill_scale, "Scale")) {
+          cached_breaks <- private$pvt_fill_scale$breaks
+        } else {
+          cached_breaks <- NULL
+        }
+
         private$pvt_fill_scale <- value
+
+        if (!is.null(cached_breaks)) {
+          if (isTRUE(private$pvt_bisided)) {
+            self$set_pos_breaks(cached_breaks)
+            self$set_neg_breaks(cached_breaks)
+          } else {
+            self$set_breaks(cached_breaks)
+          }
+        }
       } else {
         stop("Cannot understand scale input. Should be a scale_fill_* object.")
       }
@@ -152,8 +168,8 @@ ggbrain_layer <- R6::R6Class(
         pos_lims <- c(min(df_pos$value, na.rm = TRUE), max(df_pos$value, na.rm = TRUE))
       }
 
-      biggest <- max(abs(neg_lims[1]), pos_lims[2])
-      smallest <- min(abs(neg_lims[2]), pos_lims[1])
+      biggest <- max(abs(neg_lims[1]), pos_lims[2], na.rm=TRUE)
+      smallest <- min(abs(neg_lims[2]), pos_lims[1], na.rm=TRUE)
 
       private$pvt_fill_scale$neg_scale$limits <- -1 * c(biggest, smallest)
       private$pvt_fill_scale$pos_scale$limits <- c(smallest, biggest)
@@ -167,27 +183,27 @@ ggbrain_layer <- R6::R6Class(
       }
 
       # detect appropriate default scale
-      if (private$pvt_name == "underlay") {
-        private$pvt_fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
-        if (is.null(self$show_legend)) self$show_legend <- FALSE # default to hiding underlay scale
+      if (private$pvt_definition == "underlay") {
+        self$fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
+        self$show_legend <- FALSE # default to hiding underlay scale
       } else {
         has_pos <- any(private$pvt_data$value > 0, na.rm = TRUE)
         has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)
         all_na <- all(is.na(private$pvt_data$value))
         if (isTRUE(private$pvt_categorical_fill)) {
-          private$pvt_fill_scale <- scale_fill_brewer(palette = "Set3")
+          self$fill_scale <- scale_fill_brewer(palette = "Set3")
         } else if (has_pos && has_neg) {
-          #private$pvt_fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
-          private$pvt_fill_scale <- scale_fill_bisided(
+          #self$fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
+          self$fill_scale <- scale_fill_bisided(
             neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
             pos_scale = scale_fill_distiller(palette = "Reds")
           ) # internal scale stack
         } else if (has_neg) {
-          private$pvt_fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
+          self$fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
         } else if (has_pos) {
-          private$pvt_fill_scale <- scale_fill_distiller(palette = "Reds")
+          self$fill_scale <- scale_fill_distiller(palette = "Reds")
         } else if (all_na) {
-          private$pvt_fill_scale <- scale_fill_distiller(palette = "Reds")
+          self$fill_scale <- scale_fill_distiller(palette = "Reds")
         } else {
           warning("Could not set default scale for layer")
         }
@@ -331,10 +347,11 @@ ggbrain_layer <- R6::R6Class(
     #' @param limits if provided, sets the upper and lower bounds on the scale
     #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_legend if TRUE, show the scale on the plot legend
+    #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
     #' @param alpha fixed alpha transparency of this layer (use `mapping` for alpha mapping`)
     #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
-    initialize = function(name = NULL, definition = NULL, data = NULL, limits = NULL, breaks = NULL, 
+    initialize = function(name = NULL, definition = NULL, data = NULL, limits = NULL, breaks = integer_breaks(),
       show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL, blur_edge = NULL) {
 
       if (is.null(name)) name <- "layer"

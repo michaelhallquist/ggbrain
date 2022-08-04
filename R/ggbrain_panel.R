@@ -3,7 +3,7 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang has_name
 #' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin
-#' @importForm grid unit
+#' @importFrom grid unit
 #' @export
 ggbrain_panel <- R6::R6Class(
   #classname = c("ggbrain_panel", "gg", "ggplot"),
@@ -29,9 +29,9 @@ ggbrain_panel <- R6::R6Class(
     # private list is initialized to avoid failed cross-referencing
     set_default_theme = function() {
       has_border <- ifelse(checkmate::test_number(private$pvt_border_size, lower = 0.001), TRUE, FALSE)
-      border_color <- if (has_border) private$pvt_border_color else NULL
+      border_color <- if (has_border) private$pvt_border_color else NA
       border_size <- if (has_border) private$pvt_border_size else NULL
-      half_line <- private$pvt_base_size/2
+      half_line <- private$pvt_base_size / 2
       private$pvt_default_theme <- list(
         theme_void(base_size = private$pvt_base_size),
         coord_fixed(),
@@ -43,8 +43,8 @@ ggbrain_panel <- R6::R6Class(
             color = border_color,
             size = border_size
           ),
-          plot.title = ggplot2::element_text(size = rel(1.1), hjust = 0.5, vjust=1, margin = margin(t=half_line/2, b=half_line/2)),
-          panel.background = element_rect(fill=private$pvt_bg_color, color=NA),
+          plot.title = ggplot2::element_text(size = rel(1.1), hjust = 0.5, vjust = 1, margin = margin(t = half_line / 2, b = half_line / 2)),
+          panel.background = element_rect(fill = private$pvt_bg_color, color = NA),
           text = element_text(color = private$pvt_text_color),
           legend.spacing.y = unit(0.1, "lines"),
           legend.position = "right",
@@ -104,16 +104,16 @@ ggbrain_panel <- R6::R6Class(
         sapply(vec, function(pos) {
           if (pos == "left") {
             stopifnot(grepl("^x", aes_name))
-            pos <- quantile(df$dim1, 0.02, na.rm = TRUE)
+            pos <- quantile(df$dim1, 0, na.rm = TRUE)
           } else if (pos == "right") {
             stopifnot(grepl("^x", aes_name))
-            pos <- quantile(df$dim1, 0.98, na.rm = TRUE)
+            pos <- quantile(df$dim1, 1, na.rm = TRUE)
           } else if (pos == "top") {
             stopifnot(grepl("^y", aes_name))
-            pos <- quantile(df$dim2, 0.98, na.rm = TRUE)
+            pos <- quantile(df$dim2, 1, na.rm = TRUE)
           } else if (pos == "bottom") {
             stopifnot(grepl("^y", aes_name))
-            pos <- quantile(df$dim2, 0.02, na.rm = TRUE)
+            pos <- quantile(df$dim2, 0, na.rm = TRUE)
           } else if (pos == "middle") {
             if (grepl("^x", aes_name)) {
               pos <- quantile(df$dim1, 0.5, na.rm = TRUE)
@@ -160,6 +160,7 @@ ggbrain_panel <- R6::R6Class(
           this_ann <- as.list(ann_df[i, , drop = FALSE])
           this_ann <- this_ann[!is.na(this_ann)] # remove any NA elements that occur from a bind_rows operation
           if (is.null(this_ann$color)) this_ann$color <- private$pvt_text_color
+          
           do.call(ggplot2::annotate, this_ann)
         })
       }))
@@ -256,7 +257,7 @@ ggbrain_panel <- R6::R6Class(
           if (!rlang::has_name(aa, "x")) aa$x <- 0.5 # default center (annotation positions should really be setup by user)
           if (!rlang::has_name(aa, "y")) aa$y <- 0.5
           if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text labels
-          if (!rlang::has_name(aa, "size")) aa$size <- 3 # size of text/marks
+          if (!rlang::has_name(aa, "size")) aa$size <- (private$pvt_base_size * .7) / ggplot2::.pt # default size of annotations
           return(aa)
         })
 

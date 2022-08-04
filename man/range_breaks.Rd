@@ -4,12 +4,12 @@
 \alias{range_breaks}
 \title{breaks function for including min + max with labels, and a few unlabeled ticks in between}
 \usage{
-range_breaks(n = 3, ...)
+range_breaks(n = 3, digits = 2)
 }
 \arguments{
 \item{n}{number of breaks added within the min-max range}
 
-\item{...}{}
+\item{digits}{number of decimal places to display}
 }
 \description{
 breaks function for including min + max with labels, and a few unlabeled ticks in between

@@ -8,15 +8,6 @@ An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 
 An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{the}}{color of text use across panels (can be overridden by panel settings)}
-
-\item{\code{the}}{base size of text used in ggplot theming}
-}
-\if{html}{\out{</div>}}
-}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
@@ -26,9 +17,19 @@ An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 input can be a list of ggbrain_layer objects, or a list of lists where each inner element
 specifies the settings for that layer. Example: \verb{list(list(name='hello', fill_scale=scale_fill_distiller())}}
 
-\item{\code{the}}{color of text use across panels (can be overridden by panel settings)}
+\item{\code{annotations}}{a list of annotations to be added to this plot}
 
-\item{\code{the}}{base size of text used in ggplot theming}
+\item{\code{region_labels}}{a list of region_labels to be added to this plot}
+
+\item{\code{panel_settings}}{a list of panel settings (aesthetics) to be added to this plot}
+
+\item{\code{title}}{overall plot title, added to composite plot by \code{patchwork::plot_annotation()}}
+
+\item{\code{bg_color}}{background color of plot}
+
+\item{\code{text_color}}{the color of text use across panels (can be overridden by panel settings)}
+
+\item{\code{base_size}}{the base size of text used in ggplot theming}
 }
 \if{html}{\out{</div>}}
 }

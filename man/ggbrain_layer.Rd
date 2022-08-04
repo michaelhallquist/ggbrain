@@ -68,7 +68,7 @@ create a new ggbrain_layer object
   definition = NULL,
   data = NULL,
   limits = NULL,
-  breaks = NULL,
+  breaks = integer_breaks(),
   show_legend = TRUE,
   interpolate = NULL,
   unify_scales = TRUE,
@@ -96,6 +96,8 @@ and "value" as columns}
 \item{\code{show_legend}}{if TRUE, show the scale on the plot legend}
 
 \item{\code{interpolate}}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
+
+\item{\code{unify_scales}}{if TRUE, when this layer is reused across panels, unify the scales to match}
 
 \item{\code{alpha}}{fixed alpha transparency of this layer (use \code{mapping} for alpha mapping`)}
 

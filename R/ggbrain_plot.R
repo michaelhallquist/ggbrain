@@ -106,6 +106,8 @@ ggbrain_plot <- R6::R6Class(
         names(private$pvt_layers) <- l_names # use $name element to name list of layers
       }
     },
+
+    #' @field annotations a list of annotations to be added to this plot
     annotations = function(value) {
       if (missing(value)) {
         return(private$pvt_annotations)
@@ -114,6 +116,8 @@ ggbrain_plot <- R6::R6Class(
         private$pvt_annotations <- value
       }
     },
+
+    #' @field region_labels a list of region_labels to be added to this plot
     region_labels = function(value) {
       if (missing(value)) {
         return(private$pvt_region_labels)
@@ -122,6 +126,8 @@ ggbrain_plot <- R6::R6Class(
         private$pvt_region_labels <- value
       }
     },
+
+    #' @field panel_settings a list of panel settings (aesthetics) to be added to this plot
     panel_settings = function(value) {
       if (missing(value)) {
         return(private$pvt_panel_settings)
@@ -130,6 +136,8 @@ ggbrain_plot <- R6::R6Class(
         private$pvt_panel_settings <- value
       }
     },
+
+    #' @field title overall plot title, added to composite plot by \code{patchwork::plot_annotation()}
     title = function(value) {
       if (missing(value)) {
         return(private$pvt_title)
@@ -145,6 +153,8 @@ ggbrain_plot <- R6::R6Class(
         }
       }
     },
+
+    #' @field bg_color background color of plot
     bg_color = function(value) {
       if (missing(value)) {
         return(private$pvt_bg_color)
@@ -155,7 +165,8 @@ ggbrain_plot <- R6::R6Class(
         private$pvt_bg_color <- value
       }
     },
-    #' @field the color of text use across panels (can be overridden by panel settings)
+
+    #' @field text_color the color of text use across panels (can be overridden by panel settings)
     text_color = function(value) {
       if (missing(value)) {
         return(private$pvt_text_color)
@@ -166,7 +177,8 @@ ggbrain_plot <- R6::R6Class(
         private$pvt_text_color <- value
       }
     },
-    #' @field the base size of text used in ggplot theming
+
+    #' @field base_size the base size of text used in ggplot theming
     base_size = function(value) {
       if (missing(value)) {
         return(private$pvt_base_size)
@@ -300,7 +312,6 @@ ggbrain_plot <- R6::R6Class(
                   select(low_neg, high_neg) %>%
                   unlist()
                 l_obj$set_neg_limits(neg_lims)
-
               } else {
                 lims <- img_ranges %>%
                   filter(layer == !!l_obj$source) %>%

@@ -17,6 +17,10 @@ This value is used to set small values in the images to exactly zero for proper 
 \item{\code{slices}}{a character vector of cached slice specifications to be used in $get_slices()}
 
 \item{\code{contrasts}}{a character vector of cached contrast specifications to be used in $get_slices()}
+
+\item{\code{clean_specks}}{the size (in pixels) of specks that should be removed from slices prior to plotting}
+
+\item{\code{fill_holes}}{the size (in pixels) of interior holes in regions that should be filled/interpolated prior to plotting}
 }
 \if{html}{\out{</div>}}
 }
@@ -134,6 +138,10 @@ add one or more images to this ggbrain_images object
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+
+\item{\code{fill_holes}}{the size (in pixels) of interior holes in regions that should be filled/interpolated prior to plotting}
+
+\item{\code{clean_specks}}{the size (in pixels) of specks that should be removed from slices prior to plotting}
 }
 \if{html}{\out{</div>}}
 }

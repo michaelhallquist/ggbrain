@@ -5,6 +5,9 @@
 * feature: support overall plot aesthetics including title, base_size, bg_color, and text_color. These are arguments to ggbrain()
 * feature: set tiny values on each slice to NA to support transparency at image boundaries (e.g., in 'dead space' on a structural)
 * feature: add_slice() function adds single slice and supports panel-specific aesthetics such as title and text_color
+* bugfix:  correct accidental resetting of unified scale limits when a bisided scale was empty on one side
+* bugfix:  correct range_breaks() for empty data
+* bugfix:  pass through breaks to layers regardless of whether scale or breaks are set first
 
 # ggbrain 0.5.1 (2Aug2022)
 

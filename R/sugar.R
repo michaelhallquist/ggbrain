@@ -56,7 +56,7 @@ add_slices <- function(slices = NULL) {
 #' @details I'm still unclear about whether it would be better to unify with this annotate_panels in some way.
 add_slice <- function(coordinate = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
   border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
-  
+
   checkmate::assert_string(coordinate)
 
   # store as single-element list with named list inside
@@ -123,8 +123,8 @@ add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE, 
 #' @export
 #geom_brain <- function(name=NULL, definition=NULL, ) {
 geom_brain <- function(...) {
-  #inp_args <- list(...)
-  #l_obj <- do.call(ggbrain_layer$new, inp_args)
+  # inp_args <- list(...)
+  # l_obj <- do.call(ggbrain_layer$new, inp_args)
   l_obj <- ggbrain_layer_brain$new(...)
 
   ggb$new(layers = l_obj, action="add_layers")

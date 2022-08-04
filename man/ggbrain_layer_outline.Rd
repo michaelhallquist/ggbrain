@@ -11,13 +11,6 @@ R6 class for a single layer of a ggbrain panel using outline geom
 \section{Super class}{
 \code{\link[ggbrain:ggbrain_layer]{ggbrain::ggbrain_layer}} -> \code{ggbrain_layer_outline}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{controls}}{size of outline drawn around non-NA (valid) voxels}
-}
-\if{html}{\out{</div>}}
-}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
@@ -27,7 +20,7 @@ R6 class for a single layer of a ggbrain panel using outline geom
 
 \item{\code{outline_scale}}{a scale_fill_* object containing the ggplot2 outline color scale for this layer}
 
-\item{\code{controls}}{size of outline drawn around non-NA (valid) voxels}
+\item{\code{outline_size}}{controls size of outline drawn around non-NA (valid) voxels}
 }
 \if{html}{\out{</div>}}
 }
@@ -65,7 +58,7 @@ create a new ggbrain_layer object
   definition = NULL,
   data = NULL,
   limits = NULL,
-  breaks = NULL,
+  breaks = integer_breaks(),
   show_legend = TRUE,
   interpolate = NULL,
   unify_scales = TRUE,
@@ -104,10 +97,10 @@ and "value" as columns}
 
 \item{\code{mapping}}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
 \code{outline} (color of outline around clusters). Default is \code{aes(outline=value)}, which maps the numeric value of the layer data
-to the outline color of the squares at around spatial regions. For labeled data, you might use aes(fill=<label_col_name>).}
+to the outline color of the squares at around spatial regions. For labeled data, you might use \code{aes(fill=<label_col_name>)}.}
 
 \item{\code{outline}}{A character string indicating the color used to outline all non-NA pixels in this layer. This is used in
-distinction to mapping=aes(outline=<variable>).}
+distinction to \code{mapping=aes(outline=<variable>)}.}
 
 \item{\code{outline_scale}}{a ggplot scale object used for mapping the value column as the outline color for the layer.}
 

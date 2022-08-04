@@ -14,17 +14,19 @@ integer_breaks <- function(n = 5, ...) {
 
 #' breaks function for including min + max with labels, and a few unlabeled ticks in between
 #' @param n number of breaks added within the min-max range
-#' @param ... 
-range_breaks <- function(n=3, ...) {
+#' @param digits number of decimal places to display 
+range_breaks <- function(n=3, digits=2) {
   fxn <- function(x) {
-    breaks <- round(seq(from = min(x, na.rm = T), to = max(x, na.rm = T), length.out = n + 2), ...)
-    # breaks <- signif(c(min(x, na.rm = T), max(x, na.rm = T)), 2)
-    
-    bnames <- as.character(breaks)
-    bnames[2:(length(bnames) - 1)] <- "" # don't label interior breaks
-    names(breaks) <- bnames
-    breaks
-    #print(breaks)
+    if (is.null(x) || all(is.na(x) || all(is.infinite(x)))) {
+      breaks <- logical(0) # no breaks
+    } else {
+      breaks <- seq(from = min(x, na.rm = TRUE), to = max(x, na.rm = TRUE), length.out = n + 2)
+
+      bnames <- as.character(round(breaks, digits)) # for formatting, don't display so many digits
+      bnames[2:(length(bnames) - 1)] <- "" # don't label interior breaks
+      names(breaks) <- bnames
+    }
+    return(breaks)
   }
   return(fxn)
 }

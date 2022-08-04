@@ -185,6 +185,7 @@ ggbrain_images <- R6::R6Class(
         private$pvt_contrasts <- value
       }
     },
+    #' @field clean_specks the size (in pixels) of specks that should be removed from slices prior to plotting
     clean_specks = function(value) {
       if (missing(value)) {
         private$pvt_clean_specks
@@ -192,6 +193,7 @@ ggbrain_images <- R6::R6Class(
         private$pvt_clean_specks <- private$determine_fill_clean(value, private$pvt_img_names)
       }
     },
+    #' @field fill_holes the size (in pixels) of interior holes in regions that should be filled/interpolated prior to plotting
     fill_holes = function(value) {
       if (missing(value)) {
         private$pvt_fill_holes
@@ -291,7 +293,9 @@ ggbrain_images <- R6::R6Class(
     },
 
     #' @description add one or more images to this ggbrain_images object
-    #' @param images a character vector of file names containing NIfTI images to read 
+    #' @param images a character vector of file names containing NIfTI images to read
+    #' @param fill_holes the size (in pixels) of interior holes in regions that should be filled/interpolated prior to plotting
+    #' @param clean_specks the size (in pixels) of specks that should be removed from slices prior to plotting
     add_images = function(images = NULL, fill_holes = NULL, clean_specks = NULL) {
       private$set_images(images, fill_holes, clean_specks)
       return(self)
