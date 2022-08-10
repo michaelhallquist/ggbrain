@@ -207,12 +207,23 @@ ggbrain_slices <- R6::R6Class(
       # loop over slices in the wide structure
       for (ww in seq_along(wide)) {
         c_data <- lapply(seq_along(contrast_list), function(cc) {
-          contrast_parser(contrast_list[[cc]], data = wide[[ww]]) %>%
+          df <- contrast_parser(contrast_list[[cc]], data = wide[[ww]]) %>%
             mutate(image = names(contrast_list)[cc]) # tag contrasts with a label column
+
+          # if user passes a simple subset operation, keep all other columns from original image in contrast
+          # this helps preserve labels when we use a subsetting operation
+          if (!is.null(attr(df, "img_source"))) {
+            src_df <- private$pvt_slice_data[[ww]][[attr(df, "img_source")]] %>% dplyr::select(-image)
+            df <- df %>%
+              dplyr::left_join(src_df, by = c("dim1", "dim2", "value"))
+          }
+
         }) %>% setNames(names(contrast_list))
 
         private$pvt_slice_data[[ww]][names(c_data)] <- c_data # update/set relevant elements of slice data
       }
+
+
 
       private$pvt_layer_names <- names(private$pvt_slice_data[[1]]) # update object with new names
       private$pvt_is_contrast[names(contrast_list)] <- TRUE

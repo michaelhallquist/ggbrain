@@ -25,46 +25,69 @@ ggbrain_images <- R6::R6Class(
     pvt_clean_specks = NULL, # vector of settings for each img indicating whether to run slices through the imager::clean() function
 
     # private function to remove specks of a certain size from a slice
-    rm_specks = function(slc, size=NULL) {
-      slc_cimg <- imager::as.cimg(slc)
-      all_pix <- imager::as.pixset(slc_cimg) # TRUE for any non-zero pixel
-
-      # the clean approach uses erosion, which trims small squares/objects off the sides of bigger components...
-      # clean_pix <- imager::clean(all_pix, 5)
-      # rm_pix <- as.pixset(all_pix - clean_pix) # this pixset contains the pixels that should be removed
-      # slc_cimg[rm_pix] <- 0 # remove pixels
-
-      # lab_slc <- label(all_pix) # label connected components of slice
-      # objs <- split_connected(lab_slc) # split
-
-      # use a component labeler to find specks
-      objs <- imager::split_connected(all_pix) # split into a list of connected components
-      obj_size <- sapply(objs, sum) # how many pixels in each
-      specks <- which(obj_size <= size)
-
-      if (length(specks) > 0L) {
-        bad_pix <- Reduce("|", objs[specks])
-        slc_cimg[bad_pix] <- 0 # remove the specks
+    rm_specks = function(slc, size=NULL, by_roi=FALSE) {
+      if (isTRUE(by_roi)) {
+        uvals <- unique(as.vector(slc))
+        uvals <- uvals[uvals != 0] # 0 is not an ROI label
+        if (length(uvals) == 0L) return(slc) # don't attempt to remove specks on an empty image
+        slist <- lapply(uvals, function(u) {
+          m <- matrix(0, nrow = nrow(slc), ncol = ncol(slc))
+          m[slc == u] <- u
+          return(m)
+        })
+      } else {
+        slist <- list(slc) # don't divide speck counting by roi
       }
 
-      return(as.matrix(slc_cimg)) # convert back to matrix
+      # loop over slice (perhaps by ROI) and remove specks
+      rm_slc <- lapply(slist, function(ss) {
+        slc_cimg <- imager::as.cimg(ss)
+        all_pix <- imager::as.pixset(slc_cimg) # TRUE for any non-zero pixel
+
+        # the clean approach uses erosion, which trims small squares/objects off the sides of bigger components...
+        # clean_pix <- imager::clean(all_pix, 5)
+        # rm_pix <- as.pixset(all_pix - clean_pix) # this pixset contains the pixels that should be removed
+        # slc_cimg[rm_pix] <- 0 # remove pixels
+
+        # lab_slc <- label(all_pix) # label connected components of slice
+        # objs <- split_connected(lab_slc) # split
+
+        # use a component labeler to find specks (most have at least some pixels to work with)
+        if (sum(all_pix) > 0) {
+          objs <- imager::split_connected(all_pix) # split into a list of connected components
+          obj_size <- sapply(objs, sum) # how many pixels in each
+          specks <- which(obj_size <= size)
+
+          if (length(specks) > 0L) {
+            bad_pix <- Reduce("|", objs[specks])
+            slc_cimg[bad_pix] <- 0 # remove the specks
+          }
+        }
+
+        return(slc_cimg)
+      })
+
+      # add images together by ROI to form single image
+      rm_slc <- Reduce("+", rm_slc)
+
+      return(as.matrix(rm_slc)) # convert back to matrix
     },
 
     # TODO: make this not extrapolate beyond original
     # Best approach: use flood fill from boundary of image to find pixels that cannot be reached when filling the background.
 
     fill_img_holes = function(img, size=NULL) {
-      slc_cimg <- as.cimg(img)
-      orig_px <- as.pixset(slc_cimg) # pixels before interp
+      slc_cimg <- imager::as.cimg(img)
+      orig_px <- imager::as.pixset(slc_cimg) # pixels before interp
       f <- fill(slc_cimg, 5, boundary=FALSE)
       f <- fill(slc_cimg, 5, boundary = TRUE)
-      to_fill <- as.pixset(f - orig_px)
+      to_fill <- imager::as.pixset(f - orig_px)
       filled <- slc_cimg
       filled[to_fill] <- NA
       filled2 <- inpaint(filled, 2)
       plot(slc_cimg)
       plot(filled)
-            plot(filled2)
+      plot(filled2)
 
 
       locations <- which(to_fill, arr.ind = TRUE) %>%
@@ -210,7 +233,10 @@ ggbrain_images <- R6::R6Class(
     #'   (e.g., 20), then any regions smaller of this size or smaller (in pixels) will be removed.
     #' @param labels A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
     #'   a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond
-    initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL, labels=NULL) {
+    #' @param filter A named list of filter expressions to be applied to particular images. The names of the list correspond to the names
+    #'   of the \code{images} provided. Each element of the list can either be a character vector denoting a filtering expression
+    #'   (e.g., \code{'value < 100'}) or a numeric vector denoting values of the image that should be retained (e.g., \code{c(5, 10, 12)}).
+    initialize = function(images = NULL, fill_holes = NULL, clean_specks = NULL, labels=NULL, filter=NULL) {
       private$set_images(images, fill_holes, clean_specks)
       if (!is.null(labels)) {
         # if user provides a data.frame as label input, this works in the case of a single image, which is assumed to correspond
@@ -219,6 +245,18 @@ ggbrain_images <- R6::R6Class(
         }
         checkmate::assert_list(labels, names = "unique")
         do.call(self$add_labels, labels)
+
+        # retain filter as a named list matching the input image if a single image is provided
+        if (!is.null(filter)) {
+          if (!is.list(filter) && length(images) == 1L) {
+            filter <- list(filter) %>% setNames(names(images))
+          } else {
+            checkmate::assert_list(filter, names = "unique")
+            checkmate::assert_subset(names(filter), names(images))
+          }
+        }
+
+        self$filter_images(filter)
       }
     },
 
@@ -298,6 +336,55 @@ ggbrain_images <- R6::R6Class(
     #' @param clean_specks the size (in pixels) of specks that should be removed from slices prior to plotting
     add_images = function(images = NULL, fill_holes = NULL, clean_specks = NULL) {
       private$set_images(images, fill_holes, clean_specks)
+      return(self)
+    },
+
+    #' @description filters an image based on an expression such as a subsetting operation
+    #' @expr a character string or numeric vector of the filter to apply
+    #' @details if expr is a numeric vector, only values in this set will be retained. If a character
+    #'   string expression is used, it should use the variable name \code{'value'} to refer to the numeric
+    #'   values to be filtered, such as \code{'value > 10'}.
+    #' @examples
+    #' \dontrun{
+    #'   x <- ggbrain_images$new(
+    #'     images=c(img1="test.nii.gz"),
+    #'     filter=list(img1=c("value < 15", "value > 5")))
+    #' }
+    filter_images = function(filter = NULL) {
+      checkmate::assert_named(filter, type="unique")
+      if (checkmate::test_list(filter)) {
+        checkmate::assert_subset(names(filter), private$pvt_img_names)
+      } else if (checkmate::test_character(filter)) {
+        filter <- as.list(filter)
+      }
+
+      for (ii in seq_along(filter)) {
+        img_name <- names(filter)[ii]
+
+        # image to modify
+        value <- private$pvt_imgs[[img_name]]
+
+        # supports a list at the image level, in which case multiple filters are applied to a single image
+        if (class(filter[[ii]]) %in% c("numeric", "character")) {
+          f_ii <- list(filter[[ii]]) # create single element list
+        } else {
+          f_ii <- filter[[ii]]
+        }
+
+        # each image can have multiple filters
+        for (jj in seq_along(f_ii)) {
+          expr <- f_ii[[jj]]
+
+          if (checkmate::test_character(expr)) {
+            value[eval(parse(text = paste("!(", expr, ")")))] <- 0
+          } else if (checkmate::test_numeric(expr)) {
+            value[!value %in% expr] <- 0
+          }
+
+        }
+        private$pvt_imgs[[img_name]] <- value
+      }
+
       return(self)
     },
 
@@ -529,6 +616,9 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_logical(make_square, len=1L)
       checkmate::assert_logical(remove_null_space, len = 1L)
 
+      # which images contain integer-valued data that should be labeled?
+      label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
+
       coords <- slice_df %>%
         group_by(slice_index) %>%
         group_split()
@@ -554,9 +644,12 @@ ggbrain_images <- R6::R6Class(
 
       if (any(clean_specks > 0L)) {
         which_clean <- which(clean_specks > 0L)
+
+        # whether the slice to be clenead comes from a labeled image (in which case, remove specks by unique value)
+        is_labeled <- names(clean_specks) %in% label_imgs
         slc <- lapply(slc, function(ss) {
           ss[which_clean] <- lapply(which_clean, function(i) {
-            private$rm_specks(ss[[i]], clean_specks[i])
+            private$rm_specks(ss[[i]], clean_specks[i], is_labeled[i])
           })
           return(ss)
         })
@@ -594,8 +687,6 @@ ggbrain_images <- R6::R6Class(
 
       # look up labels for each slice
       if (any(img_names %in% names(private$pvt_img_labels))) {
-        # which images contain integer-valued data that should be labeled?
-        label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
 
         # compute CoM statistics for label images based on unique numeric values
         label_slc <- lapply(slc, "[", label_imgs)
@@ -767,15 +858,15 @@ ggbrain_images <- R6::R6Class(
       } else {
         slc_range <- slc_range_full
       }
-      
+
       # get nifti header for first image for voxel -> world transformations
       nii_head <- self$get_headers(drop=FALSE)[[1L]]
-      
+
       # translate ijk to xyz for each axis
       xcoords <- RNifti::voxelToWorld(cbind(slc_range_full$i, 1, 1), nii_head)[, 1]
       ycoords <- RNifti::voxelToWorld(cbind(1, slc_range_full$j, 1), nii_head)[, 2]
       zcoords <- RNifti::voxelToWorld(cbind(1, 1, slc_range_full$k), nii_head)[, 3]
-      
+
       # helper subfunction to lookup slice number, plane, and label for any ijk, xyz, or % input
       get_slice_num <- function(coord_str) {
         res <- tolower(trimws(strsplit(coord_str, "\\s*=\\s*", perl = TRUE)[[1]]))
@@ -801,7 +892,7 @@ ggbrain_images <- R6::R6Class(
           z = "axial",
           stop(sprintf("Cannot interpret input: %s", coord_str))
         )
-        
+
         # determine world or voxel coordinate system
         coord <- switch(
           axis,

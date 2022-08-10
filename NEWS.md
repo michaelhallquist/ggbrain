@@ -1,13 +1,19 @@
-# ggbrain 0.5.2 (development)
+# ggbrain 0.6 (9Aug2022)
 
+* feature: for labeled images, clean_specks now counts specks by ROI/mask value
+* feature: support filter expression in add_image() to filter (subset) the data for a given image. Useful for thresholding
+    or for subsetting an atlas to retain only certain values.
 * feature: montage() function to make adding many slices in a plane easy
 * feature: support plot() on ggbrain() objects so that the ggbrain settings can be amended prior to the render and plot steps
 * feature: support overall plot aesthetics including title, base_size, bg_color, and text_color. These are arguments to ggbrain()
 * feature: set tiny values on each slice to NA to support transparency at image boundaries (e.g., in 'dead space' on a structural)
 * feature: add_slice() function adds single slice and supports panel-specific aesthetics such as title and text_color
+* feature: contrasts that are simple subsetting operation on a labeled image retain labels in the contrast data
 * bugfix:  correct accidental resetting of unified scale limits when a bisided scale was empty on one side
 * bugfix:  correct range_breaks() for empty data
 * bugfix:  pass through breaks to layers regardless of whether scale or breaks are set first
+* bugfix:  cleaning specks no longer fails when a slice is empty
+* bugfix:  refactor outlines so that empty slices do not generate completely filled layer
 
 # ggbrain 0.5.1 (2Aug2022)
 

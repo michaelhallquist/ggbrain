@@ -191,7 +191,7 @@ ggbrain_plot <- R6::R6Class(
     }
   ),
   public=list(
-    #' @description instantiate a new instance of a ggbrain_plot object    
+    #' @description instantiate a new instance of a ggbrain_plot object
     #' @param title overall plot title
     #' @param bg_color background color of plot
     #' @param text_color text color of plot

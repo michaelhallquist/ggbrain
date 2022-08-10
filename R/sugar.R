@@ -89,18 +89,20 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9) {
 #' Add images to a ggb object
 #' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
 #' @param fill_holes if TRUE, fill in holes on a slice [WIP]
-#' @param clean_specks if TRUE, clean small specks on a slice [WIP]
+#' @param clean_specks if TRUE, clean small specks on a slice
 #' @param labels a data.frame or named list of data.frame objects corresponding to images that should be labeled.
 #'   You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
 #'   the \code{labels} list are used to align the labels with a given matching image.
+#' @param filter a named list or character string specifying an expression of values to retain in the image,
+#'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a ggb object with the relevant images and an action of 'add_images'
 #' @export
-add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE, labels = NULL) {
+add_images <- function(images = NULL, fill_holes = FALSE, clean_specks = FALSE, labels = NULL, filter=NULL) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
     if (!is.null(labels)) img_obj$add_labels(labels)
   } else {
-    img_obj <- ggbrain_images$new(images, fill_holes, clean_specks, labels)
+    img_obj <- ggbrain_images$new(images, fill_holes, clean_specks, labels, filter)
   }
 
   ret <- ggb$new(images = img_obj, action = "add_images")
@@ -249,7 +251,7 @@ named_list <- function(...) {
 #' @importFrom ggplot2 waiver
 #' @export
 scale_fill_bisided <- function(
-  name = waiver(),
+  name = ggplot2::waiver(),
   neg_scale = scale_fill_distiller(palette="Blues", direction = 1),
   pos_scale = scale_fill_distiller(palette="Reds"), symmetric = TRUE) {
 

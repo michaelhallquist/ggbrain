@@ -31,7 +31,11 @@ ggbrain_layer_outline <- R6::R6Class(
       # always drop NAs before proceeding with outline since only non-NA points can contribute
       max_dim1 <- max(df$dim1) # extent of x axis (before na.omit)
       max_dim2 <- max(df$dim2)
-      df <- df %>% na.omit()
+      df <- df %>% dplyr::filter(!is.na(value))
+      attr(df, "dim1") <- max_dim1
+      attr(df, "dim2") <- max_dim2
+
+      if (nrow(df) == 0L) return(df) # skip out if no valid rows
 
       # if we have a factor, split on this and get outlines for each component
       if (!is.null(group_col)) {
@@ -43,9 +47,9 @@ ggbrain_layer_outline <- R6::R6Class(
         by_roi <- FALSE
       }
 
-      df_melt <- bind_rows(lapply(df_split, function(dd) {
+      df_melt <- dplyr::bind_rows(lapply(df_split, function(dd) {
         # convert to a 0/1 matrix where 1s denote present voxels
-        slc_mat <- as.matrix(sparseMatrix(i = dd$dim1, j = dd$dim2, x = 1, dims = c(max_dim1, max_dim2)))
+        slc_mat <- as.matrix(Matrix::sparseMatrix(i = dd$dim1, j = dd$dim2, x = 1, dims = c(max_dim1, max_dim2)))
         slc_img <- imager::as.cimg(slc_mat) # convert to cimg object
 
         # follows this logic: https://stackoverflow.com/questions/29878844/how-do-i-find-the-perimeter-of-objects-in-a-binary-image
@@ -56,11 +60,11 @@ ggbrain_layer_outline <- R6::R6Class(
         # simpler approach of using imager boundary function
         b <- imager::boundary(slc_img, depth = private$pvt_outline_size)
         if (!is.null(blur_sigma)) {
-          orig <- as.cimg(b)
+          orig <- imager::as.cimg(b)
           res <- imager::isoblur(orig, sigma = blur_sigma)
           res[b] <- 1 # always keep original boundary as alpha 1.0 (don't blur in 0 pixels)
         } else {
-          res <- as.cimg(b) # just convert boundary into 1/0 image
+          res <- imager::as.cimg(b) # just convert boundary into 1/0 image
         }
 
         # scale antialiasing of outline by base alpha transparency requested
@@ -94,6 +98,9 @@ ggbrain_layer_outline <- R6::R6Class(
         private$pvt_alpha_column <- "alpha" # set alpha aes mapping
         private$pvt_alpha <- NULL # unset the fixed alpha mapping since it has been blended with an alpha mapping
       }
+
+      attr(df_melt, "dim1") <- max_dim1
+      attr(df_melt, "dim2") <- max_dim2
 
       return(df_melt %>% na.omit())
     }

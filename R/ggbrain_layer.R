@@ -31,6 +31,39 @@ ggbrain_layer <- R6::R6Class(
     pvt_bisided = FALSE, # only set by fill_scale active binding
     pvt_blur_edge = NULL,
 
+    # helper function for adding a mapped geom_raster to an existing ggplot
+    add_raster = function(gg, df, value_col = NULL, n_layers, raster_args = NULL, fill_scale = NULL) {
+      checkmate::assert_data_frame(df, null.ok = TRUE)
+      if (is.null(df) || nrow(df) == 0L) {
+        return(gg)
+      } # no change
+
+      if (!is.null(fill_scale)) {
+        # mapped fill layer
+        new_val <- paste0("value", n_layers + 1L)
+        df <- df %>% dplyr::rename(!!new_val := !!value_col)
+        if (n_layers > 0L) {
+          # if there is already a layer, we need to create a new slot for a fill aesthetic
+          gg <- gg + ggnewscale::new_scale_fill()
+        }
+
+        raster_args$data <- df
+        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
+        raster_args$show.legend <- private$pvt_show_legend
+      } else {
+        # fixed fill layer
+        raster_args$data <- df
+        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
+        raster_args$fill <- private$pvt_fill
+        raster_args$show.legend <- FALSE
+      }
+
+      robj <- do.call(geom_raster, raster_args)
+      gg <- gg + robj + fill_scale
+
+      return(gg)
+    },
+
     # general private method for returning data to plot on slice
     # will be overloaded by subclasses for specific purposes
     get_plot_data = function() {
@@ -146,6 +179,11 @@ ggbrain_layer <- R6::R6Class(
       # ensure that alpha is set to NA if we have an alpha mapping
       if (!is.null(private$pvt_alpha_column)) {
         private$pvt_alpha <- NULL
+      }
+
+      # ensure that numeric breaks are not used with a categorical scale (note that this doesn't allow custom breaks in categorical layers yet... so, it's a hack)
+      if (isTRUE(private$pvt_categorical_fill)) {
+        private$pvt_fill_scale$breaks <- ggplot2::waiver()
       }
     },
 
@@ -442,6 +480,7 @@ ggbrain_layer <- R6::R6Class(
         warning(glue::glue("No data in layer {self$name}! Not adding to ggplot object."))
         return(base_gg)
       }
+
       checkmate::assert_class(base_gg, "gg")
       n_layers <- length(base_gg$layers)
       n_scales <- length(base_gg$scales$scales) # will be less than n_layers when show.legend is FALSE
@@ -457,60 +496,43 @@ ggbrain_layer <- R6::R6Class(
       pdata <- private$get_plot_data()
       if (isTRUE(pdata$bisided)) {
         df <- pdata$df_neg
+        df_pos <- pdata$df_pos
         fill_scale <- pdata$fill_scale_neg
+        fill_scale_pos <- pdata$fill_scale_pos
       } else {
         df <- pdata$df
+        df_pos <- NULL
         fill_scale <- pdata$fill_scale
+        fill_scale_pos <- NULL
       }
 
       raster_args <- list(interpolate = private$pvt_interpolate)
       if (!is.null(private$pvt_alpha)) raster_args$alpha <- private$pvt_alpha # adding NULL or NA messes up alpha
 
+      has_df <- ifelse(nrow(df) > 0L, TRUE, FALSE)
+      has_pos_df <- ifelse(!is.null(df_pos) && nrow(df_pos) > 0L, TRUE, FALSE)
+
       # only add fills if a fill setting/mapping exists
       if (isTRUE(private$pvt_map_fill)) {
-        new_val <- paste0("value", n_layers + 1L) # new_scale_fill depends on the fill aesthetic mapping differing by layer
-        df <- df %>%
-          dplyr::rename(!!new_val := !!pdata$vcol)
-
-        if (n_layers > 0L) {
-          # if there is already a layer, we need to create a new slot for a fill aesthetic
-          ret <- base_gg + ggnewscale::new_scale_fill()
+        if (has_df) {
+          ret <- private$add_raster(ret, df, pdata$vcol, n_layers, raster_args, fill_scale)
+          n_layers <- n_layers + 1
         }
 
-        raster_args$data <- df
-        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
-        raster_args$show.legend <- private$pvt_show_legend
-        robj <- do.call(geom_raster, raster_args)
+        if (isTRUE(private$pvt_bisided) && isTRUE(has_pos_df)) {
+          ret <- private$add_raster(ret, df_pos, pdata$vcol, n_layers, raster_args, fill_scale_pos)
+          n_layers <- n_layers + 1
 
-        ret <- ret + robj + fill_scale
-
-        if (isTRUE(private$pvt_bisided)) {
-          # add positive scale above negative to have it appear above it
-          new_val <- paste0("value", n_layers + 2L) # additional layer for positive values
-          df_pos <- pdata$df_pos %>%
-            dplyr::rename(!!new_val := !!pdata$vcol)
-
-          raster_args$data <- df_pos
-          raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
-          raster_args$data <- df_pos
-          robj <- do.call(geom_raster, raster_args)
-
-          ret <- ret + ggnewscale::new_scale_fill() + robj + pdata$fill_scale_pos
-
-          if (isTRUE(private$pvt_show_legend)) {
+          # if bisided has both positive and negative layers/data, we need to control color bar order
+          if (isTRUE(private$pvt_show_legend) && has_df && has_pos_df) {
             # force color bar order: +1 is negative, +2 is positive. Lower orders are positioned lower on legend
             ret$scales$scales[[n_scales + 1]]$guide <- guide_colorbar(order = n_scales + 2, available_aes = c("fill", "fill_new"))
             ret$scales$scales[[n_scales + 2]]$guide <- guide_colorbar(order = n_scales + 1, available_aes = c("fill", "fill_new"))
           }
         }
       } else {
-        raster_args$data <- df
-        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
-        raster_args$fill <- private$pvt_fill
-        robj <- do.call(geom_raster, raster_args)
-
         # fixed fill color
-        ret <- ret + robj
+        ret <- private$add_raster(ret, df, value_col = NULL, n_layers, raster_args, fill_scale = NULL)
       }
 
       return(ret)

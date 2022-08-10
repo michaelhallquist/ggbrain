@@ -115,6 +115,9 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
       addl_chars <- FALSE
     }
 
+    # if there is just one image and one subset, we have a simple subset and should merge result back against labeled data
+    simple_subset <- length(img_vars) == 1L && nrow(brack_df) == 1L
+
     # the last element of each split must be the variable that is subset based
     # on the use of brack_df to find the text preceding each bracket set
     # thus, use the length of each element of the list to identify variable positions
@@ -143,6 +146,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
          paste(mismatch, collapse=", "))
   }
 
+
   # start with a copy of relevant variables
   out_data <- data[, union(img_vars, brack_vars), drop=FALSE]
 
@@ -168,8 +172,11 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   # return appropriately labeled data.frame that mirrors the $slice_data structure
   checkmate::assert_subset(c("dim1", "dim2"), names(data))
 
-  out_df <- data.frame(data[, c("dim1", "dim2")], value=out_var)
-
+  out_df <- data.frame(data[, c("dim1", "dim2")], value = out_var)
+  if (isTRUE(simple_subset)) {
+    attr(out_df, "img_source") <- img_vars
+  }
+  
   return(out_df)
 }
 

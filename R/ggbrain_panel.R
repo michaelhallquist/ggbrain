@@ -83,7 +83,7 @@ ggbrain_panel <- R6::R6Class(
         gg <- gg + private$add_annotations()
       }
 
-      if (!is.null(private$pvt_region_labels)) {        
+      if (!is.null(private$pvt_region_labels)) {
         gg <- gg + private$pvt_region_labels # use + method from ggbrain_label class
       }
 
