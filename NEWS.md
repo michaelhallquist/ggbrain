@@ -1,3 +1,8 @@
+# ggbrain 0.6.1 (development)
+
+* feature: for annotations, q<number> syntax now allows for quantiles above 1 or below 0, where 2 = 200% of max and -1 is -100% of min.
+    This allows for annotations to be placed outside of image boundaries.
+
 # ggbrain 0.6 (9Aug2022)
 
 * feature: for labeled images, clean_specks now counts specks by ROI/mask value

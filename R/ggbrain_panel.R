@@ -99,6 +99,24 @@ ggbrain_panel <- R6::R6Class(
       dat_list <- self$get_data()
       df <- bind_rows(lapply(dat_list, function(x) x[, c("dim1", "dim2")] )) #just the dimensions are needed for position calculations
 
+      quant <- function(x, p, na.rm=TRUE) {
+        checkmate::assert_numeric(x)
+        checkmate::assert_number(p)
+        if (p >= 0 && p <= 1) {
+          return(quantile(x, p, na.rm=na.rm))
+        } else if (p < 0 & p >= -1) {
+          m <- min(x, na.rm = na.rm)
+          below <- quantile(x, abs(p), na.rm = na.rm)
+          return(m - below) # below minimum
+        } else if (p > 1 && p <= 2) {
+          m <- max(x, na.rm = na.rm)
+          above <- quantile(x, p - 1, na.rm = na.rm)
+          return(m + above)
+        } else {
+          stop("Cannot interpret p")
+        }
+      }
+
       # helper subfunction to map user-friendly positions (e.g., 'left') to x or y coordinates (dim1, dim2)
       map_pos <- function(aes_name, vec) {
         sapply(vec, function(pos) {
@@ -122,14 +140,13 @@ ggbrain_panel <- R6::R6Class(
             } else {
               stop(paste("aesthetic", aes_name, "is 'middle', but is not x* or y*"))
             }
-          } else if (grepl("^q[\\d\\.]+$", pos, perl=TRUE)) {
+          } else if (grepl("^q[-\\d\\.]+$", pos, perl=TRUE)) {
             qnum <- as.numeric(sub("^q", "", pos))
-            if (qnum > 1) qnum <- qnum/100 # provided as percentage
             if (is.na(qnum)) stop("Could not parse quantile specification: ", pos)
             if (grepl("^x", aes_name)) {
-              pos <- quantile(df$dim1, qnum, na.rm = TRUE)
+              pos <- quant(df$dim1, qnum, na.rm = TRUE)
             } else {
-              pos <- quantile(df$dim2, qnum, na.rm = TRUE)
+              pos <- quant(df$dim2, qnum, na.rm = TRUE)
             }
           } else if (is.numeric(pos)) {
             if (grepl("^x", aes_name)) {
