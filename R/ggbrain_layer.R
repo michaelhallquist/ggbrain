@@ -38,6 +38,11 @@ ggbrain_layer <- R6::R6Class(
         return(gg)
       } # no change
 
+      # When alpha is < 1, na.value="transparent" doesn't work as expected. Need to use na.omit()
+      if (!is.null(private$pvt_alpha_column) || (!is.null(private$pvt_alpha) && private$pvt_alpha < 1)) {
+        df <- df %>% dplyr::filter(!is.na(!!rlang::sym(value_col)))
+      }
+
       if (!is.null(fill_scale)) {
         # mapped fill layer
         new_val <- paste0("value", n_layers + 1L)
@@ -59,6 +64,7 @@ ggbrain_layer <- R6::R6Class(
       }
 
       robj <- do.call(geom_raster, raster_args)
+      # robj <- do.call(geom_tile, raster_args) # for comparison re: warnings about uneven intervals
       gg <- gg + robj + fill_scale
 
       return(gg)

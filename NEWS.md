@@ -2,6 +2,7 @@
 
 * feature: for annotations, q<number> syntax now allows for quantiles above 1 or below 0, where 2 = 200% of max and -1 is -100% of min.
     This allows for annotations to be placed outside of image boundaries.
+* bugfix:  when geom_raster is provided with alpha and na.value='transparent', it draws semi-transparent squares. Switched to na.omit() when alpha < 1.
 
 # ggbrain 0.6 (9Aug2022)
 
