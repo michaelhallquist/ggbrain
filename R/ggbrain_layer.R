@@ -1,6 +1,6 @@
 #' R6 class for a single layer of a ggbrain panel
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
-#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg erode_square
@@ -53,12 +53,12 @@ ggbrain_layer <- R6::R6Class(
         }
 
         raster_args$data <- df
-        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
+        raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
         raster_args$show.legend <- private$pvt_show_legend
       } else {
         # fixed fill layer
         raster_args$data <- df
-        raster_args$mapping <- aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
+        raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
         raster_args$fill <- private$pvt_fill
         raster_args$show.legend <- FALSE
       }
