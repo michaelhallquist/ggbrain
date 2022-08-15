@@ -165,7 +165,7 @@ add labels to a given image
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{labels}}{a named list of data.frame objects where the names denote corresponding images}
+\item{\code{...}}{a named list of arguments where each is a data.frame with labels denoting corresponding images}
 }
 \if{html}{\out{</div>}}
 }

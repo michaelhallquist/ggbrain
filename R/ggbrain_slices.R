@@ -90,15 +90,20 @@ ggbrain_slices <- R6::R6Class(
       if (missing(value)) private$pvt_slice_data
       else stop("Cannot assign slice_data")
     },
+
     #' @field slice_matrix the slice data in matrix form
     slice_matrix = function(value) {
       if (missing(value)) private$pvt_slice_matrix
       else stop("Cannot assign slice_matrix")
     },
+
+    #' @field slice_labels a data.frame for each slice containing the coordinates of labels available to be drawn
     slice_labels = function(value) {
       if (missing(value)) private$pvt_slice_labels
       else stop("Cannot assign slice_labels")
     },
+
+    #' @field layer_names a character vector of layer names within each slice
     layer_names = function(value) {
       if (missing(value)) private$pvt_layer_names
       else stop("Cannot assign layer_names")

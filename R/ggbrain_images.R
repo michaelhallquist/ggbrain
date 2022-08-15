@@ -340,7 +340,7 @@ ggbrain_images <- R6::R6Class(
     },
 
     #' @description filters an image based on an expression such as a subsetting operation
-    #' @expr a character string or numeric vector of the filter to apply
+    #' @param filter a character string or numeric vector of the filter to apply
     #' @details if expr is a numeric vector, only values in this set will be retained. If a character
     #'   string expression is used, it should use the variable name \code{'value'} to refer to the numeric
     #'   values to be filtered, such as \code{'value > 10'}.
@@ -443,7 +443,7 @@ ggbrain_images <- R6::R6Class(
     },
 
     #' @description method for removing one or more images from the ggbrain_images object
-    #' @param img_names 
+    #' @param img_names names of images to remove from object
     remove_images = function(img_names) {
       checkmate::assert_character(img_names)
       good_imgs <- intersect(private$pvt_img_names, img_names)
@@ -576,6 +576,8 @@ ggbrain_images <- R6::R6Class(
     #' @param slices a vector of slice positions
     #' @param img_names a character vector of images contained in the ggbrain_images object to be sliced
     #' @param contrasts a named character vector of contrasts to be calculated for each slice
+    #' @param fill_labels if TRUE, the numeric value of the image will be used for any value that does not
+    #'   have a corresponding label in the labels data.frame. Default: FALSE
     #' @param make_square If TRUE, make all images square and of the same size
     #' @param remove_null_space If TRUE, remove slices where all values are approximately zero
     #' @param fill_holes An integer. If > 0, slice data will be passed through a hole-filling algorithm

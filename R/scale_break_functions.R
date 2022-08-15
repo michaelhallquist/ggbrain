@@ -2,7 +2,7 @@
 #' @param n number of breaks (default = 5)
 #' @param ... Additional arguments passed to the pretty() function
 #' @details Code from here: https://joshuacook.netlify.app/post/integer-values-ggplot-axis/
-#' @keywords internal
+#' @export
 integer_breaks <- function(n = 5, ...) {
   fxn <- function(x) {
     breaks <- floor(pretty(x, n, ...))
@@ -15,6 +15,7 @@ integer_breaks <- function(n = 5, ...) {
 #' breaks function for including min + max with labels, and a few unlabeled ticks in between
 #' @param n number of breaks added within the min-max range
 #' @param digits number of decimal places to display
+#' @export
 range_breaks <- function(n=3, digits=2) {
   fxn <- function(x) {
     if (is.null(x) || all(is.na(x) || all(is.infinite(x)))) {

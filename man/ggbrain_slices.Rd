@@ -38,6 +38,10 @@ Michael Hallquist
 that slice and the list elements within are each a given image}
 
 \item{\code{slice_matrix}}{the slice data in matrix form}
+
+\item{\code{slice_labels}}{a data.frame for each slice containing the coordinates of labels available to be drawn}
+
+\item{\code{layer_names}}{a character vector of layer names within each slice}
 }
 \if{html}{\out{</div>}}
 }

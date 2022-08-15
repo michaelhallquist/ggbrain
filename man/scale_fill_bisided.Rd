@@ -5,7 +5,7 @@
 \title{scale for plotting separate color gradients for positive and negative values}
 \usage{
 scale_fill_bisided(
-  name = waiver(),
+  name = ggplot2::waiver(),
   neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
   pos_scale = scale_fill_distiller(palette = "Reds"),
   symmetric = TRUE

@@ -15,6 +15,18 @@ R6 class for adding labels to a ggbrain_panel
 }
 \if{html}{\out{</div>}}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{data}}{a data.frame containing labels to be printed on the panel. Must contain dim1, dim2, and label as columns.
+The dim1 and dim2 columns control where the labels will appear on the panel}
+
+\item{\code{image}}{A character string specifying the image to which these labels pertain}
+
+\item{\code{label_column}}{A character string indicating which data.frame column should be used for drawing labels}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{

@@ -8,6 +8,18 @@ R6 class for compiling images to render in ggplot
 
 R6 class for compiling images to render in ggplot
 }
+\examples{
+
+## ------------------------------------------------
+## Method `ggbrain_images$filter_images`
+## ------------------------------------------------
+
+\dontrun{
+  x <- ggbrain_images$new(
+    images=c(img1="test.nii.gz"),
+    filter=list(img1=c("value < 15", "value > 5")))
+}
+}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
@@ -31,6 +43,7 @@ This value is used to set small values in the images to exactly zero for proper 
 \item \href{#method-ggbrain_images-add}{\code{ggbrain_images$add()}}
 \item \href{#method-ggbrain_images-add_labels}{\code{ggbrain_images$add_labels()}}
 \item \href{#method-ggbrain_images-add_images}{\code{ggbrain_images$add_images()}}
+\item \href{#method-ggbrain_images-filter_images}{\code{ggbrain_images$filter_images()}}
 \item \href{#method-ggbrain_images-dim}{\code{ggbrain_images$dim()}}
 \item \href{#method-ggbrain_images-get_image_names}{\code{ggbrain_images$get_image_names()}}
 \item \href{#method-ggbrain_images-get_images}{\code{ggbrain_images$get_images()}}
@@ -60,7 +73,8 @@ create ggbrain_images object consisting of one or more NIfTI images
   images = NULL,
   fill_holes = NULL,
   clean_specks = NULL,
-  labels = NULL
+  labels = NULL,
+  filter = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -76,6 +90,10 @@ create ggbrain_images object consisting of one or more NIfTI images
 
 \item{\code{labels}}{A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
 a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond}
+
+\item{\code{filter}}{A named list of filter expressions to be applied to particular images. The names of the list correspond to the names
+of the \code{images} provided. Each element of the list can either be a character vector denoting a filtering expression
+(e.g., \code{'value < 100'}) or a numeric vector denoting values of the image that should be retained (e.g., \code{c(5, 10, 12)}).}
 }
 \if{html}{\out{</div>}}
 }
@@ -145,6 +163,41 @@ add one or more images to this ggbrain_images object
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-filter_images"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-filter_images}{}}}
+\subsection{Method \code{filter_images()}}{
+filters an image based on an expression such as a subsetting operation
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$filter_images(filter = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{filter}}{a character string or numeric vector of the filter to apply}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+if expr is a numeric vector, only values in this set will be retained. If a character
+string expression is used, it should use the variable name \code{'value'} to refer to the numeric
+values to be filtered, such as \code{'value > 10'}.
+}
+
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+  x <- ggbrain_images$new(
+    images=c(img1="test.nii.gz"),
+    filter=list(img1=c("value < 15", "value > 5")))
+}
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-dim"></a>}}
@@ -220,7 +273,7 @@ method for removing one or more images from the ggbrain_images object
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{img_names}}{}
+\item{\code{img_names}}{names of images to remove from object}
 }
 \if{html}{\out{</div>}}
 }
@@ -369,6 +422,9 @@ get slice data for one or more slices based on their coordinates
 \item{\code{img_names}}{a character vector of images contained in the ggbrain_images object to be sliced}
 
 \item{\code{contrasts}}{a named character vector of contrasts to be calculated for each slice}
+
+\item{\code{fill_labels}}{if TRUE, the numeric value of the image will be used for any value that does not
+have a corresponding label in the labels data.frame. Default: FALSE}
 
 \item{\code{make_square}}{If TRUE, make all images square and of the same size}
 

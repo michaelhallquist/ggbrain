@@ -101,7 +101,7 @@ ggb <- R6::R6Class(
     #' @param slices a character vector of slices to be appended to the existing slices
     add_slices = function(slices=NULL) {
       if (is.null(slices)) return(self) # nothing to do
-      
+
       if (checkmate::test_character(slices)) {
         # if slices is a simple character vector, store as list with coordinate element
         slices <- lapply(slices, function(x) list(coordinate=x))
@@ -147,7 +147,7 @@ ggb <- R6::R6Class(
     },
 
     #' @description add labels to a given image
-    #' @param labels a named list of data.frame objects where the names denote corresponding images
+    #' @param ... a named list of arguments where each is a data.frame with labels denoting corresponding images
     add_image_labels = function(...) {
       label_args <- list(...)
 

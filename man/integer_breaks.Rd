@@ -17,4 +17,3 @@ breaks function to encourage integer-valued breaks, based on input from pretty
 \details{
 Code from here: https://joshuacook.netlify.app/post/integer-values-ggplot-axis/
 }
-\keyword{internal}

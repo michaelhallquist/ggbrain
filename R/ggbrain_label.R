@@ -12,6 +12,9 @@ ggbrain_label <- R6::R6Class(
     pvt_label_column = "label"
   ),
   active = list(
+
+    #' @field data a data.frame containing labels to be printed on the panel. Must contain dim1, dim2, and label as columns.
+    #'   The dim1 and dim2 columns control where the labels will appear on the panel
     data = function(value) {
       if (missing(value)) {
         return(private$pvt_data)
@@ -29,6 +32,8 @@ ggbrain_label <- R6::R6Class(
         private$pvt_data <- value
       }
     },
+
+    #' @field image A character string specifying the image to which these labels pertain
     image = function(value) {
       if (missing(value)) {
         return(private$pvt_image)
@@ -37,6 +42,8 @@ ggbrain_label <- R6::R6Class(
         private$pvt_image <- value
       }
     },
+
+    #' @field label_column A character string indicating which data.frame column should be used for drawing labels
     label_column = function(value) {
       if (missing(value)) {
         return(private$pvt_label_column)

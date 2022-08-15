@@ -8,7 +8,8 @@ add_images(
   images = NULL,
   fill_holes = FALSE,
   clean_specks = FALSE,
-  labels = NULL
+  labels = NULL,
+  filter = NULL
 )
 }
 \arguments{
@@ -16,11 +17,14 @@ add_images(
 
 \item{fill_holes}{if TRUE, fill in holes on a slice \link{WIP}}
 
-\item{clean_specks}{if TRUE, clean small specks on a slice \link{WIP}}
+\item{clean_specks}{if TRUE, clean small specks on a slice}
 
 \item{labels}{a data.frame or named list of data.frame objects corresponding to images that should be labeled.
 You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
 the \code{labels} list are used to align the labels with a given matching image.}
+
+\item{filter}{a named list or character string specifying an expression of values to retain in the image,
+or a numeric vector of values to retain. Calls ggbrain_images$filter_image()}
 }
 \value{
 a ggb object with the relevant images and an action of 'add_images'
