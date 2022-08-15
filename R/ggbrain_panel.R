@@ -2,7 +2,7 @@
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang has_name
-#' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin
+#' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin rel
 #' @importFrom grid unit
 #' @export
 ggbrain_panel <- R6::R6Class(
@@ -43,7 +43,7 @@ ggbrain_panel <- R6::R6Class(
             color = border_color,
             size = border_size
           ),
-          plot.title = ggplot2::element_text(size = rel(1.1), hjust = 0.5, vjust = 1, margin = margin(t = half_line / 2, b = half_line / 2)),
+          plot.title = ggplot2::element_text(size = ggplot2::rel(1.1), hjust = 0.5, vjust = 1, margin = margin(t = half_line / 2, b = half_line / 2)),
           panel.background = element_rect(fill = private$pvt_bg_color, color = NA),
           text = element_text(color = private$pvt_text_color),
           legend.spacing.y = unit(0.1, "lines"),
