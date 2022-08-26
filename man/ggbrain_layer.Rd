@@ -13,6 +13,8 @@ R6 class for a single layer of a ggbrain panel
 \describe{
 \item{\code{name}}{the name of this layer, used for referencing in layer and panel modifications}
 
+\item{\code{all_na}}{whether all values for this layer are NA in the \code{data} field}
+
 \item{\code{definition}}{a character string specifying the image name or contrast that defines this layer}
 
 \item{\code{source}}{a character string specifying the layer source within a relevant ggbrain_slices object.

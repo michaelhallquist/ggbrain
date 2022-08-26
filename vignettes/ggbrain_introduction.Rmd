@@ -36,7 +36,7 @@ Consistent with the `ggplot2` approach, additional elements can be added using t
 
 ## Add images
 
-A ggbrain plot must have at least one 3D image stored in NIfTI format. These images are read into ggbrain using the `RNifti` package. All images for a given plot must have the same image dimensions (otherwise, an error will occur).
+A ggbrain plot must have at least one 3D image stored in NIfTI format. These images are read into ggbrain using the `RNifti` package. All images for a given plot must have the same image dimensions (otherwise, an error will occur). At present, `ggbrain` provides no internal support for interpolation to combine images with different resolutions. We encourage you to use `3dresample` from AFNI for this purpose.
 
 The file names containing relevant images can be passed in as arguments to `ggbrain` or they can be appended using `add_images()` In either, it is important to provide a name for the image that is used internally to refer to the image in contrasts, labels, or other operations. If you do not provide a name, you will see a warning:
 
@@ -53,5 +53,48 @@ gg_obj <- gg_obj + add_images(underlay=underlay_3mm)
 
 Note that the image name of 'underlay' has a special meaning in the package. Specifically, using this name will set a default color scale that is grayscale and will not show the legend of this scale in the plot. You don't have to use 'underlay' but it can make things a bit simpler if you have a conventional plot that shows an anatomical scan underneath functional activations.
 
+### Resampling images to have the same resolution
+
+Oftentimes, higher-resolution images (e.g., 1mm) yield better graphics since they potentially provide more detail. But fMRI data are often of lower resolution than T1-weighted images. If you wish to render your fMRI data on a higher-resolution anatomical template in `ggbrain`, you can first use AFNI's `3dresample` command to resample your functional data to match the anatomical template (underlay). 
+
 ### Cleaning small 'specks' from image slices
 
+At times, when slicing a given image (esp. functional activations), it is possible that some clusters are very small, yielding small 'specks' on the rendered slices. These are visually unappealing and may merit removal, depending on your tastes. Of course, removing these specks can, at the extreme, misrepresent the data, which is undesirable. This concern notwithstanding, you can use the `clean_specks` argument of `add_images` to specify the voxel threshold used to remove clusters smaller than a certain size. For example, `clean_specks = 30` would remove any clusters smaller than 30 voxels in size from each slice on the rendered image.
+
+```{r}
+echange_overlay_3mm <- system.file("extdata", "echange_overall_zstat_3mm.nii.gz", package = "ggbrain")
+gg_obj <- gg_obj + add_images(echange=echange_overlay_3mm, clean_specks=30)
+```
+
+### 
+
+# Adding slices
+
+# Adding outlines 
+
+# Adding brain overlay layers to a plot
+
+# Labeling regions
+
+
+```{r}
+a <- ggbrain(bg_color = "gray60", text_color = "black") +
+  add_images(c(underlay = "template_brain.nii.gz")) +
+  add_images(c(dan_clust = dan_clust), fill_holes = TRUE, clean_specks = 20, labels = dan_labels) +
+  # add_slices(paste0("x = ", seq(10, 90, 10), "%")) +
+  add_slices(montage("axial", 10, min = 0.1, max = 0.8)) +
+  # add_slice("y=50%", title = "hello", xlab = "testx", border_size = 1, border_color = "blue") +
+  geom_brain(definition = "underlay", fill_scale = scale_fill_gradient(low = "grey8", high = "grey62"), show_legend = FALSE) +
+  geom_brain(definition = "dan_clust", mapping = aes(fill = label), fill_scale = scale_fill_brewer("DAN 17 label", palette = "Set1"), show_legend = TRUE) +
+  geom_outline(definition = "dan_clust", mapping = aes(group = roi_label), show_legend = TRUE, outline = "black") + # fill_scale = scale_fill_discrete("hello"),
+  # geom_outline(definition = "dan_clust", show_legend = TRUE, mapping=aes(group=label), outline_size=2, outline="cyan") + #fill_scale = scale_fill_discrete("hello"),
+
+  # geom_outline(definition = "dan_clust", show_legend = TRUE, outline = "cyan") + #fill_scale = scale_fill_discrete("hello"),
+
+  geom_region_label_repel(image = "dan_clust", label_column = "roi_label", min.segment.length = 0, size = 1.5, color = "black", force_pull = 0.2, max.overlaps = Inf) +
+  render() + plot_layout(guides = "collect")
+```
+
+# Combining ggbrain plots
+
+[Principles of patchwork]

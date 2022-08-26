@@ -2,7 +2,7 @@
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
 #' @importFrom rlang flatten
 #' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
-#' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset
+#' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset test_atomic
 #' @importFrom reshape2 melt
 #' @importFrom tidyr unnest
 #' @importFrom tibble remove_rownames
@@ -77,25 +77,44 @@ ggbrain_images <- R6::R6Class(
     # Best approach: use flood fill from boundary of image to find pixels that cannot be reached when filling the background.
 
     fill_img_holes = function(img, size=NULL) {
-      slc_cimg <- imager::as.cimg(img)
-      orig_px <- imager::as.pixset(slc_cimg) # pixels before interp
-      f <- fill(slc_cimg, 5, boundary=FALSE)
-      f <- fill(slc_cimg, 5, boundary = TRUE)
-      to_fill <- imager::as.pixset(f - orig_px)
-      filled <- slc_cimg
-      filled[to_fill] <- NA
-      filled2 <- inpaint(filled, 2)
-      plot(slc_cimg)
-      plot(filled)
-      plot(filled2)
+      filled_img <- fill_from_edge(img, nedges = 4) # flood fills TRUE from four corners
+      holes <- !as.cimg(filled_img) # becomes TRUE where there is a hole
+      x <- as.cimg(img)
+      plot(holes)
 
+      to_fill <- which(holes == TRUE, arr.ind = T)
+      
 
-      locations <- which(to_fill, arr.ind = TRUE) %>%
-        as.data.frame() %>%
-        setNames(c("x", "y", "z", "c"))
-      x <- slc_cimg
-      x[as.matrix(locations)] <- NA
-      filled <- interp(x, locations)
+      # use a component labeler to find holes (assuming there are any)
+      if (sum(holes) > 0L) {
+        objs <- imager::split_connected(holes) # split into a list of connected components
+        obj_size <- sapply(objs, sum) # how many pixels in each
+        holes <- which(obj_size <= size)
+
+        if (length(holes) > 0L) {
+          # loop over holes and interpolate
+          browser()
+
+        }
+
+      }
+
+      # f <- fill(slc_cimg, 5, boundary=FALSE)
+      # f <- fill(slc_cimg, 5, boundary = TRUE)
+      # to_fill <- imager::as.pixset(f - orig_px)
+      # filled <- slc_cimg
+      # filled[to_fill] <- NA
+      # filled2 <- inpaint(filled, 2)
+      # plot(slc_cimg)
+      # plot(filled)
+      # plot(filled2)
+
+      # locations <- which(to_fill, arr.ind = TRUE) %>%
+      #   as.data.frame() %>%
+      #   setNames(c("x", "y", "z", "c"))
+      # x <- slc_cimg
+      # x[as.matrix(locations)] <- NA
+      # filled <- interp(x, locations)
 
 
     },
@@ -365,7 +384,7 @@ ggbrain_images <- R6::R6Class(
         value <- private$pvt_imgs[[img_name]]
 
         # supports a list at the image level, in which case multiple filters are applied to a single image
-        if (class(filter[[ii]]) %in% c("numeric", "character")) {
+        if (checkmate::test_atomic(class(filter[[ii]]))) {
           f_ii <- list(filter[[ii]]) # create single element list
         } else {
           f_ii <- filter[[ii]]
@@ -433,7 +452,7 @@ ggbrain_images <- R6::R6Class(
         ret <- private$pvt_imgs[img_names]
       }
 
-      ret <- sapply(ret, niftiHeader, simplify=FALSE)
+      ret <- sapply(ret, RNifti::niftiHeader, simplify=FALSE)
 
       if (length(ret) == 1L && isTRUE(drop)) {
         ret <- ret[[1L]] # unlist

@@ -102,6 +102,8 @@ ggbrain_layer_outline <- R6::R6Class(
       attr(df_melt, "dim1") <- max_dim1
       attr(df_melt, "dim2") <- max_dim2
 
+      # geom_raster does not render transparent NAs when there is not a scale_fill_* object -- so if it's a simple
+      # fixed-color outline, the NAs will render in that color, too. Hence, for outlines, we must drop NAs.
       return(df_melt %>% na.omit())
     }
   ),

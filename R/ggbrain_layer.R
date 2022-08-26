@@ -28,6 +28,7 @@ ggbrain_layer <- R6::R6Class(
     pvt_show_legend = NULL,
     pvt_interpolate = FALSE,
     pvt_is_empty = NULL,
+    pvt_all_na = FALSE, # whether the data for this layer are all NA (in which case there's nothing to add)
     pvt_bisided = FALSE, # only set by fill_scale active binding
     pvt_blur_edge = NULL,
 
@@ -187,10 +188,6 @@ ggbrain_layer <- R6::R6Class(
         private$pvt_alpha <- NULL
       }
 
-      # ensure that numeric breaks are not used with a categorical scale (note that this doesn't allow custom breaks in categorical layers yet... so, it's a hack)
-      if (isTRUE(private$pvt_categorical_fill)) {
-        private$pvt_fill_scale$breaks <- ggplot2::waiver()
-      }
     },
 
     # helper function to make positive and negative scales symmetric
@@ -267,6 +264,15 @@ ggbrain_layer <- R6::R6Class(
       }
     },
 
+    #' @field all_na whether all values for this layer are NA in the \code{data} field
+    all_na = function(value) {
+      if (missing(value)) {
+        return(private$pvt_all_na)
+      } else {
+        stop("Cannot directly set the all_na field. This is set via setting the $data field.")
+      }
+    },
+
     #' @field definition a character string specifying the image name or contrast that defines this layer
     definition = function(value) {
       if (missing(value)) {
@@ -303,10 +309,23 @@ ggbrain_layer <- R6::R6Class(
             stop("data must contain dim1, dim2, and value")
           }
 
+          # check whether all data for this layer are NA
+          if (all(is.na(value$value))) {
+            private$pvt_all_na <- TRUE
+          } else {
+            private$pvt_all_na <- FALSE
+          }
+
           private$pvt_data <- value
           private$pvt_is_empty <- FALSE # always make is_empty FALSE when we have data
           private$validate_layer() # always validate the layer based on the data (identifies the form of fill mapping)
           private$set_default_scale() # add default scale, if needed, after modifying data
+
+          # ensure that numeric breaks are not used with a categorical scale
+          # (note that this doesn't allow custom breaks in categorical layers yet... so, it's a hack)
+          if (isTRUE(private$pvt_categorical_fill)) {
+            private$pvt_fill_scale$breaks <- ggplot2::waiver()
+          }
         }
       }
     },
@@ -485,15 +504,14 @@ ggbrain_layer <- R6::R6Class(
       if (self$is_empty()) {
         warning(glue::glue("No data in layer {self$name}! Not adding to ggplot object."))
         return(base_gg)
+      } else if (isTRUE(self$all_na)) {
+        return(base_gg) # nothing to add if the data have no non-NA values
       }
 
       checkmate::assert_class(base_gg, "gg")
       n_layers <- length(base_gg$layers)
       n_scales <- length(base_gg$scales$scales) # will be less than n_layers when show.legend is FALSE
       ret <- base_gg # ggplot object to modify and return
-
-      # determine fill settings based on data prior to plotting
-      private$validate_layer()
 
       # if there is no fill data (mapped or set), there is nothing to add to the ggplot object
       if (!private$pvt_has_fill) return(base_gg)

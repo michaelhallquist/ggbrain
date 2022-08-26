@@ -1,8 +1,13 @@
-# ggbrain 0.6.1 (development)
+# ggbrain 0.7 (development)
 
 * feature: for annotations, q<number> syntax now allows for quantiles above 1 or below 0, where 2 = 200% of max and -1 is -100% of min.
     This allows for annotations to be placed outside of image boundaries.
+* feature: implement Rcpp-based flood fill algorithm for finding interior holes on slices. Used for fill_holes.
+* feature: implement Rcpp-based pixel neighbor counting algorithm to clean up frayed edges of outlines and fills.
 * bugfix:  when geom_raster is provided with alpha and na.value='transparent', it draws semi-transparent squares. Switched to na.omit() when alpha < 1.
+* bugfix:  ggbrain_slices still returns data for layers that are all NA so that layers are not dropped from range calculations.
+* bugfix:  do not add a ggbrain_layer to a plot if all of its values are NA. Adds all_na field.
+* bugfix:  properly handle ggbrain_images filter when an integer vector is provided
 
 # ggbrain 0.6 (9Aug2022)
 

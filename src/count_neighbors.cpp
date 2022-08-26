@@ -1,7 +1,6 @@
-#include <Rcpp.h>
-using namespace Rcpp;
+#include "ggbrain.h"
 
-//' This function creates K shifts of a neural events vector according to the kernel length, K.
+//' This function counts the number of neighboring/touching pixels in a 2D binary image
 //'
 //' @name count_neighbors
 //' @param im A boolean matrix representing a binary image
@@ -17,7 +16,7 @@ NumericMatrix count_neighbors(LogicalMatrix im, bool diagonal = true) {
   int r = im.nrow();
   int c = im.ncol();
   
-  Rcout << "rows: " << r << ", cols: " << c;
+  // Rcout << "rows: " << r << ", cols: " << c;
   
   int n = 0;
   NumericMatrix neighbors(r, c);

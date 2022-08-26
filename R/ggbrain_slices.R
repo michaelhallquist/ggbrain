@@ -55,8 +55,7 @@ ggbrain_slices <- R6::R6Class(
       img_data <- img_data %>%
         tidyr::pivot_longer(cols = all_of(layer_names), names_to = "layer", values_to = "slice_data") %>%
         tidyr::unnest(slice_data) %>%
-        dplyr::mutate(slice_index = as.integer(slice_index)) %>%
-        dplyr::filter(!is.na(value)) # no point in keeping all the empty/NA data
+        dplyr::mutate(slice_index = as.integer(slice_index))
 
       return(img_data)
     }
@@ -273,7 +272,7 @@ ggbrain_slices <- R6::R6Class(
         dplyr::summarize(
           low = suppressWarnings(min(value, na.rm = TRUE)),
           high = suppressWarnings(max(value, na.rm = TRUE)), .groups = "drop") %>%
-        pivot_wider(id_cols="layer", names_from="above_zero", values_from=c(low, high))
+        tidyr::pivot_wider(id_cols="layer", names_from="above_zero", values_from=c(low, high))
 
       # join the overall ranges with the pos/neg split
       img_ranges <- img_ranges %>%
