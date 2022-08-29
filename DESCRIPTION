@@ -29,5 +29,6 @@ License: `use_gpl3_license()`
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, r6 = TRUE)
 RoxygenNote: 7.2.0
-LinkingTo: 
-    Rcpp
+LinkingTo:
+    Rcpp,
+    RcppArmadillo

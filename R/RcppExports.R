@@ -51,3 +51,70 @@ flood_fill <- function(im, x, y, r, c) {
     invisible(.Call(`_ggbrain_flood_fill`, im, x, y, r, c))
 }
 
+#' Finds the mode of an integer vector
+#' @name integer_mode
+#' @param v a vector of integers
+#' @param demote_zeros if TRUE, zero will not be allowed to be the mode
+#' 
+#' @return An integer representing the mode of the vector. If multiple modes are found, then the lowest-valued mode
+#'   is returned
+#' @keywords internal
+NULL
+
+integer_mode <- function(v, demote_zeros) {
+    .Call(`_ggbrain_integer_mode`, v, demote_zeros)
+}
+
+#' Finds the nearest non-missing neighbors of a target point in a 2D matrix
+#' @name nearest_pts
+#' 
+#' @param x x-position of the point whose neighbors should be found within \code{in_mat}
+#' @param y y-position of the point whose neighbors should be found within \code{in_mat}
+#' @param in_mat a 2D matrix to search for neighbors of \code{pt}
+#' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}
+#' @param radius the radius around \code{pt} to search.
+#' 
+#' @return A vector of \code{neighbors} closest neighboring values around \code{pt}
+#' @keywords internal
+NULL
+
+nearest_pts <- function(x, y, in_mat, neighbors, radius) {
+    .Call(`_ggbrain_nearest_pts`, x, y, in_mat, neighbors, radius)
+}
+
+#' Imputes missing values in a 2D matrix based on the nearest non-missing neighbors in a given radius
+#' @name nn_impute
+#' 
+#' @param in_mat a 2D matrix to fill using nearest neighbors
+#' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}. Default is 4.
+#' @param radius the radius (in pixels) around each missing value to search for non-missing neighbors. Default is 8.
+#' @param aggfun the function used to aggregate the neighbors in imputation. Supports "mean", "median", and "mode."
+#' 
+#' @details The "mode" aggfun should only be used when the matrix \code{in_mat} can be converted to integers without loss
+#'   of information (i.e., the data are integerish values already).
+#' @return A copy of the matrix with NA values imputed by their nearest neighbors
+#' @keywords internal
+NULL
+
+nn_impute <- function(in_mat, neighbors, radius, aggfun) {
+    .Call(`_ggbrain_nn_impute`, in_mat, neighbors, radius, aggfun)
+}
+
+#' Sort Matrix by Column
+#' 
+#' @name sort_mat
+#' @description Sorts a given matrix by a specific column while retain the elements in each row.
+#'
+#' @param x   A \code{matrix} to sort
+#' @param col A \code{int} that indicates the column the matrix should sort by.
+#' @details
+#' This functions sorts a matrix based on one column, keeping the rows together.
+#' Note that \code{col} should be a zero-based index of \code{x} (i.e., first column is 0).
+#' @return The matrix sorted by values in the specified column.
+#' @keywords internal
+NULL
+
+sort_mat <- function(x, col) {
+    .Call(`_ggbrain_sort_mat`, x, col)
+}
+
