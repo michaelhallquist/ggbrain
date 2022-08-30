@@ -78,7 +78,7 @@ integer_mode <- function(v, demote_zeros) {
 #' @keywords internal
 NULL
 
-nearest_pts <- function(x, y, in_mat, neighbors, radius, ignore_zeros) {
+nearest_pts <- function(x, y, in_mat, neighbors = 4L, radius = 8L, ignore_zeros = TRUE) {
     .Call(`_ggbrain_nearest_pts`, x, y, in_mat, neighbors, radius, ignore_zeros)
 }
 
@@ -97,7 +97,7 @@ nearest_pts <- function(x, y, in_mat, neighbors, radius, ignore_zeros) {
 #' @export
 NULL
 
-nn_impute <- function(in_mat, neighbors, radius, aggfun, ignore_zeros) {
+nn_impute <- function(in_mat, neighbors = 4L, radius = 8L, aggfun = "mean", ignore_zeros = TRUE) {
     .Call(`_ggbrain_nn_impute`, in_mat, neighbors, radius, aggfun, ignore_zeros)
 }
 

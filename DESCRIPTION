@@ -1,6 +1,6 @@
 Package: ggbrain
 Title: Create Images of Brain Data in NIfTI Format Using ggplot2
-Version: 0.6.0
+Version: 0.7.0
 Authors@R:
     person("Michael", "Hallquist", , "michael.hallquist@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5894-8038"))

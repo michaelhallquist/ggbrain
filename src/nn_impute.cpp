@@ -17,7 +17,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 
-arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun, bool ignore_zeros) {
+arma::mat nn_impute(const arma::mat& in_mat, int neighbors = 4, int radius = 8, std::string aggfun = "mean", bool ignore_zeros = true) {
   // find NAs to interpolate
   mat out_mat = in_mat;
   //Rcout << "About to find non finite" << std::endl;
@@ -48,7 +48,7 @@ arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::str
 // Code for testing nearest neighbor imputation
 /*** R
 m <- matrix(rnorm(1000), nrow=100, ncol=100)
-# m[sample(1:100, 10), sample(1:100, 10)] <- NA
+m[sample(1:100, 10), sample(1:100, 10)] <- NA
 # 
 # m[20,20] <- NA
 

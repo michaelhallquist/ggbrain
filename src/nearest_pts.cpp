@@ -15,7 +15,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 
-arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int radius, bool ignore_zeros) {
+arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors = 4, int radius = 8, bool ignore_zeros = true) {
   x = x - 1; // x position (subtract 1 to obtain 0-based index)
   y = y - 1; // y position
   int xs = in_mat.n_rows; // size of x (rows)
