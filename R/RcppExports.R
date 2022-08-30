@@ -78,8 +78,8 @@ integer_mode <- function(v, demote_zeros) {
 #' @keywords internal
 NULL
 
-nearest_pts <- function(x, y, in_mat, neighbors, radius) {
-    .Call(`_ggbrain_nearest_pts`, x, y, in_mat, neighbors, radius)
+nearest_pts <- function(x, y, in_mat, neighbors, radius, ignore_zeros) {
+    .Call(`_ggbrain_nearest_pts`, x, y, in_mat, neighbors, radius, ignore_zeros)
 }
 
 #' Imputes missing values in a 2D matrix based on the nearest non-missing neighbors in a given radius
@@ -89,15 +89,16 @@ nearest_pts <- function(x, y, in_mat, neighbors, radius) {
 #' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}. Default is 4.
 #' @param radius the radius (in pixels) around each missing value to search for non-missing neighbors. Default is 8.
 #' @param aggfun the function used to aggregate the neighbors in imputation. Supports "mean", "median", and "mode."
+#' @param ignore_zeros if TRUE, then zero is not a valid imputation value (since these are not data in NIfTIs)
 #' 
 #' @details The "mode" aggfun should only be used when the matrix \code{in_mat} can be converted to integers without loss
 #'   of information (i.e., the data are integerish values already).
 #' @return A copy of the matrix with NA values imputed by their nearest neighbors
-#' @keywords internal
+#' @export
 NULL
 
-nn_impute <- function(in_mat, neighbors, radius, aggfun) {
-    .Call(`_ggbrain_nn_impute`, in_mat, neighbors, radius, aggfun)
+nn_impute <- function(in_mat, neighbors, radius, aggfun, ignore_zeros) {
+    .Call(`_ggbrain_nn_impute`, in_mat, neighbors, radius, aggfun, ignore_zeros)
 }
 
 #' Sort Matrix by Column

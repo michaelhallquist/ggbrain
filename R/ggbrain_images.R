@@ -73,50 +73,29 @@ ggbrain_images <- R6::R6Class(
       return(as.matrix(rm_slc)) # convert back to matrix
     },
 
-    # TODO: make this not extrapolate beyond original
-    # Best approach: use flood fill from boundary of image to find pixels that cannot be reached when filling the background.
-
-    fill_img_holes = function(img, size=NULL) {
-      filled_img <- fill_from_edge(img, nedges = 4) # flood fills TRUE from four corners
+    # private function to fill holes of a certain size within a given slice
+    # uses a flood fill algorithm from the corners to find pixels that cannot be reached
+    # these are then filled by nearest neighbor imputation
+    fill_img_holes = function(img, size = 10) {
+      filled_img <- ggbrain:::fill_from_edge(img, nedges = 4) # flood fills TRUE from four corners to find holes
       holes <- !as.cimg(filled_img) # becomes TRUE where there is a hole
-      x <- as.cimg(img)
-      plot(holes)
-
-      to_fill <- which(holes == TRUE, arr.ind = T)
-      
 
       # use a component labeler to find holes (assuming there are any)
       if (sum(holes) > 0L) {
         objs <- imager::split_connected(holes) # split into a list of connected components
         obj_size <- sapply(objs, sum) # how many pixels in each
-        holes <- which(obj_size <= size)
+        hh <- which(obj_size <= size) # which holes are small enough to be filled
 
-        if (length(holes) > 0L) {
-          # loop over holes and interpolate
-          browser()
+        if (length(hh) > 0L) {
+          # use logical or to combine all holes, assign NA for all hole pixels
+          img[as.matrix(Reduce("|", objs[hh]))] <- NA
 
+          # fill NAs by nearest neighbor imputation
+          rr <- max(6, ceiling(sqrt(size))) # approximation of radius within which to interpolate
+          img <- nn_impute(img, neighbors = 10, radius = rr, aggfun = "mode", ignore_zeros = TRUE)
         }
-
       }
-
-      # f <- fill(slc_cimg, 5, boundary=FALSE)
-      # f <- fill(slc_cimg, 5, boundary = TRUE)
-      # to_fill <- imager::as.pixset(f - orig_px)
-      # filled <- slc_cimg
-      # filled[to_fill] <- NA
-      # filled2 <- inpaint(filled, 2)
-      # plot(slc_cimg)
-      # plot(filled)
-      # plot(filled2)
-
-      # locations <- which(to_fill, arr.ind = TRUE) %>%
-      #   as.data.frame() %>%
-      #   setNames(c("x", "y", "z", "c"))
-      # x <- slc_cimg
-      # x[as.matrix(locations)] <- NA
-      # filled <- interp(x, locations)
-
-
+      return(img)
     },
 
     determine_fill_clean = function(val, img_names = NULL) {
@@ -653,15 +632,15 @@ ggbrain_images <- R6::R6Class(
       })
 
       # WIP
-      # if (any(fill_holes > 0L)) {
-      #   which_fill <- which(fill_holes > 0L)
-      #   slc <- lapply(slc, function(ss) {
-      #     ss[which_fill] <- lapply(which_fill, function(i) {
-      #       private$fill_img_holes(ss[[i]], fill_holes[i])
-      #     })
-      #   return(ss)
-      #   })
-      # }
+      if (any(fill_holes > 0L)) {
+        which_fill <- which(fill_holes > 0L)
+        slc <- lapply(slc, function(ss) {
+          ss[which_fill] <- lapply(which_fill, function(i) {
+            private$fill_img_holes(ss[[i]], fill_holes[i])
+          })
+        return(ss)
+        })
+      }
 
       if (any(clean_specks > 0L)) {
         which_clean <- which(clean_specks > 0L)

@@ -7,16 +7,17 @@
 //' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}. Default is 4.
 //' @param radius the radius (in pixels) around each missing value to search for non-missing neighbors. Default is 8.
 //' @param aggfun the function used to aggregate the neighbors in imputation. Supports "mean", "median", and "mode."
+//' @param ignore_zeros if TRUE, then zero is not a valid imputation value (since these are not data in NIfTIs)
 //' 
 //' @details The "mode" aggfun should only be used when the matrix \code{in_mat} can be converted to integers without loss
 //'   of information (i.e., the data are integerish values already).
 //' @return A copy of the matrix with NA values imputed by their nearest neighbors
-//' @keywords internal
+//' @export
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 
-arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun) {
+arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun, bool ignore_zeros) {
   // find NAs to interpolate
   mat out_mat = in_mat;
   //Rcout << "About to find non finite" << std::endl;
@@ -27,7 +28,7 @@ arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::str
   // loop over missing values and replace them with neighbors
   for (int i = 0; i < na_indices.size(); i++) {
     //Rcout << "calling nearest_pts for: " << na_mat(0,i) << ", " << na_mat(1,i) << std::endl;
-    arma::vec pts = nearest_pts(na_mat(0,i), na_mat(1,i), in_mat, neighbors, radius);
+    arma::vec pts = nearest_pts(na_mat(0,i), na_mat(1,i), in_mat, neighbors, radius, ignore_zeros);
     
     if (aggfun == "mean") {
       out_mat(na_indices(i)) = mean(pts);

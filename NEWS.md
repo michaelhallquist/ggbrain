@@ -1,5 +1,7 @@
 # ggbrain 0.7 (development)
 
+* feature: fill_holes now supported in add_images. Uses flood fill algorithm to find interior holes, then uses nearest neighbor imputation,
+    taking the mode for categorical images and mean for continuous images.
 * feature: for annotations, q<number> syntax now allows for quantiles above 1 or below 0, where 2 = 200% of max and -1 is -100% of min.
     This allows for annotations to be placed outside of image boundaries.
 * feature: implement Rcpp-based flood fill algorithm for finding interior holes on slices. Used for fill_holes.

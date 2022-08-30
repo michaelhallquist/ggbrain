@@ -62,8 +62,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // nearest_pts
-arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int radius);
-RcppExport SEXP _ggbrain_nearest_pts(SEXP xSEXP, SEXP ySEXP, SEXP in_matSEXP, SEXP neighborsSEXP, SEXP radiusSEXP) {
+arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int radius, bool ignore_zeros);
+RcppExport SEXP _ggbrain_nearest_pts(SEXP xSEXP, SEXP ySEXP, SEXP in_matSEXP, SEXP neighborsSEXP, SEXP radiusSEXP, SEXP ignore_zerosSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -72,13 +72,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type in_mat(in_matSEXP);
     Rcpp::traits::input_parameter< int >::type neighbors(neighborsSEXP);
     Rcpp::traits::input_parameter< int >::type radius(radiusSEXP);
-    rcpp_result_gen = Rcpp::wrap(nearest_pts(x, y, in_mat, neighbors, radius));
+    Rcpp::traits::input_parameter< bool >::type ignore_zeros(ignore_zerosSEXP);
+    rcpp_result_gen = Rcpp::wrap(nearest_pts(x, y, in_mat, neighbors, radius, ignore_zeros));
     return rcpp_result_gen;
 END_RCPP
 }
 // nn_impute
-arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun);
-RcppExport SEXP _ggbrain_nn_impute(SEXP in_matSEXP, SEXP neighborsSEXP, SEXP radiusSEXP, SEXP aggfunSEXP) {
+arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun, bool ignore_zeros);
+RcppExport SEXP _ggbrain_nn_impute(SEXP in_matSEXP, SEXP neighborsSEXP, SEXP radiusSEXP, SEXP aggfunSEXP, SEXP ignore_zerosSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -86,7 +87,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type neighbors(neighborsSEXP);
     Rcpp::traits::input_parameter< int >::type radius(radiusSEXP);
     Rcpp::traits::input_parameter< std::string >::type aggfun(aggfunSEXP);
-    rcpp_result_gen = Rcpp::wrap(nn_impute(in_mat, neighbors, radius, aggfun));
+    Rcpp::traits::input_parameter< bool >::type ignore_zeros(ignore_zerosSEXP);
+    rcpp_result_gen = Rcpp::wrap(nn_impute(in_mat, neighbors, radius, aggfun, ignore_zeros));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -108,8 +110,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ggbrain_fill_from_edge", (DL_FUNC) &_ggbrain_fill_from_edge, 2},
     {"_ggbrain_flood_fill", (DL_FUNC) &_ggbrain_flood_fill, 5},
     {"_ggbrain_integer_mode", (DL_FUNC) &_ggbrain_integer_mode, 2},
-    {"_ggbrain_nearest_pts", (DL_FUNC) &_ggbrain_nearest_pts, 5},
-    {"_ggbrain_nn_impute", (DL_FUNC) &_ggbrain_nn_impute, 4},
+    {"_ggbrain_nearest_pts", (DL_FUNC) &_ggbrain_nearest_pts, 6},
+    {"_ggbrain_nn_impute", (DL_FUNC) &_ggbrain_nn_impute, 5},
     {"_ggbrain_sort_mat", (DL_FUNC) &_ggbrain_sort_mat, 2},
     {NULL, NULL, 0}
 };

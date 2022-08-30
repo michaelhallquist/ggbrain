@@ -11,6 +11,8 @@
 \item{radius}{the radius (in pixels) around each missing value to search for non-missing neighbors. Default is 8.}
 
 \item{aggfun}{the function used to aggregate the neighbors in imputation. Supports "mean", "median", and "mode."}
+
+\item{ignore_zeros}{if TRUE, then zero is not a valid imputation value (since these are not data in NIfTIs)}
 }
 \value{
 A copy of the matrix with NA values imputed by their nearest neighbors
@@ -22,4 +24,3 @@ Imputes missing values in a 2D matrix based on the nearest non-missing neighbors
 The "mode" aggfun should only be used when the matrix \code{in_mat} can be converted to integers without loss
 of information (i.e., the data are integerish values already).
 }
-\keyword{internal}

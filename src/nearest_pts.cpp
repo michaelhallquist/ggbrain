@@ -15,7 +15,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 
-arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int radius) {
+arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int radius, bool ignore_zeros) {
   x = x - 1; // x position (subtract 1 to obtain 0-based index)
   y = y - 1; // y position
   int xs = in_mat.n_rows; // size of x (rows)
@@ -41,10 +41,12 @@ arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int 
       
       if ((min_x + i) == x && (min_y + j) == y) {
         rd(2) = datum::inf; // set infinite distance to self coordinate to remove it from consideration
-      } else if (!std::isnan(search(i,j))) {
-        rd(2) = sqrt(pow(x-(min_x+i), 2) + pow(y-(min_y+j), 2));
-      } else {
+      } else if (std::isnan(search(i,j))) {
         rd(2) = datum::inf; // set to infinite distance so that it sorts to the bottom
+      } else if (ignore_zeros && abs(search(i,j)) < 1e-4) {
+        rd(2) = datum::inf; // set to infinite distance if a zero is found since that is not seen as a valid data point
+      } else {
+        rd(2) = sqrt(pow(x-(min_x+i), 2) + pow(y-(min_y+j), 2)); // compute euclidean distance
       }
       
       dists.row(r) = rd;
