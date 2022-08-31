@@ -86,6 +86,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
     img_vars <- all.vars(as.formula(paste("~", expr)))
     brack_vars <- NULL
     subset_vars <- NULL
+    simple_subset <- FALSE
   } else {
     brack_expr <- apply(brack_df, 1, function(x) {
       trimws(substr(expr, x["open"]+1, x["close"]-1))

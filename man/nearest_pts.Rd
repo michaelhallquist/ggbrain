@@ -12,7 +12,9 @@
 
 \item{neighbors}{the number of closest non-NA neighboring values to return within \code{in_mat}}
 
-\item{radius}{the radius around \code{pt} to search.}
+\item{radius}{the radius around \code{pt} to search. Default: 8.}
+
+\item{ignore_zeros}{if TRUE, then zero is not a valid imputation value (since these are not data in NIfTIs)}
 }
 \value{
 A vector of \code{neighbors} closest neighboring values around \code{pt}

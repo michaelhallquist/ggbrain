@@ -10,6 +10,7 @@
 * bugfix:  ggbrain_slices still returns data for layers that are all NA so that layers are not dropped from range calculations.
 * bugfix:  do not add a ggbrain_layer to a plot if all of its values are NA. Adds all_na field.
 * bugfix:  properly handle ggbrain_images filter when an integer vector is provided
+* bugfix:  fix simple_subset for contrast_parser when there are no brackets in the expression
 
 # ggbrain 0.6 (9Aug2022)
 

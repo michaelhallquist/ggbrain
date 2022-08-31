@@ -72,7 +72,8 @@ integer_mode <- function(v, demote_zeros) {
 #' @param y y-position of the point whose neighbors should be found within \code{in_mat}
 #' @param in_mat a 2D matrix to search for neighbors of \code{pt}
 #' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}
-#' @param radius the radius around \code{pt} to search.
+#' @param radius the radius around \code{pt} to search. Default: 8.
+#' @param ignore_zeros if TRUE, then zero is not a valid imputation value (since these are not data in NIfTIs)
 #' 
 #' @return A vector of \code{neighbors} closest neighboring values around \code{pt}
 #' @keywords internal
