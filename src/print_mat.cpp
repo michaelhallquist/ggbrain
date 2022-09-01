@@ -2,13 +2,13 @@
 
 void print_mat(arma::mat my_matrix) {
   
-  uint cols = my_matrix.n_cols;
-  uint rows = my_matrix.n_rows;
+  unsigned int cols = my_matrix.n_cols;
+  unsigned int rows = my_matrix.n_rows;
   
   Rcout << "--------\n";
-  for(uint rX = 0; rX < rows; rX++) {
+  for(unsigned int rX = 0; rX < rows; rX++) {
     Rcout << " " << rX << ": ";
-    for(uint cX = 0; cX < cols; cX++) {
+    for(unsigned int cX = 0; cX < cols; cX++) {
       Rcout << my_matrix(rX, cX) << " ";
     }
     Rcout << "\n";
