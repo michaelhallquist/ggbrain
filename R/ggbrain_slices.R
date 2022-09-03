@@ -222,6 +222,7 @@ ggbrain_slices <- R6::R6Class(
               dplyr::left_join(src_df, by = c("dim1", "dim2", "value"))
           }
 
+          return(df)
         }) %>% setNames(names(contrast_list))
 
         private$pvt_slice_data[[ww]][names(c_data)] <- c_data # update/set relevant elements of slice data

@@ -18,13 +18,12 @@
 #'  res <- contrast_parser("a + f + dsf [ bin1 == 1 ] * abc[ abc > 1 ] + b", data)
 #'  res <- contrast_parser("dsf [ bin1 == 1 ] + b", data)
 #'  res <- contrast_parser("dsf * abc", data)
-#'  res <- contrast_parser("1 = a > 3; 2 = b > 3; 3 = a > 3 & b > 3")
+#'  res <- contrast_parser("1 := a > 3; 2 := b > 3; 3 := a > 3 & b > 3")
 #' }
 #' @author Michael Hallquist
 #' @importFrom checkmate assert_data_frame assert_subset
 #' @keywords internal
 contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
-
   if (is.expression(expr)) { # expand expression as character vector
     expr <- capture.output(cat(as.character(expr), sep = "\n"))
   } else if (!checkmate::test_string(expr)) {
@@ -37,28 +36,28 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   if (grepl(";", expr, fixed=TRUE)) {
     expr_list <- strsplit(expr, "\\s*;\\s*", perl = TRUE)[[1]]
 
-    c_list <- lapply(expr_list, function(e) {
-      if (!grepl("^\\s*[\\w+_\\.]+\\s*=\\s*[^=]+", e, perl = TRUE)) {
-        stop(glue::glue("Compound expression {e} does not follow the <value> = <expr> syntax"))
+    c_list <- lapply(seq_along(expr_list), function(e) {
+      this_exp <- expr_list[e]
+      if (!grepl("^\\s*[\\w+_\\.]+\\s*:=\\s*[^=]+", this_exp, perl = TRUE)) {
+        stop(glue::glue("Compound expression {this_exp} does not follow the <value> := <expr> syntax"))
       }
 
-      eq_pos <- regexpr("=", e, fixed = TRUE)
-      val <- trimws(substr(e, 1, eq_pos - 1)) # just value to be used (left-hand side)
-      e <- trimws(substr(e, eq_pos + 1, nchar(e))) # just expression after equals
+      eq_pos <- regexpr(":=", this_exp, fixed = TRUE)
+      val <- trimws(substr(this_exp, 1, eq_pos - 1)) # just value to be used (left-hand side)
+      this_exp <- trimws(substr(this_exp, eq_pos + 2, nchar(this_exp))) # just expression after equals
 
-      df <- contrast_parser(e, data = data, default_val = default_val)
-      #   dplyr::rename(!!val := value)
-
-      ret <- list(val = val, df = df)
+      df <- contrast_parser(this_exp, data = data, default_val = default_val)
+      ret <- list(num = e, val = val, df = df)
 
       return(ret)
     })
 
     # iteratively set elements of the resulting value vector so that the later
     # parts of the compound expression, if TRUE, overwrite earlier parts
-    comb_df <- data.frame(data[, c("dim1", "dim2")], value = NA_character_)
+    comb_df <- data.frame(data[, c("dim1", "dim2")], value = NA_integer_, label = NA_character_)
     for (cc in c_list) {
-      comb_df$value[cc$df$value == TRUE] <- as.character(cc$val)
+      comb_df$value[cc$df$value == TRUE] <- cc$num
+      comb_df$label[cc$df$value == TRUE] <- as.character(cc$val)
     }
 
     return(comb_df)
