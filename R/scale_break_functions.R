@@ -18,7 +18,7 @@ integer_breaks <- function(n = 5, ...) {
 #' @export
 range_breaks <- function(n=3, digits=2) {
   fxn <- function(x) {
-    if (is.null(x) || all(is.na(x) || all(is.infinite(x)))) {
+    if (is.null(x) || all(is.na(x)) || all(is.infinite(x))) {
       breaks <- logical(0) # no breaks
     } else {
       breaks <- seq(from = min(x, na.rm = TRUE), to = max(x, na.rm = TRUE), length.out = n + 2)

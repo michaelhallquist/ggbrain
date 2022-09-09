@@ -12,6 +12,7 @@
 * bugfix:  properly handle ggbrain_images filter when an integer vector is provided
 * bugfix:  fix simple_subset for contrast_parser when there are no brackets in the expression
 * bugfix:  correct contrast_parser for conjunctions so that both numeric value and label are returned. Also now use := syntax for values.
+* bugfix:  fully remove assumption of "label" column in categorical layers, fixing calculation of unique values in each categorical layer
 
 # ggbrain 0.6 (9Aug2022)
 

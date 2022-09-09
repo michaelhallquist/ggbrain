@@ -3,6 +3,7 @@
 #' @importFrom tidyr pivot_wider pivot_longer unnest
 #' @importFrom tibble tibble
 #' @importFrom tidyselect matches
+#' @importFrom data.table melt rbindlist setDF
 #' @author Michael Hallquist
 #' @keywords internal
 ggbrain_slices <- R6::R6Class(
@@ -33,29 +34,53 @@ ggbrain_slices <- R6::R6Class(
       img_slice <- private$pvt_slice_data[slice_indices]
       if (isTRUE(only_labeled)) {
         # which layers are labeled
-        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) "label" %in% names(x))
+        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_cols")))
         stopifnot(sum(has_labels) > 0L) # would be a problem
 
         # subset img_slice to only labeled layers
         img_slice <- lapply(img_slice, function(ll) ll[has_labels])
       }
 
-      if (all(sapply(img_slice, length) > 0L)) {
-        # img_data <- purrr::transpose(img_slice) %>% bind_rows(.id = "slice_index")
-        # since this is a nested list, bind_rows will generate list-columns for each layer with corresponding layer data
-        img_data <- img_slice %>% bind_rows(.id = "slice_index")
-      } else {
-        img_data <- NULL
-      }
+      # ensure that we still have data to return
+      if (any(sapply(img_slice, length) == 0L)) return(NULL)
 
-      # get names of all columns (layers) except the index
-      layer_names <- grep("slice_index", names(img_data), invert = TRUE, value = TRUE)
+      nslices <- length(img_slice)
+      nlayers <- length(img_slice[[1L]]) # assumes, rightly, that all slices have the same layers
+      layer_names <- names(img_slice[[1L]])
+      
+      img_data <- lapply(seq_len(nlayers), function(ll) {
+        label_cols <- attr(img_slice[[1L]][[ll]], "label_cols")
+        ll_df <- lapply(img_slice, "[[", ll) %>%
+          data.table::rbindlist(idcol="slice_index")
 
-      # convert into a long data frame with layer and slice_index as keys, drop NAs
-      img_data <- img_data %>%
-        tidyr::pivot_longer(cols = all_of(layer_names), names_to = "layer", values_to = "slice_data") %>%
-        tidyr::unnest(slice_data) %>%
-        dplyr::mutate(slice_index = as.integer(slice_index))
+        # if label columns are present, gather them into a single key-value pair
+        if (!is.null(label_cols)) {
+          ll_df <- data.table::melt(ll_df, measure.vars=label_cols, variable.name=".label_col", value.name=".label_val")
+        }
+
+        ll_df[,layer := layer_names[ll]]
+        return(ll_df)
+      }) %>%
+      data.table::rbindlist(fill=TRUE) %>% 
+      data.table::setDF()
+
+
+      # if (all(sapply(img_slice, length) > 0L)) {
+      #   # img_data <- purrr::transpose(img_slice) %>% bind_rows(.id = "slice_index")
+      #   # since this is a nested list, bind_rows will generate list-columns for each layer with corresponding layer data
+      #   img_data <- img_slice %>% bind_rows(.id = "slice_index")
+      # } else {
+      #   img_data <- NULL
+      # }
+
+      # # get names of all columns (layers) except the index
+      # layer_names <- grep("slice_index", names(img_data), invert = TRUE, value = TRUE)
+
+      # # convert into a long data frame with layer and slice_index as keys
+      # img_data <- img_data %>%
+      #   tidyr::pivot_longer(cols = all_of(layer_names), names_to = "layer", values_to = "slice_data") %>%
+      #   tidyr::unnest(slice_data) %>%
+      #   dplyr::mutate(slice_index = as.integer(slice_index))
 
       return(img_data)
     }
@@ -228,8 +253,6 @@ ggbrain_slices <- R6::R6Class(
         private$pvt_slice_data[[ww]][names(c_data)] <- c_data # update/set relevant elements of slice data
       }
 
-
-
       private$pvt_layer_names <- names(private$pvt_slice_data[[1]]) # update object with new names
       private$pvt_is_contrast[names(contrast_list)] <- TRUE
       private$pvt_contrast_definitions[names(contrast_list)] <- contrast_list # keep track of definitions
@@ -289,14 +312,14 @@ ggbrain_slices <- R6::R6Class(
     #' @param slice_indices an optional integer vector of slice indices to be used as a subset in the calculation
     get_uvals = function(slice_indices = NULL) {
       # examine first slice to see if any layers have labels (reasonably assumes all slices have same layers)
-      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) "label" %in% names(x))
+      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_cols")))
       if (!any(has_labels)) {
         return(data.frame()) # return empty data.frame
       } else {
         img_data <- private$get_combined_data(slice_indices, only_labeled = TRUE)
         img_uvals <- img_data %>%
-          group_by(layer) %>%
-          dplyr::summarize(uvals = unique(label), .groups = "drop") %>%
+          group_by(layer, .label_col) %>%
+          dplyr::summarize(uvals = unique(.label_val), .groups = "drop") %>%
           na.omit()
       }
 

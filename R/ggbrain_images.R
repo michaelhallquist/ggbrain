@@ -631,7 +631,6 @@ ggbrain_images <- R6::R6Class(
         self$get_slices_inplane(img_names, slc$slice_number, slc$plane, drop = TRUE)
       })
 
-      # WIP
       if (any(fill_holes > 0L)) {
         which_fill <- which(fill_holes > 0L)
         slc <- lapply(slc, function(ss) {
