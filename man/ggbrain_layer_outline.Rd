@@ -34,16 +34,16 @@ R6 class for a single layer of a ggbrain panel using outline geom
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="add_to_gg"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-add_to_gg'><code>ggbrain::ggbrain_layer$add_to_gg()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="get_data"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-get_data'><code>ggbrain::ggbrain_layer$get_data()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="is_empty"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-is_empty'><code>ggbrain::ggbrain_layer$is_empty()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="plot"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-plot'><code>ggbrain::ggbrain_layer$plot()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_breaks"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_breaks'><code>ggbrain::ggbrain_layer$set_breaks()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_limits"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_limits'><code>ggbrain::ggbrain_layer$set_limits()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_neg_breaks"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_neg_breaks'><code>ggbrain::ggbrain_layer$set_neg_breaks()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_neg_limits"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_neg_limits'><code>ggbrain::ggbrain_layer$set_neg_limits()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_pos_breaks"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_pos_breaks'><code>ggbrain::ggbrain_layer$set_pos_breaks()</code></a></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_pos_limits"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_pos_limits'><code>ggbrain::ggbrain_layer$set_pos_limits()</code></a></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="add_to_gg"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-add_to_gg'><code>ggbrain::ggbrain_layer$add_to_gg()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="get_data"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-get_data'><code>ggbrain::ggbrain_layer$get_data()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="is_empty"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-is_empty'><code>ggbrain::ggbrain_layer$is_empty()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="plot"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-plot'><code>ggbrain::ggbrain_layer$plot()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_breaks"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_breaks'><code>ggbrain::ggbrain_layer$set_breaks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_limits"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_limits'><code>ggbrain::ggbrain_layer$set_limits()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_neg_breaks"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_neg_breaks'><code>ggbrain::ggbrain_layer$set_neg_breaks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_neg_limits"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_neg_limits'><code>ggbrain::ggbrain_layer$set_neg_limits()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_pos_breaks"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_pos_breaks'><code>ggbrain::ggbrain_layer$set_pos_breaks()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_pos_limits"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-set_pos_limits'><code>ggbrain::ggbrain_layer$set_pos_limits()</code></a></span></li>
 </ul>
 </details>
 }}

@@ -33,7 +33,7 @@ image arithmetic and logical subsetting
  res <- contrast_parser("a + f + dsf [ bin1 == 1 ] * abc[ abc > 1 ] + b", data)
  res <- contrast_parser("dsf [ bin1 == 1 ] + b", data)
  res <- contrast_parser("dsf * abc", data)
- res <- contrast_parser("1 = a > 3; 2 = b > 3; 3 = a > 3 & b > 3")
+ res <- contrast_parser("1 := a > 3; 2 := b > 3; 3 := a > 3 & b > 3")
 }
 }
 \author{

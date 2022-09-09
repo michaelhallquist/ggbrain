@@ -3,7 +3,7 @@
 #' @importFrom tidyr pivot_wider pivot_longer unnest
 #' @importFrom tibble tibble
 #' @importFrom tidyselect matches
-#' @importFrom data.table melt rbindlist setDF
+#' @importFrom data.table melt rbindlist setDF :=
 #' @author Michael Hallquist
 #' @keywords internal
 ggbrain_slices <- R6::R6Class(
@@ -63,24 +63,6 @@ ggbrain_slices <- R6::R6Class(
       }) %>%
       data.table::rbindlist(fill=TRUE) %>% 
       data.table::setDF()
-
-
-      # if (all(sapply(img_slice, length) > 0L)) {
-      #   # img_data <- purrr::transpose(img_slice) %>% bind_rows(.id = "slice_index")
-      #   # since this is a nested list, bind_rows will generate list-columns for each layer with corresponding layer data
-      #   img_data <- img_slice %>% bind_rows(.id = "slice_index")
-      # } else {
-      #   img_data <- NULL
-      # }
-
-      # # get names of all columns (layers) except the index
-      # layer_names <- grep("slice_index", names(img_data), invert = TRUE, value = TRUE)
-
-      # # convert into a long data frame with layer and slice_index as keys
-      # img_data <- img_data %>%
-      #   tidyr::pivot_longer(cols = all_of(layer_names), names_to = "layer", values_to = "slice_data") %>%
-      #   tidyr::unnest(slice_data) %>%
-      #   dplyr::mutate(slice_index = as.integer(slice_index))
 
       return(img_data)
     }
