@@ -12,6 +12,7 @@ Imports:
     RNifti,
     checkmate,
     cowplot,
+    data.table,
     dplyr,
     ggplot2,
     ggnewscale,
