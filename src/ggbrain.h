@@ -17,5 +17,7 @@ void print_mat(arma::mat my_matrix);
 arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors, int radius, bool ignore_zeros);
 int integer_mode(arma::ivec v, bool demote_zeros = true);
 arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun, bool ignore_zeros);
+DataFrame mat2df(const arma::mat& mat);
+NumericMatrix df2mat(const DataFrame& df);
 
 #endif

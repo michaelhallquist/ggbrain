@@ -23,6 +23,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// df2mat
+NumericMatrix df2mat(const DataFrame& df);
+RcppExport SEXP _ggbrain_df2mat(SEXP dfSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
+    rcpp_result_gen = Rcpp::wrap(df2mat(df));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fill_from_edge
 LogicalMatrix fill_from_edge(LogicalMatrix im, int nedges);
 RcppExport SEXP _ggbrain_fill_from_edge(SEXP imSEXP, SEXP nedgesSEXP) {
@@ -58,6 +69,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::ivec >::type v(vSEXP);
     Rcpp::traits::input_parameter< bool >::type demote_zeros(demote_zerosSEXP);
     rcpp_result_gen = Rcpp::wrap(integer_mode(v, demote_zeros));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mat2df
+DataFrame mat2df(const arma::mat& mat);
+RcppExport SEXP _ggbrain_mat2df(SEXP matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(mat2df(mat));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -107,9 +129,11 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ggbrain_count_neighbors", (DL_FUNC) &_ggbrain_count_neighbors, 2},
+    {"_ggbrain_df2mat", (DL_FUNC) &_ggbrain_df2mat, 1},
     {"_ggbrain_fill_from_edge", (DL_FUNC) &_ggbrain_fill_from_edge, 2},
     {"_ggbrain_flood_fill", (DL_FUNC) &_ggbrain_flood_fill, 5},
     {"_ggbrain_integer_mode", (DL_FUNC) &_ggbrain_integer_mode, 2},
+    {"_ggbrain_mat2df", (DL_FUNC) &_ggbrain_mat2df, 1},
     {"_ggbrain_nearest_pts", (DL_FUNC) &_ggbrain_nearest_pts, 6},
     {"_ggbrain_nn_impute", (DL_FUNC) &_ggbrain_nn_impute, 5},
     {"_ggbrain_sort_mat", (DL_FUNC) &_ggbrain_sort_mat, 2},

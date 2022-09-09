@@ -16,6 +16,25 @@ count_neighbors <- function(im, diagonal = TRUE) {
     .Call(`_ggbrain_count_neighbors`, im, diagonal)
 }
 
+#' Convert a 3-column data.frame (dim1, dim2, value) to a 2-D matrix
+#' 
+#' @name df2mat
+#'
+#' @param x   A \code{matrix} to sort
+#' @param col A \code{int} that indicates the column the matrix should sort by.
+#' @details
+#' There is virtually no input validation of \code{df}. You must pass a data.frame that has dim1, dim2, and value as
+#'   columns. Otherwise, it will not work as expected.
+#'
+#' This is a much faster version of the acast function from \code{reshape2} that works only on 2-D matrix conversions.
+#' @return The matrix form of the keyed data.frame object
+#' @keywords internal
+NULL
+
+df2mat <- function(df) {
+    .Call(`_ggbrain_df2mat`, df)
+}
+
 #' This function finds holes by flood filling TRUE into a 2D binary image, starting from the edge
 #'
 #' @name fill_from_edge
@@ -63,6 +82,21 @@ NULL
 
 integer_mode <- function(v, demote_zeros) {
     .Call(`_ggbrain_integer_mode`, v, demote_zeros)
+}
+
+#' Fast conversion of 2D mat to 3-column data.frame with dim1, dim2, value
+#' 
+#' @name mat2df
+#' @description Converts a 2D numeric matrix into a 3-column data.frame
+#' @details This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2x faster than melt.
+#' @param mat A \code{matrix} to convert to data.frame
+#' @return A 3-column data.frame with dim1, dim2, and value
+#' @keywords internal
+#' @author Michael Hallquist
+NULL
+
+mat2df <- function(mat) {
+    .Call(`_ggbrain_mat2df`, mat)
 }
 
 #' Finds the nearest non-missing neighbors of a target point in a 2D matrix
