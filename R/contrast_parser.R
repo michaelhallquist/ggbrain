@@ -22,6 +22,8 @@
 #' }
 #' @author Michael Hallquist
 #' @importFrom checkmate assert_data_frame assert_subset
+#' @importFrom dplyr across mutate
+#' @importFrom tidyselect everything
 #' @keywords internal
 contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   if (is.expression(expr)) { # expand expression as character vector
@@ -146,9 +148,16 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
          paste(mismatch, collapse=", "))
   }
 
-
   # start with a copy of relevant variables
-  out_data <- data[, union(img_vars, brack_vars), drop=FALSE]
+  out_data <- data[, union(img_vars, brack_vars), drop = FALSE]
+
+  rm_na <- function(v) {
+    v[is.na(v)] <- 0
+    return(v)
+  }
+
+  # convert NAs to 0s so that expressions such as x < 0 do not become NA unexpectedly, rather than TRUE/FALSE
+  out_data <- out_data %>% dplyr::mutate(dplyr::across(tidyselect::everything(), ~ rm_na(.)))
 
   # will skip if no subset
   for (vi in seq_along(subset_vars)) {
@@ -176,7 +185,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   if (isTRUE(simple_subset)) {
     attr(out_df, "img_source") <- img_vars
   }
-  
+
   return(out_df)
 }
 

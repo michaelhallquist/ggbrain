@@ -12,7 +12,7 @@ library(ggbrain)
 
 # Overview of ggbrain
 
-The `ggbrain` package uses the `ggplot2` package to create volume renderings of NIfTI files containing MRI data. It seeks to follow the principles of a graphical grammar in which plots are built from 
+The `ggbrain` package uses the `ggplot2` package to create volume renderings of NIfTI files containing MRI data. It seeks to follow the principles of a graphical grammar in which plots are built from datasets that are 
 
 ## The hierarchy of a ggbrain plot
 
@@ -33,6 +33,8 @@ gg_obj <- ggbrain()
 ```
 
 Consistent with the `ggplot2` approach, additional elements can be added using the `+` operator, as we elaborate below. The main thing to know at this point is that **you need to add all ggbrain-specific elements before adding typical ggplot components such as `theme()`**.
+
+Also note that the order of the addition operations such as `add_images` and `add_slices` can occur in any order. The order below of adding images, slices, layers, and labels is conceptually intuitive, but could be reordered. As in ggplot2, the order of all geom_* layers *does* matter, such that geom_* layers that are added later are rendered on top of layers added earlier. For example, the geom_brain() layer for an underlay image should be added before an overlay.
 
 ## Add images
 
@@ -55,24 +57,99 @@ Note that the image name of 'underlay' has a special meaning in the package. Spe
 
 ### Resampling images to have the same resolution
 
-Oftentimes, higher-resolution images (e.g., 1mm) yield better graphics since they potentially provide more detail. But fMRI data are often of lower resolution than T1-weighted images. If you wish to render your fMRI data on a higher-resolution anatomical template in `ggbrain`, you can first use AFNI's `3dresample` command to resample your functional data to match the anatomical template (underlay). 
+Oftentimes, higher-resolution images (e.g., 1mm) yield better graphics since they potentially provide more detail. But fMRI data are often of lower resolution than T1-weighted images. If you wish to render your fMRI data on a higher-resolution anatomical template in `ggbrain`, you can first use AFNI's `3dresample` command to resample your functional data to match the anatomical template (underlay).
+
+Here is an example of resampling a 3mm statistic image to a 1mm underlay using nearest neighbor interpolation. Note that the image to be resampled should be in the same sterotaxic space as the master/template image.
+
+```
+3dresample -input echange_overall_zstat_3mm.nii.gz \
+  -prefix echange_overall_zstat_1mm.nii.gz \
+  -master mni_template_2009c_1mm.nii.gz \
+  -rmode NN
+```
 
 ### Cleaning small 'specks' from image slices
 
-At times, when slicing a given image (esp. functional activations), it is possible that some clusters are very small, yielding small 'specks' on the rendered slices. These are visually unappealing and may merit removal, depending on your tastes. Of course, removing these specks can, at the extreme, misrepresent the data, which is undesirable. This concern notwithstanding, you can use the `clean_specks` argument of `add_images` to specify the voxel threshold used to remove clusters smaller than a certain size. For example, `clean_specks = 30` would remove any clusters smaller than 30 voxels in size from each slice on the rendered image.
+At times, when slicing a given image (esp. functional activations), it is possible that some clusters are very small, yielding small 'specks' on some rendered slices. These are visually unappealing and may merit removal, depending on your tastes. Of course, removing these specks can, at the extreme, misrepresent the data, which is undesirable. This concern notwithstanding, you can use the `clean_specks` argument of `add_images` to specify the voxel threshold used to remove clusters smaller than a certain size. For example, `clean_specks = 30` would remove any clusters smaller than 30 voxels in size from each slice on the rendered image.
 
 ```{r}
 echange_overlay_3mm <- system.file("extdata", "echange_overall_zstat_3mm.nii.gz", package = "ggbrain")
 gg_obj <- gg_obj + add_images(echange=echange_overlay_3mm, clean_specks=30)
 ```
 
-### 
+### Filling small holes in image slices
 
-# Adding slices
+Another aesthetic problem is that at times there will be small holes on the interior of a cluster. These may reflect voxels that fall below a statistical threshold (e.g., voxels that have a z-statistic value of 3.02 in a cluster defined by z > 3.1). These can be filled in using the `fill_holes` argument of `add_images`. This specifies the size of holes (in voxels) that should be filled on the rendered slices. For example, `fill_holes = 30` would fill holes of 30 or fewer voxels on the interior of each cluster. The holes are filled by nearest neighbor imputation in which the nearest non-missing voxels are used to impute missing voxels. In integer-valued/categorical images, the mode of the neighboring voxels is used for imputation.
 
-# Adding outlines 
+```{r}
+gg_obj <- gg_obj + add_images(echange=echange_overlay_3mm, clean_specks=30, fill_holes=30)
+```
 
-# Adding brain overlay layers to a plot
+
+## Adding slices
+
+After adding images to the ggbrain object, the next step is to specify which slices should be displayed on the plot. This is achieved using the  Following standard neuroimaging terminology, we can add axial, sagittal, and coronal slices. The order of the addition operations, whether within a single `add_slices()` call or in a sequence of calls like `add_slices("x=12") + add_slices(c("y=15", "z=10"))`, determines the order of panels on the rendered plot from upper left to lower right (following the standard `facet_wrap()` conventions in ggplot2).
+
+### Adding slices by spatial position
+
+The most conventional approach is add slices based on their spatial position along one of three cardinal axes, x/sagittal, y/coronal, or z/axial. You can determine the locations of interest using an interactive image viewer such as afni or fsleyes. Or, as described below, you could add a montage of images, add the coordinate labels on the panels, then choose the coordinates of the slices that are most relevant.
+
+You can add one or more slices using `add_slices()` by passing a character vector of positions.
+
+```{r}
+gg_obj <- gg_obj + add_slices(c("x = 10", "y = 70", "z = 15"))
+```
+
+This will add one sagittal slice (x=10), one coronal (y=70), and one axis (z=15).
+
+### Adding slices by quantile
+
+If you want to use standardized coordinates in terms of percentiles, rather than spatial coordinates, you can append "%" at the end of the `add_slices()` specification. This will find the position of the corresponding slice along the axis between 0% and 100%. These percentiles are computed based on the slices that are not entirely empty (i.e., not all zero).
+
+```{r}
+gg_obj <- gg_obj + add_slices(c("x = 25%", "y = 50%", "z = 90%"))
+```
+
+### Adding a single slice with additional aesthetic details
+
+The `add_slices()` function allows you to add many slices at once, but it does not allow you to alter specific aesthetic elements such as the panel title, border, or axis labels. If you would like finer control over the aesthetics of a single slice, use `add_slice()`. This function supports a number of additional arguments that will alter the appearance of the slice, including:
+
+- title: The panel title
+- bg_color: The background color of the panel
+- text_color: The color of text on the panel
+- border_color: The color of a border around the panel
+- border_size: The size (thickness) of the border around the panel. Default is NULL (none).
+- xlab: The x axis label of the panel
+- ylab: The y axis label of the panel
+- theme_custom: A ggplot2 `theme()` (or list of theme calls) added to this panel that customizes its appearance.
+
+```{r}
+gg_obj <- gg_obj + add_slice("x = 25%", bg_color = "gray25", xlab = "x axis", theme_custom = theme(axis.text.x = element_text(size=24)))
+```
+
+### Adding montages
+
+If you would like a set of slices along one of the image planes to form a montage, you can use the `montage()` convenience function to specify the inputs to `add_slices()`. The arguments are 
+
+- plane: "sagittal", "coronal", or "axial"
+- n: the number of slices to render along this plane
+- min: the lowest quantile to be included (between 0 and 1). Default: 0.1
+- max: the highest quantile to be included (between 0 and 1). Default: 0.9.
+
+```{r}
+gg_obj <- gg_obj + add_slices(montage("axial", 10, min = 0.1, max = 0.8))
+```
+
+## Adding brain overlay layers to a plot
+
+
+
+
+## Adding outlines 
+
+
+
+
 
 # Labeling regions
 
@@ -94,6 +171,10 @@ a <- ggbrain(bg_color = "gray60", text_color = "black") +
   geom_region_label_repel(image = "dan_clust", label_column = "roi_label", min.segment.length = 0, size = 1.5, color = "black", force_pull = 0.2, max.overlaps = Inf) +
   render() + plot_layout(guides = "collect")
 ```
+
+# Saving ggbrain plots to file
+
+# Aesthetic mappings for 
 
 # Combining ggbrain plots
 

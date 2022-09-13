@@ -716,7 +716,8 @@ ggbrain_images <- R6::R6Class(
       slc_nestlist <- lapply(slc, function(dd) {
         # each element of dd is a square matrix for a given image
         sapply(names(dd), function(lname) {
-          df <- reshape2::melt(dd[[lname]], varnames = c("dim1", "dim2"))
+          #df <- reshape2::melt(dd[[lname]], varnames = c("dim1", "dim2"))
+          df <- mat2df(dd[[lname]]) # use internal melt, which is faster
           df$image <- lname
           return(df)
         }, USE.NAMES = TRUE, simplify = FALSE)

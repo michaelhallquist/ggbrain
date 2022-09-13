@@ -23,9 +23,10 @@ DataFrame mat2df(const arma::mat& mat) {
   arma::vec val (df.colptr(2), nrow*ncol, false);
   val = mat.as_col();
   
+  // populate dim1 and dim2 lookups by looping over row and column combinations
   int v = 0;
-  for (int i = 1; i <= nrow; i++) {
-    for (int j = 1; j <= ncol; j++) {
+  for (int i = 1; i <= ncol; i++) {
+    for (int j = 1; j <= nrow; j++) {
       dim1(v) = j;
       dim2(v) = i;
       v++;
@@ -41,7 +42,8 @@ DataFrame mat2df(const arma::mat& mat) {
 
 /*** R
 m <- matrix(1:10000, nrow=100)
-#d <- mat2df(m)
+d <- mat2df(m)
+dref <- reshape2::melt(m, varnames=c("dim1", "dim2"))
 #str(m)
 #str(d)
 #m_recon <- df2mat(d)
@@ -49,6 +51,7 @@ library(microbenchmark)
 microbenchmark(
   cpp = mat2df(m),
   r = reshape2::melt(m),
+  k = Kmisc::melt_(m),
   dt = data.table(
     row = rep(seq_len(nrow(m)), ncol(m)), 
     col = rep(seq_len(ncol(m)), each = nrow(m)), 

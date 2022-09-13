@@ -6,6 +6,7 @@
     This allows for annotations to be placed outside of image boundaries.
 * feature: implement Rcpp-based flood fill algorithm for finding interior holes on slices. Used for fill_holes.
 * feature: implement Rcpp-based pixel neighbor counting algorithm to clean up frayed edges of outlines and fills.
+* feature: switch to Rcpp mat2df function instead of reshape2::melt for speed
 * bugfix:  when geom_raster is provided with alpha and na.value='transparent', it draws semi-transparent squares. Switched to na.omit() when alpha < 1.
 * bugfix:  ggbrain_slices still returns data for layers that are all NA so that layers are not dropped from range calculations.
 * bugfix:  do not add a ggbrain_layer to a plot if all of its values are NA. Adds all_na field.
@@ -13,6 +14,7 @@
 * bugfix:  fix simple_subset for contrast_parser when there are no brackets in the expression
 * bugfix:  correct contrast_parser for conjunctions so that both numeric value and label are returned. Also now use := syntax for values.
 * bugfix:  fully remove assumption of "label" column in categorical layers, fixing calculation of unique values in each categorical layer
+* bugfix:  convert NAs to 0s within contrast parsing so that numeric logical comparisons always yield TRUE/FALSE and not NA.
 
 # ggbrain 0.6 (9Aug2022)
 
