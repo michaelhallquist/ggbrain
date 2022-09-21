@@ -6,7 +6,7 @@
     This allows for annotations to be placed outside of image boundaries.
 * feature: implement Rcpp-based flood fill algorithm for finding interior holes on slices. Used for fill_holes.
 * feature: implement Rcpp-based pixel neighbor counting algorithm to clean up frayed edges of outlines and fills.
-* feature: switch to Rcpp mat2df function instead of reshape2::melt for speed
+* feature: switch to Rcpp mat2df function instead of reshape2::melt for speed. Remove reshape2 dependency
 * bugfix:  when geom_raster is provided with alpha and na.value='transparent', it draws semi-transparent squares. Switched to na.omit() when alpha < 1.
 * bugfix:  ggbrain_slices still returns data for layers that are all NA so that layers are not dropped from range calculations.
 * bugfix:  do not add a ggbrain_layer to a plot if all of its values are NA. Adds all_na field.

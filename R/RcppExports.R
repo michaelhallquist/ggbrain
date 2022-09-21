@@ -20,8 +20,9 @@ count_neighbors <- function(im, diagonal = TRUE) {
 #' 
 #' @name df2mat
 #'
-#' @param x   A \code{matrix} to sort
-#' @param col A \code{int} that indicates the column the matrix should sort by.
+#' @param df   A \code{data.frame} representing a melted 2-D matrix, having columns dim1, dim2, and value
+#' @param replace_na if not \code{NULL}, this numeric value will be used to replace any NAs in \code{df} in the
+#'   resulting matrix. This is useful if downstream code is not built to handle missing values.
 #' @details
 #' There is virtually no input validation of \code{df}. You must pass a data.frame that has dim1, dim2, and value as
 #'   columns. Otherwise, it will not work as expected.
@@ -31,8 +32,8 @@ count_neighbors <- function(im, diagonal = TRUE) {
 #' @keywords internal
 NULL
 
-df2mat <- function(df) {
-    .Call(`_ggbrain_df2mat`, df)
+df2mat <- function(df, replace_na = NULL) {
+    .Call(`_ggbrain_df2mat`, df, replace_na)
 }
 
 #' This function finds holes by flood filling TRUE into a 2D binary image, starting from the edge
@@ -50,6 +51,26 @@ NULL
 
 fill_from_edge <- function(im, nedges = 2L) {
     .Call(`_ggbrain_fill_from_edge`, im, nedges)
+}
+
+#' This function finds 'threads' hanging off of the edges of blobs in an image, allowing the user to trim them
+#'
+#' @name find_threads
+#' @param im A numeric matrix representing an image, with non-zero values representing pixels to display
+#' @param min_neighbors the minimum number of neighbors a pixel must have to be retained
+#' @param maxit the maximum number of iterations to run the thread trimming algorithm. Default: 15.
+#' @param diagonal Whether to count diagonal elements as valid neighbors
+#' @return A logical matrix matrix of the same size as \code{im} containing the number of neighboring pixels
+#'
+#' @details This algorithm runs count_neighbors iteratively until no pixel exceeds the trimming threshold \code{min_neighbors}
+#'   or the maximum number of iterations, \code{maxit}, is reached.
+#'   
+#'   By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.
+#' @author Michael Hallquist
+NULL
+
+find_threads <- function(img, min_neighbors = 2L, maxit = 15L, diagonal = FALSE) {
+    .Call(`_ggbrain_find_threads`, img, min_neighbors, maxit, diagonal)
 }
 
 #' This function flood fills a binary image with TRUE for any value of FALSE

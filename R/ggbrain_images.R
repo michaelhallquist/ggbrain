@@ -3,7 +3,6 @@
 #' @importFrom rlang flatten
 #' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
 #' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset test_atomic
-#' @importFrom reshape2 melt
 #' @importFrom tidyr unnest
 #' @importFrom tibble remove_rownames
 #' @importFrom tidyselect everything

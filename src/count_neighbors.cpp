@@ -10,20 +10,29 @@
 //' @details This is an internal function used by geom_outline to clean up outlines
 //' @author Michael Hallquist
 
+// [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 
-NumericMatrix count_neighbors(LogicalMatrix im, bool diagonal = true) {
-  int r = im.nrow();
-  int c = im.ncol();
+arma::imat count_neighbors(const arma::umat& im, bool diagonal = true) {
+  int r = im.n_rows;
+  int c = im.n_cols;
   
   // Rcout << "rows: " << r << ", cols: " << c;
   
   int n = 0;
-  NumericMatrix neighbors(r, c);
+  arma::imat neighbors(r, c, fill::zeros);
   
   for (int i = 0; i < r; i++) {
     for (int j = 0; j < c; j++) {
       n = 0; // reset count
+      
+      // if pixel is FALSE (empty), neighbor count is always NA
+      if (im(i, j) == 0) {
+        //Rcout << "setting nan i: " << i << ", j: " << j << endl;
+        // integer matrices don't support nans
+        neighbors(i, j) = INT_MIN;
+        continue;
+      }
       
       // north
       if (i > 0 && im(i - 1, j) == 1)
@@ -61,11 +70,25 @@ NumericMatrix count_neighbors(LogicalMatrix im, bool diagonal = true) {
     }
   }
   
+  // hasnan doesn't work for integer matrices
+  // Rcout << "count_neighbors hasnan: " << neighbors.has_nan() << endl;
+  //neighbors(1,1) = datum::inf;
+  //Rcout << "neigh(1,1): " << neighbors(1,1) << endl;
+  //Rcout << "neigh(99,99): " << neighbors(99,99) << endl;
+  
+  // arma::uvec miss = find_nonfinite(neighbors);
+  // arma::uvec present = find_finite(neighbors);
+  // arma::uvec int_min = find(neighbors == INT_MIN);
+  // Rcout << "non_finite: " << miss.n_elem << endl;
+  // Rcout << "finite: " << present.n_elem << endl;
+  // Rcout << "int_min: " << int_min.n_elem << endl;
+  
   return(neighbors);
   
 }
 
 /*** R
+set.seed(1001)
 x <- matrix(rbinom(10000, size = 1, 0.5), nrow=100, ncol=100)
 system.time(res <- count_neighbors(x))
 system.time(res <- count_neighbors(x, FALSE))

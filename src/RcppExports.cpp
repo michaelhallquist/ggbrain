@@ -12,25 +12,26 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // count_neighbors
-NumericMatrix count_neighbors(LogicalMatrix im, bool diagonal);
+arma::imat count_neighbors(const arma::umat& im, bool diagonal);
 RcppExport SEXP _ggbrain_count_neighbors(SEXP imSEXP, SEXP diagonalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< LogicalMatrix >::type im(imSEXP);
+    Rcpp::traits::input_parameter< const arma::umat& >::type im(imSEXP);
     Rcpp::traits::input_parameter< bool >::type diagonal(diagonalSEXP);
     rcpp_result_gen = Rcpp::wrap(count_neighbors(im, diagonal));
     return rcpp_result_gen;
 END_RCPP
 }
 // df2mat
-NumericMatrix df2mat(const DataFrame& df);
-RcppExport SEXP _ggbrain_df2mat(SEXP dfSEXP) {
+NumericMatrix df2mat(const DataFrame& df, Nullable<NumericVector> replace_na);
+RcppExport SEXP _ggbrain_df2mat(SEXP dfSEXP, SEXP replace_naSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
-    rcpp_result_gen = Rcpp::wrap(df2mat(df));
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type replace_na(replace_naSEXP);
+    rcpp_result_gen = Rcpp::wrap(df2mat(df, replace_na));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -43,6 +44,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< LogicalMatrix >::type im(imSEXP);
     Rcpp::traits::input_parameter< int >::type nedges(nedgesSEXP);
     rcpp_result_gen = Rcpp::wrap(fill_from_edge(im, nedges));
+    return rcpp_result_gen;
+END_RCPP
+}
+// find_threads
+arma::umat find_threads(const arma::mat& img, int min_neighbors, int maxit, bool diagonal);
+RcppExport SEXP _ggbrain_find_threads(SEXP imgSEXP, SEXP min_neighborsSEXP, SEXP maxitSEXP, SEXP diagonalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type img(imgSEXP);
+    Rcpp::traits::input_parameter< int >::type min_neighbors(min_neighborsSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< bool >::type diagonal(diagonalSEXP);
+    rcpp_result_gen = Rcpp::wrap(find_threads(img, min_neighbors, maxit, diagonal));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -129,8 +144,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ggbrain_count_neighbors", (DL_FUNC) &_ggbrain_count_neighbors, 2},
-    {"_ggbrain_df2mat", (DL_FUNC) &_ggbrain_df2mat, 1},
+    {"_ggbrain_df2mat", (DL_FUNC) &_ggbrain_df2mat, 2},
     {"_ggbrain_fill_from_edge", (DL_FUNC) &_ggbrain_fill_from_edge, 2},
+    {"_ggbrain_find_threads", (DL_FUNC) &_ggbrain_find_threads, 4},
     {"_ggbrain_flood_fill", (DL_FUNC) &_ggbrain_flood_fill, 5},
     {"_ggbrain_integer_mode", (DL_FUNC) &_ggbrain_integer_mode, 2},
     {"_ggbrain_mat2df", (DL_FUNC) &_ggbrain_mat2df, 1},

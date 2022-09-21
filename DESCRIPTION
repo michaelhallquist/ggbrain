@@ -20,7 +20,6 @@ Imports:
     imager,
     patchwork,
     purrr,
-    reshape2,
     rlang,
     tibble,
     tidyr,
