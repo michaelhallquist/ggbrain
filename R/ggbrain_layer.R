@@ -3,7 +3,7 @@
 #' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
-#' @importFrom imager as.cimg erode_square
+#' @importFrom imager as.cimg as.pixset pixset split_connected
 #' @importFrom rlang sym
 #' @export
 ggbrain_layer <- R6::R6Class(
@@ -31,6 +31,130 @@ ggbrain_layer <- R6::R6Class(
     pvt_all_na = FALSE, # whether the data for this layer are all NA (in which case there's nothing to add)
     pvt_bisided = FALSE, # only set by fill_scale active binding
     pvt_blur_edge = NULL,
+    pvt_trim_threads = 0L, # how many neighboring pixels are required to keep this pixel
+    pvt_fill_holes = 0L, # how many pixels in a hole within a cluster should be filled by imputation
+    pvt_remove_specks = 0L, # how many pixels should constitute a speck to be removed
+
+    # private function to fill holes of a certain size
+    # uses a flood fill algorithm from the corners to find pixels that cannot be reached
+    # these are then filled by nearest neighbor imputation
+    fill_img_holes = function(img, size = 10, neighbors=10) {
+      filled_img <- fill_from_edge(img, nedges = 4) # flood fills TRUE from four corners to find holes
+      holes <- !as.cimg(filled_img) # becomes TRUE where there is a hole
+
+      # use a component labeler to find holes (assuming there are any)
+      if (sum(holes) > 0L) {
+        objs <- imager::split_connected(holes) # split into a list of connected components
+        obj_size <- sapply(objs, sum) # how many pixels in each
+        hh <- which(obj_size <= size) # which holes are small enough to be filled
+
+        if (length(hh) > 0L) {
+          # use logical or to combine all holes, assign NA for all hole pixels
+          img[as.matrix(Reduce("|", objs[hh]))] <- NA
+
+          # fill NAs by nearest neighbor imputation
+          rr <- max(6, ceiling(sqrt(size))) # approximation of radius within which to interpolate
+          img <- nn_impute(img, neighbors = neighbors, radius = rr, aggfun = "mode", ignore_zeros = TRUE)
+        }
+      }
+      return(img)
+    },
+
+    # private function to find specks less than a given size
+    find_specks = function(slc, size=NULL, by_roi=FALSE) {
+      if (isTRUE(by_roi)) {
+        uvals <- unique(as.vector(slc))
+        uvals <- uvals[uvals != 0] # 0 is not an ROI label
+        if (length(uvals) == 0L) return(slc) # don't attempt to remove specks on an empty image
+        slist <- lapply(uvals, function(u) {
+          m <- matrix(0, nrow = nrow(slc), ncol = ncol(slc))
+          m[slc == u] <- u
+          return(m)
+        })
+      } else {
+        slist <- list(slc) # don't divide speck counting by roi
+      }
+
+      # loop over slice (perhaps by ROI) and remove specks
+      speck_img <- lapply(slist, function(ss) {
+        slc_cimg <- imager::as.cimg(ss)
+        all_pix <- imager::as.pixset(slc_cimg) # TRUE for any non-zero pixel
+        ret_pix <- imager::pixset(array(FALSE, dim = c(nrow(ss), ncol(ss), 1, 1))) # default pass
+
+        # use a component labeler to find specks (most have at least some pixels to work with)
+        if (sum(all_pix) > 0) {
+          objs <- imager::split_connected(all_pix) # split into a list of connected components
+          obj_size <- sapply(objs, sum) # how many pixels in each
+          specks <- which(obj_size <= size)
+          if (length(specks) > 0L) {
+            # create a pixset with TRUE for all speck pixels to be dropped
+            ret_pix <- Reduce("|", objs[specks])
+          }
+        }
+        return(ret_pix)
+      })
+
+      # logical or by ROI to form single pixset of specks
+      speck_img <- as.matrix(Reduce("|", speck_img))
+
+      #speck_pos <- which(speck_img == TRUE, arr.ind = TRUE)
+      #colnames(speck_pos) <- c("dim1", "dim2")
+
+      return(speck_img) # return logical matrix with positions of specs
+    },
+
+    # modify layer data to remove specks, fill holes, and trim threads
+    refine_image = function() {
+      d <- private$pvt_data
+      dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
+      na_rows <- rep(FALSE, nrow(d))
+      vcols <- grep("dim1|dim2", names(d), value = TRUE, invert = TRUE)
+
+      # always fill in holes first so that neighbor counts are more sensible
+      if (private$pvt_fill_holes > 0L) {
+        dmat <- private$fill_img_holes(dmat, size = private$pvt_fill_holes, neighbors = 10)
+
+        # need to fill any ancillary columns with imputed values, too!
+        lab_cols <- attr(d, "label_cols")
+        if (!is.null(lab_cols)) {
+          lab_df <- d %>%
+            dplyr::group_by(value) %>%
+            dplyr::filter(dplyr::row_number() == 1L & !is.na(value)) %>%
+            dplyr::select(value, !!lab_cols)
+
+          d <- mat2df(dmat, na_zeros = TRUE)
+          d <- d %>% left_join(lab_df, by="value")
+        }
+      }
+
+      # find any thread pixels (iteratively find pixels with few neighbors)
+      if (private$pvt_trim_threads > 0L) {
+        browser()
+        # neighbors <- count_neighbors(dmat, diagonal = TRUE)
+        threads <- find_threads(dmat, min_neighbors=private$pvt_trim_threads, maxit=20L, diagonal=TRUE)
+        if (any(threads)) {
+          to_trim <- which(threads, arr.ind = TRUE)
+          dmat[threads] <- NA
+          na_rows <- na_rows | (d$dim1 == to_trim[, 1] & d$dim2 == to_trim[, 2])
+        }
+      }
+
+      # remove any clusters with fewer than this number of pixels
+      if (isTRUE(private$pvt_remove_specks)) {
+        specks <- private$find_specks(dmat, size = private$pvt_remove_specks, by_roi = private$pvt_categorical_fill)
+        if (any(specks)) {
+          dmat[specks] <- NA
+          to_trim <- which(specks, arr.ind = TRUE)
+          na_rows <- na_rows | (d$dim1 == to_trim[, 1] & d$dim2 == to_trim[, 2])
+        }
+      }
+
+      # set any trimmed voxels to NA
+      if (any(na_rows)) d[na_rows, vcols] <- NA
+
+      # refresh dataset with refined values
+      private$pvt_data <- d
+    },
 
     # helper function for adding a mapped geom_raster to an existing ggplot
     add_raster = function(gg, df, value_col = NULL, n_layers, raster_args = NULL, fill_scale = NULL) {
@@ -320,6 +444,7 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_is_empty <- FALSE # always make is_empty FALSE when we have data
           private$validate_layer() # always validate the layer based on the data (identifies the form of fill mapping)
           private$set_default_scale() # add default scale, if needed, after modifying data
+          private$refine_image() # trim threads, remove specks, fill holes
 
           # ensure that numeric breaks are not used with a categorical scale
           # (note that this doesn't allow custom breaks in categorical layers yet... so, it's a hack)
@@ -396,7 +521,53 @@ ggbrain_layer <- R6::R6Class(
         checkmate::assert_number(value, lower = 0)
         private$pvt_blur_edge <- value
       }
+    },
+
+     #' @field trim_threads iteratively trim any pixels that have fewer than this number of neighboring pixels
+    trim_threads = function(value) {
+      # if user passes in TRUE/FALSE, then use default of 3 neighbors
+      if (checkmate::test_logical(value)) {
+        stopifnot(length(value) == 1L)
+        private$pvt_trim_threads <- 3L # default to trimming pixels with 3 or fewer neighbors (incl. diagonal)
+      } else if (checkmate::test_integerish(value)) {
+        value <- as.integer(value)
+        checkmate::assert_integer(value, lower = 1L, upper=8L)
+        private$pvt_trim_threads <- value
+      } else {
+        stop("Cannot interpret trim_threads")
+      }
+    },
+
+    #' @field fill_holes controls the size of holes to be filled for display (in pixels)
+    fill_holes = function(value) {
+      # if user passes in TRUE/FALSE, then use default size of 10 pixels
+      if (checkmate::test_logical(value)) {
+        stopifnot(length(value) == 1L)
+        private$pvt_fill_holes <- 10L # default to 10 pixels or smaller
+      } else if (checkmate::test_integerish(value)) {
+        value <- as.integer(value)
+        checkmate::assert_integer(value, lower = 0L)
+        private$pvt_fill_holes <- value
+      } else {
+        stop("Cannot interpret fill_holes")
+      }
+    },
+
+    #' @field remove_specks controls the size of specks to be removed (in pixels)
+    remove_specks = function(value) {
+      # if user passes in TRUE/FALSE, then use default size of 10 pixels
+      if (checkmate::test_logical(value)) {
+        stopifnot(length(value) == 1L)
+        private$pvt_remove_specks <- 10L # default to 10 pixels or smaller
+      } else if (checkmate::test_integerish(value)) {
+        value <- as.integer(value)
+        checkmate::assert_integer(value, lower = 0L)
+        private$pvt_remove_specks <- value
+      } else {
+        stop("Cannot interpret remove_specks")
+      }
     }
+
 
   ),
   public = list(
@@ -414,8 +585,12 @@ ggbrain_layer <- R6::R6Class(
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
     #' @param alpha fixed alpha transparency of this layer (use `mapping` for alpha mapping`)
     #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
+    #' @param fill_holes the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display
+    #' @param remove_specks the size of specks (in pixels) to be removed from each slice prior to display
+    #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel
     initialize = function(name = NULL, definition = NULL, data = NULL, limits = NULL, breaks = integer_breaks(),
-      show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL, blur_edge = NULL) {
+      show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL, blur_edge = NULL,
+      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
 
       if (is.null(name)) name <- "layer"
       checkmate::assert_numeric(limits, len = 2L, null.ok = TRUE)
@@ -435,6 +610,9 @@ ggbrain_layer <- R6::R6Class(
       if (!is.null(breaks)) self$set_breaks(breaks)
       if (!is.null(alpha)) self$alpha <- alpha
       if (!is.null(blur_edge)) self$blur_edge <- blur_edge
+      if (!is.null(fill_holes)) self$fill_holes <- fill_holes
+      if (!is.null(remove_specks)) self$remove_specks <- remove_specks
+      if (!is.null(trim_threads)) self$trim_threads <- trim_threads
     },
 
     #' @description set the limits for this layer's scale

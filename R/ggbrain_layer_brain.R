@@ -70,12 +70,20 @@ ggbrain_layer_brain <- R6::R6Class(
     #' @param fill_scale a ggplot scale object used for mapping the value column as the fill color for the
     #'   layer.
     #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
+    #' @param fill_holes the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display
+    #' @param remove_specks the size of specks (in pixels) to be removed from each slice prior to display
+    #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel
+
     initialize = function(name = NULL, definition = NULL, data = NULL, 
       limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL,
-      mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL) {
+      mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL, 
+      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
 
       # common initialization steps
-      super$initialize(name, definition, data, limits, breaks, show_legend, interpolate, unify_scales, alpha, blur_edge)
+      super$initialize(
+        name, definition, data, limits, breaks, show_legend, interpolate, unify_scales,
+        alpha, blur_edge, fill_holes, remove_specks, trim_threads
+      )
 
       # fill-specific initialization steps
       if (!is.null(fill)) self$fill <- fill # fixed fill
@@ -85,4 +93,3 @@ ggbrain_layer_brain <- R6::R6Class(
     }
   )
 )
-

@@ -1,5 +1,6 @@
 # ggbrain 0.7 (development)
-
+* feature: abstract fill_holes, trim_threads, and remove_specks to ggbrain_layer -- exposed in geom_brain and geom_outline. This allows these modifications
+    to be made for contrast layers.
 * feature: fill_holes now supported in add_images. Uses flood fill algorithm to find interior holes, then uses nearest neighbor imputation,
     taking the mode for categorical images and mean for continuous images.
 * feature: for annotations, q<number> syntax now allows for quantiles above 1 or below 0, where 2 = 200% of max and -1 is -100% of min.

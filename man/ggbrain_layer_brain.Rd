@@ -64,7 +64,10 @@ create a new ggbrain_layer object
   mapping = ggplot2::aes(fill = value),
   fill = NULL,
   fill_scale = NULL,
-  blur_edge = NULL
+  blur_edge = NULL,
+  fill_holes = NULL,
+  remove_specks = NULL,
+  trim_threads = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -103,6 +106,12 @@ distinction to \code{mapping=aes(fill=<variable>)}.}
 layer.}
 
 \item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
+
+\item{\code{fill_holes}}{the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display}
+
+\item{\code{remove_specks}}{the size of specks (in pixels) to be removed from each slice prior to display}
+
+\item{\code{trim_threads}}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel}
 }
 \if{html}{\out{</div>}}
 }

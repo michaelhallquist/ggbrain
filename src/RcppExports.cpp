@@ -88,13 +88,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // mat2df
-DataFrame mat2df(const arma::mat& mat);
-RcppExport SEXP _ggbrain_mat2df(SEXP matSEXP) {
+DataFrame mat2df(NumericMatrix mat, bool na_zeros);
+RcppExport SEXP _ggbrain_mat2df(SEXP matSEXP, SEXP na_zerosSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type mat(matSEXP);
-    rcpp_result_gen = Rcpp::wrap(mat2df(mat));
+    Rcpp::traits::input_parameter< NumericMatrix >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_zeros(na_zerosSEXP);
+    rcpp_result_gen = Rcpp::wrap(mat2df(mat, na_zeros));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -149,7 +150,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ggbrain_find_threads", (DL_FUNC) &_ggbrain_find_threads, 4},
     {"_ggbrain_flood_fill", (DL_FUNC) &_ggbrain_flood_fill, 5},
     {"_ggbrain_integer_mode", (DL_FUNC) &_ggbrain_integer_mode, 2},
-    {"_ggbrain_mat2df", (DL_FUNC) &_ggbrain_mat2df, 1},
+    {"_ggbrain_mat2df", (DL_FUNC) &_ggbrain_mat2df, 2},
     {"_ggbrain_nearest_pts", (DL_FUNC) &_ggbrain_nearest_pts, 6},
     {"_ggbrain_nn_impute", (DL_FUNC) &_ggbrain_nn_impute, 5},
     {"_ggbrain_sort_mat", (DL_FUNC) &_ggbrain_sort_mat, 2},

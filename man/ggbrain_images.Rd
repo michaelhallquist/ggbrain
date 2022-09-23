@@ -29,10 +29,6 @@ This value is used to set small values in the images to exactly zero for proper 
 \item{\code{slices}}{a character vector of cached slice specifications to be used in $get_slices()}
 
 \item{\code{contrasts}}{a character vector of cached contrast specifications to be used in $get_slices()}
-
-\item{\code{clean_specks}}{the size (in pixels) of specks that should be removed from slices prior to plotting}
-
-\item{\code{fill_holes}}{the size (in pixels) of interior holes in regions that should be filled/interpolated prior to plotting}
 }
 \if{html}{\out{</div>}}
 }
@@ -69,24 +65,13 @@ This value is used to set small values in the images to exactly zero for proper 
 \subsection{Method \code{new()}}{
 create ggbrain_images object consisting of one or more NIfTI images
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(
-  images = NULL,
-  fill_holes = NULL,
-  clean_specks = NULL,
-  labels = NULL,
-  filter = NULL
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL, labels = NULL, filter = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
-
-\item{\code{fill_holes}}{If TRUE, will fill holes on the interior of regions in the sliced data \link{WIP: also, can pass number for hole size}}
-
-\item{\code{clean_specks}}{If TRUE, will delete tiny spots in the sliced data (fewer than 10 pixels, by default). If a positive integer is provided
-(e.g., 20), then any regions smaller of this size or smaller (in pixels) will be removed.}
 
 \item{\code{labels}}{A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
 a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond}
@@ -145,21 +130,13 @@ a row for each region represented in each slice.
 \subsection{Method \code{add_images()}}{
 add one or more images to this ggbrain_images object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(
-  images = NULL,
-  fill_holes = NULL,
-  clean_specks = NULL
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
-
-\item{\code{fill_holes}}{the size (in pixels) of interior holes in regions that should be filled/interpolated prior to plotting}
-
-\item{\code{clean_specks}}{the size (in pixels) of specks that should be removed from slices prior to plotting}
 }
 \if{html}{\out{</div>}}
 }
@@ -408,9 +385,7 @@ get slice data for one or more slices based on their coordinates
   contrasts = NULL,
   fill_labels = FALSE,
   make_square = TRUE,
-  remove_null_space = TRUE,
-  fill_holes = NULL,
-  clean_specks = NULL
+  remove_null_space = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -429,15 +404,6 @@ have a corresponding label in the labels data.frame. Default: FALSE}
 \item{\code{make_square}}{If TRUE, make all images square and of the same size}
 
 \item{\code{remove_null_space}}{If TRUE, remove slices where all values are approximately zero}
-
-\item{\code{fill_holes}}{An integer. If > 0, slice data will be passed through a hole-filling algorithm
-that dilates the mask of slice data by this amount, then shrinks back to the original size. For
-example if \code{fill_holes = 3} then any hole that is 3x3 or larger (along the slice extents)
-will be filled in.}
-
-\item{\code{clean_specks}}{An integer. If > 0L, any object greater than this size will be removed from the slice
-for visualization (since it would be hard to see.) For example, if \code{clean_specks = 3}, then
-any object 3x3 or larger (along the slice extents) will be removed.}
 }
 \if{html}{\out{</div>}}
 }

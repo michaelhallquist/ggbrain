@@ -47,7 +47,7 @@ ggbrain_slices <- R6::R6Class(
       nslices <- length(img_slice)
       nlayers <- length(img_slice[[1L]]) # assumes, rightly, that all slices have the same layers
       layer_names <- names(img_slice[[1L]])
-      
+
       img_data <- lapply(seq_len(nlayers), function(ll) {
         label_cols <- attr(img_slice[[1L]][[ll]], "label_cols")
         ll_df <- lapply(img_slice, "[[", ll) %>%

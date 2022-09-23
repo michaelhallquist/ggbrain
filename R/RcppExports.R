@@ -109,15 +109,15 @@ integer_mode <- function(v, demote_zeros) {
 #' 
 #' @name mat2df
 #' @description Converts a 2D numeric matrix into a 3-column data.frame
-#' @details This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2x faster than melt.
+#' @details This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2.5x faster than melt.
 #' @param mat A \code{matrix} to convert to data.frame
 #' @return A 3-column data.frame with dim1, dim2, and value
 #' @keywords internal
 #' @author Michael Hallquist
 NULL
 
-mat2df <- function(mat) {
-    .Call(`_ggbrain_mat2df`, mat)
+mat2df <- function(mat, na_zeros = FALSE) {
+    .Call(`_ggbrain_mat2df`, mat, na_zeros)
 }
 
 #' Finds the nearest non-missing neighbors of a target point in a 2D matrix

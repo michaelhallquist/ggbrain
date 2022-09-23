@@ -24,7 +24,13 @@ DataFrame mat2df(NumericMatrix mat, bool na_zeros = false) {
   
   // passing the matrix to a numeric vector creates a proxy (reference) that does not copy mat
   NumericVector mvec(mat);
-  mvec.attr("dim") = R_NilValue; // remove dimensions from mvec to ensure it is treatest as a vector
+  
+  // Danger: do not remove dim on mvec explicitly. It modifies the original mat object in the parent environment!
+  // https://stackoverflow.com/questions/61036707/rcpp-transform-matrix-to-vector
+  //mvec.attr("dim") = R_NilValue;
+  //NumericVector d = mvec.attr("dim");
+  //Rcout << "dim: " << d << endl;
+  
   val = mvec; // assign serialized matrix to value column of returned object
   
   if (na_zeros) {
@@ -60,7 +66,7 @@ d <- mat2df(m)
 d_z <- mat2df(m, na_zeros = TRUE)
 
 dref <- reshape2::melt(m, varnames=c("dim1", "dim2"))
-
+all.equal(d, dref)
 #str(m)
 #str(d)
 #m_recon <- df2mat(d)

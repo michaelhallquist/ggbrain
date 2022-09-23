@@ -39,6 +39,12 @@ is added across many panels}
 \item{\code{alpha}}{sets the alpha transparency of this layer.}
 
 \item{\code{blur_edge}}{controls the standard deviation (sigma) of a Gaussian blur applied to the layer at the edge}
+
+\item{\code{trim_threads}}{iteratively trim any pixels that have fewer than this number of neighboring pixels}
+
+\item{\code{fill_holes}}{controls the size of holes to be filled for display (in pixels)}
+
+\item{\code{remove_specks}}{controls the size of specks to be removed (in pixels)}
 }
 \if{html}{\out{</div>}}
 }
@@ -75,7 +81,10 @@ create a new ggbrain_layer object
   interpolate = NULL,
   unify_scales = TRUE,
   alpha = NULL,
-  blur_edge = NULL
+  blur_edge = NULL,
+  fill_holes = NULL,
+  remove_specks = NULL,
+  trim_threads = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -104,6 +113,12 @@ and "value" as columns}
 \item{\code{alpha}}{fixed alpha transparency of this layer (use \code{mapping} for alpha mapping`)}
 
 \item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
+
+\item{\code{fill_holes}}{the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display}
+
+\item{\code{remove_specks}}{the size of specks (in pixels) to be removed from each slice prior to display}
+
+\item{\code{trim_threads}}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel}
 }
 \if{html}{\out{</div>}}
 }

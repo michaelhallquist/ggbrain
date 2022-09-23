@@ -4,20 +4,10 @@
 \alias{add_images}
 \title{Add images to a ggb object}
 \usage{
-add_images(
-  images = NULL,
-  fill_holes = FALSE,
-  clean_specks = FALSE,
-  labels = NULL,
-  filter = NULL
-)
+add_images(images = NULL, labels = NULL, filter = NULL)
 }
 \arguments{
 \item{images}{a character vector or ggbrain_images object containing NIfTI images to add to this plot}
-
-\item{fill_holes}{if TRUE, fill in holes on a slice \link{WIP}}
-
-\item{clean_specks}{if TRUE, clean small specks on a slice}
 
 \item{labels}{a data.frame or named list of data.frame objects corresponding to images that should be labeled.
 You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of

@@ -13,7 +13,7 @@ A 3-column data.frame with dim1, dim2, and value
 Converts a 2D numeric matrix into a 3-column data.frame
 }
 \details{
-This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2x faster than melt.
+This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2.5x faster than melt.
 }
 \author{
 Michael Hallquist

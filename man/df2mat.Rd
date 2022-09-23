@@ -4,9 +4,10 @@
 \alias{df2mat}
 \title{Convert a 3-column data.frame (dim1, dim2, value) to a 2-D matrix}
 \arguments{
-\item{x}{A \code{matrix} to sort}
+\item{df}{A \code{data.frame} representing a melted 2-D matrix, having columns dim1, dim2, and value}
 
-\item{col}{A \code{int} that indicates the column the matrix should sort by.}
+\item{replace_na}{if not \code{NULL}, this numeric value will be used to replace any NAs in \code{df} in the
+resulting matrix. This is useful if downstream code is not built to handle missing values.}
 }
 \value{
 The matrix form of the keyed data.frame object
