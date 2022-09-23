@@ -1,4 +1,4 @@
-# ggbrain 0.7 (development)
+# ggbrain 0.7 (23Sep2022)
 * feature: abstract fill_holes, trim_threads, and remove_specks to ggbrain_layer -- exposed in geom_brain and geom_outline. This allows these modifications
     to be made for contrast layers.
 * feature: fill_holes now supported in add_images. Uses flood fill algorithm to find interior holes, then uses nearest neighbor imputation,

@@ -18,7 +18,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 
-arma::umat find_threads(const arma::mat& img, int min_neighbors = 2, int maxit = 15, bool diagonal = false) {
+LogicalMatrix find_threads(const arma::mat& img, int min_neighbors = 2, int maxit = 15, bool diagonal = false) {
   if (maxit < 1) {
     Rcpp::stop("maxit must be at least 1");
   }
@@ -40,7 +40,7 @@ arma::umat find_threads(const arma::mat& img, int min_neighbors = 2, int maxit =
   int it = 0;
   
   while (pixels_remain && it < maxit) {
-    imat neighbors = count_neighbors(img_bool, diagonal);
+    arma::imat neighbors = count_neighbors(img_bool, diagonal);
     
     //Rcout << "it: " << it << endl;
     //Rcout << "hasnan: " << neighbors.has_nan() << endl;
@@ -62,7 +62,12 @@ arma::umat find_threads(const arma::mat& img, int min_neighbors = 2, int maxit =
     it++;
   }
   
-  return(threads);
+  // these attempts at conversion to LogicalMatrix from umat fail
+  //LogicalMatrix tlog = Rcpp::as<Rcpp::LogicalMatrix>(threads);
+  //LogicalMatrix tlog(threads.begin(), threads.end());
+  
+  // use wrap to return logical matrix from umat
+  return(wrap(threads));
 }
 
 /*** R

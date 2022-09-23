@@ -65,7 +65,11 @@ ggbrain_layer <- R6::R6Class(
       if (isTRUE(by_roi)) {
         uvals <- unique(as.vector(slc))
         uvals <- uvals[uvals != 0] # 0 is not an ROI label
-        if (length(uvals) == 0L) return(slc) # don't attempt to remove specks on an empty image
+        if (length(uvals) == 0L) {
+          empty_mat <- matrix(FALSE, nrow = nrow(slc), ncol = ncol(slc))
+          return(empty_mat) # don't attempt to remove specks on an empty image -- return no specks/all FALSE
+        }
+
         slist <- lapply(uvals, function(u) {
           m <- matrix(0, nrow = nrow(slc), ncol = ncol(slc))
           m[slc == u] <- u
@@ -82,7 +86,7 @@ ggbrain_layer <- R6::R6Class(
         ret_pix <- imager::pixset(array(FALSE, dim = c(nrow(ss), ncol(ss), 1, 1))) # default pass
 
         # use a component labeler to find specks (most have at least some pixels to work with)
-        if (sum(all_pix) > 0) {
+        if (sum(all_pix) > 0L) {
           objs <- imager::split_connected(all_pix) # split into a list of connected components
           obj_size <- sapply(objs, sum) # how many pixels in each
           specks <- which(obj_size <= size)
@@ -127,25 +131,28 @@ ggbrain_layer <- R6::R6Class(
         }
       }
 
+      # dim1.dim2 string used for matching rows to drop/NA
+      dind <- paste(d$dim1, d$dim2, sep = ".")
+
       # find any thread pixels (iteratively find pixels with few neighbors)
       if (private$pvt_trim_threads > 0L) {
-        browser()
-        # neighbors <- count_neighbors(dmat, diagonal = TRUE)
         threads <- find_threads(dmat, min_neighbors=private$pvt_trim_threads, maxit=20L, diagonal=TRUE)
         if (any(threads)) {
-          to_trim <- which(threads, arr.ind = TRUE)
-          dmat[threads] <- NA
-          na_rows <- na_rows | (d$dim1 == to_trim[, 1] & d$dim2 == to_trim[, 2])
+          dmat[threads] <- 0 # set threads to 0 in matrix form
+          # convert to single row.col match string
+          to_trim <- apply(which(threads, arr.ind = TRUE), 1, paste, collapse = ".")
+          na_rows <- na_rows | (dind %in% to_trim)
         }
       }
 
       # remove any clusters with fewer than this number of pixels
-      if (isTRUE(private$pvt_remove_specks)) {
+      if (private$pvt_remove_specks > 0L) {
         specks <- private$find_specks(dmat, size = private$pvt_remove_specks, by_roi = private$pvt_categorical_fill)
         if (any(specks)) {
-          dmat[specks] <- NA
-          to_trim <- which(specks, arr.ind = TRUE)
-          na_rows <- na_rows | (d$dim1 == to_trim[, 1] & d$dim2 == to_trim[, 2])
+          dmat[specks] <- 0 # probably a waste of CPU time -- dmat isn't used again
+          # convert to single row.col match string
+          to_trim <- apply(which(specks, arr.ind = TRUE), 1, paste, collapse = ".")
+          na_rows <- na_rows | (dind %in% to_trim)
         }
       }
 

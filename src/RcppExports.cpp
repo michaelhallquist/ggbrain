@@ -48,7 +48,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // find_threads
-arma::umat find_threads(const arma::mat& img, int min_neighbors, int maxit, bool diagonal);
+LogicalMatrix find_threads(const arma::mat& img, int min_neighbors, int maxit, bool diagonal);
 RcppExport SEXP _ggbrain_find_threads(SEXP imgSEXP, SEXP min_neighborsSEXP, SEXP maxitSEXP, SEXP diagonalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
