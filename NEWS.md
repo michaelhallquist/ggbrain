@@ -1,3 +1,7 @@
+# ggbrain 0.8 (DEVELOPMENT)
+
+* update: archive ggbrain_legacy and remove cowplot dependency
+
 # ggbrain 0.7 (23Sep2022)
 * feature: abstract fill_holes, trim_threads, and remove_specks to ggbrain_layer -- exposed in geom_brain and geom_outline. This allows these modifications
     to be made for contrast layers.
