@@ -256,9 +256,11 @@ ggb <- R6::R6Class(
 )
 
 #' S3 method to allow for plot() syntax with ggbrain (ggb) objects
+#' @param x the \code{ggb} object to be plotted
+#' @param ... additional argument passed to the plot method
 #' @export
-plot.ggb <- function(object) {
-  object$plot()
+plot.ggb <- function(x, ...) {
+  x$plot()
 }
 
 #' addition operator for ggb object to support ggplot-like syntax

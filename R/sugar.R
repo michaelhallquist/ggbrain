@@ -95,7 +95,7 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9) {
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a ggb object with the relevant images and an action of 'add_images'
 #' @export
-add_images <- function(images = NULL, labels = NULL, filter=NULL) {
+add_images <- function(images = NULL, labels = NULL, filter = NULL) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
     if (!is.null(labels)) img_obj$add_labels(labels)
@@ -111,7 +111,7 @@ add_images <- function(images = NULL, labels = NULL, filter=NULL) {
 #' Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer
 #' @param name the name of this brain layer
 #' @param definition a character string of the contrast or image definition used to define this layer.
-#'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overlay[overlay > 5]')
+#'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})
 #' @param fill_scale the color scale to be used for this layer (a scale_fill* object)
 #' @param show_legend whether to show the color scale for this layer in the legend
 
@@ -186,12 +186,12 @@ geom_region_label_repel <- function(image, label_column = "label", ...) {
 
 #' Adds custom annotations to a single panel on the ggbrain plot
 #' @param x the x position of the annotation. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
-#'   In addition, convenience values of 'left', 'right', or 'q[1-100]' can be used to look up the left-most, right-most, or quantile-based
+#'   In addition, convenience values of 'left', 'right', or \code{'q[1-100]'} can be used to look up the left-most, right-most, or quantile-based
 #'   positions along the x axis.
 #' @param y the y position of the annotation. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
-#'   In addition, convenience values of 'left', 'right', or 'q[1-100]' can be used to look up the left-most, right-most, or quantile-based
+#'   In addition, convenience values of 'left', 'right', or \code{'q[1-100]'} can be used to look up the left-most, right-most, or quantile-based
 #'   positions along the x axis.
-#' @param slice_index the slice number to which this annotation is added. These are numbered in the wrapping order from 
+#' @param slice_index the slice number to which this annotation is added. These are numbered in the wrapping order from
 #'   patchwork::wrap_plots, which will normally go from top-left to bottom-right.
 #' @details Note that this only handles a single annotation on a single panel! If you want to annotate en masse, use annotate_panels
 #'   with a data.frame where each row is an annotation.

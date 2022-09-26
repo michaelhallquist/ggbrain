@@ -7,6 +7,8 @@
 #' @importFrom tibble remove_rownames
 #' @importFrom tidyselect everything
 #' @importFrom imager as.cimg as.pixset split_connected
+#' @importFrom glue glue
+#' @importFrom stats setNames
 #'
 #' @export
 ggbrain_images <- R6::R6Class(
@@ -146,7 +148,7 @@ ggbrain_images <- R6::R6Class(
 
       if (!identical(obj$zero_tol, self$zero_tol)) {
         new_tol <- min(obj$zero_tol, self$zero_tol)
-        message(glue("Using lesser of zero tolerances ({new_tol}) in combined object"))
+        message(glue::glue("Using lesser of zero tolerances ({new_tol}) in combined object"))
         self$zero_tol <- new_tol
       }
 
@@ -189,7 +191,7 @@ ggbrain_images <- R6::R6Class(
       for (x in seq_along(label_args)) {
         cur_vals <- private$pvt_img_labels[[ label_names[x] ]]
         if (!is.null(cur_vals)) {
-          message(glue("Image {label_names[x]} has labels, which will replaced"))
+          message(glue::glue("Image {label_names[x]} has labels, which will replaced"))
         }
 
         # encode label columns for each input data.frame -- only character and factor/ordered allowed
@@ -320,12 +322,12 @@ ggbrain_images <- R6::R6Class(
       bad_imgs <- setdiff(img_names, private$pvt_img_names)
 
       if (length(good_imgs) > 0L) {
-        message(glue("Removing images: {paste(good_imgs, collapse=', ')}"))
+        message(glue::glue("Removing images: {paste(good_imgs, collapse=', ')}"))
         private$pvt_imgs[good_imgs] <- NULL
       }
 
       if (length(bad_imgs) > 0L) {
-        warning(glue("Could not find these images to remove: {paste(bad_imgs, collapse=', ')}"))
+        warning(glue::glue("Could not find these images to remove: {paste(bad_imgs, collapse=', ')}"))
       }
 
     },
@@ -650,7 +652,7 @@ ggbrain_images <- R6::R6Class(
       if (is.null(imgs)) {
         imgs <- private$pvt_img_names
       } else if (!checkmate::test_subset(imgs, private$pvt_img_names)) {
-        stop(glue("The img input to $get_slice() must be one of: {paste(private$pvt_img_names, collapse=', ')}"))
+        stop(glue::glue("The img input to $get_slice() must be one of: {paste(private$pvt_img_names, collapse=', ')}"))
       }
 
       checkmate::assert_integerish(slice_numbers, lower = 1)
@@ -718,7 +720,7 @@ ggbrain_images <- R6::R6Class(
         } else {
           number <- as.numeric(number)
         }
-        
+
         # determine plane of slice to display
         plane <- switch(
           axis,
@@ -728,7 +730,7 @@ ggbrain_images <- R6::R6Class(
           x = "sagittal",
           y = "coronal",
           z = "axial",
-          stop(sprintf("Cannot interpret input: %s", coord_str))
+          stop(glue::glue("Cannot interpret input: {coord_str}"))
         )
 
         # determine world or voxel coordinate system
@@ -736,11 +738,11 @@ ggbrain_images <- R6::R6Class(
           axis,
           i = "voxel", j = "voxel", k = "voxel",
           x = "world", y = "world", z = "world",
-          stop(sprintf("Cannot interpret input: %s", coord_str))
+          stop(glue::glue("Cannot interpret input: {coord_str}"))
         )
-        
+
         axis_label <- switch(plane, sagittal = "x", coronal = "y", axial = "z")
-        
+
         # validate input and lookup slice
         if (isTRUE(is_pct)) {
           rr <- switch(plane, sagittal = slc_range$i, coronal = slc_range$j, axial = slc_range$k)

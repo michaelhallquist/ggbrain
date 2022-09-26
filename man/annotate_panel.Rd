@@ -8,11 +8,11 @@ annotate_panel(x = "middle", y = "middle", slice_index = NULL, ...)
 }
 \arguments{
 \item{x}{the x position of the annotation. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
-In addition, convenience values of 'left', 'right', or 'q\link{1-100}' can be used to look up the left-most, right-most, or quantile-based
+In addition, convenience values of 'left', 'right', or \code{'q[1-100]'} can be used to look up the left-most, right-most, or quantile-based
 positions along the x axis.}
 
 \item{y}{the y position of the annotation. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
-In addition, convenience values of 'left', 'right', or 'q\link{1-100}' can be used to look up the left-most, right-most, or quantile-based
+In addition, convenience values of 'left', 'right', or \code{'q[1-100]'} can be used to look up the left-most, right-most, or quantile-based
 positions along the x axis.}
 
 \item{slice_index}{the slice number to which this annotation is added. These are numbered in the wrapping order from

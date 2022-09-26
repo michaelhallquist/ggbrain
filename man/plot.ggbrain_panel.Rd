@@ -4,7 +4,12 @@
 \alias{plot.ggbrain_panel}
 \title{S3 method to allow for plot() syntax with ggbrain_panel objects}
 \usage{
-\method{plot}{ggbrain_panel}(object)
+\method{plot}{ggbrain_panel}(x, ...)
+}
+\arguments{
+\item{x}{the \code{ggbrain_panel} object to be plotted}
+
+\item{...}{additional argument passed to the plot method}
 }
 \description{
 S3 method to allow for plot() syntax with ggbrain_panel objects

@@ -1,7 +1,8 @@
 #' An R6 class for constructing a ggbrain plot from a ggbrain_slices object
-#' @importFrom ggplot2 scale_fill_distiller
-#' @importFrom purrr transpose
-#' @importFrom patchwork wrap_plots
+#' @importFrom ggplot2 scale_fill_distiller ggplot
+#' @importFrom dplyr if_else %>% bind_rows left_join mutate select
+#' @importFrom patchwork wrap_plots plot_annotation plot_layout
+#' @importFrom checkmate assert_integerish assert_class
 #' @export
 ggbrain_plot <- R6::R6Class(
   classname="ggbrain_plot",
@@ -377,7 +378,9 @@ ggbrain_plot <- R6::R6Class(
 )
 
 #' S3 method to allow for plot() syntax with ggbrain_panel objects
+#' @param x the \code{ggbrain_plot} object to be plotted
+#' @param ... additional argument passed to the plot method
 #' @export
-plot.ggbrain_plot <- function(object) {
-  object$plot()
+plot.ggbrain_plot <- function(x, ...) {
+  x$plot()
 }

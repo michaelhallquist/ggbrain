@@ -10,7 +10,7 @@ geom_brain(...)
 \item{name}{the name of this brain layer}
 
 \item{definition}{a character string of the contrast or image definition used to define this layer.
-Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., 'overlay\link{overlay > 5}')}
+Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})}
 
 \item{fill_scale}{the color scale to be used for this layer (a scale_fill* object)}
 

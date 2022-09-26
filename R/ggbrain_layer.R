@@ -1,6 +1,7 @@
 #' R6 class for a single layer of a ggbrain panel
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
-#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string geom_raster
+#'   guide_colorbar
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg as.pixset pixset split_connected

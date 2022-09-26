@@ -3,6 +3,7 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang has_name
 #' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin rel
+#'   xlab ylab
 #' @importFrom grid unit
 #' @export
 ggbrain_panel <- R6::R6Class(
@@ -392,7 +393,9 @@ ggplot_add.ggbrain_panel <- function(object, plot, object_name) {
 }
 
 #' S3 method to allow for plot() syntax with ggbrain_panel objects
+#' @param x the \code{ggbrain_panel} object to be plotted
+#' @param ... additional argument passed to the plot method
 #' @export
-plot.ggbrain_panel <- function(object) {
-  object$plot()
+plot.ggbrain_panel <- function(x, ...) {
+  x$plot()
 }

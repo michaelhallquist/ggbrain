@@ -24,6 +24,8 @@
 #' @importFrom checkmate assert_data_frame assert_subset
 #' @importFrom dplyr across mutate
 #' @importFrom tidyselect everything
+#' @importFrom stats as.formula
+#' @importFrom utils capture.output
 #' @keywords internal
 contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   if (is.expression(expr)) { # expand expression as character vector
