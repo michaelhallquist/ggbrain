@@ -112,7 +112,8 @@ and "value" as columns}
 
 \item{\code{alpha}}{fixed alpha transparency of this layer (use \code{mapping} for alpha mapping`)}
 
-\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
+\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+smooth it (to make the visual less jagged)}
 
 \item{\code{fill_holes}}{the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display}
 

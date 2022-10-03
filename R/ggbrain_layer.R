@@ -592,7 +592,8 @@ ggbrain_layer <- R6::R6Class(
     #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
     #' @param alpha fixed alpha transparency of this layer (use `mapping` for alpha mapping`)
-    #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
+    #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to 
+    #'   smooth it (to make the visual less jagged)
     #' @param fill_holes the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display
     #' @param remove_specks the size of specks (in pixels) to be removed from each slice prior to display
     #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel
@@ -771,6 +772,9 @@ ggbrain_layer <- R6::R6Class(
 # cf. https://stackoverflow.com/questions/67279921/how-to-use-ggplot-add-inside-another-package
 
 #' S3 method to support adding ggbrain_layer objects to an existing ggplot object
+#' @param object the ggbrain_layer object to be added to an existing ggplot
+#' @param plot the ggplot object
+#' @param object_name not used, but required by ggplot_add
 #' @importFrom ggplot2 ggplot_add
 #' @export
 ggplot_add.ggbrain_layer <- function(object, plot, object_name) {

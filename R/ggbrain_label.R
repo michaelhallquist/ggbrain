@@ -102,6 +102,9 @@ ggbrain_label <- R6::R6Class(
 )
 
 #' S3 method to support adding ggbrain_label objects to an existing ggplot object
+#' @param object the ggbrain_layer object to be added to an existing ggplot
+#' @param plot the ggplot object
+#' @param object_name not used, but required by ggplot_add
 #' @importFrom ggplot2 ggplot_add
 #' @export
 ggplot_add.ggbrain_label <- function(object, plot, object_name) {

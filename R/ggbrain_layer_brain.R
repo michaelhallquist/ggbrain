@@ -74,9 +74,9 @@ ggbrain_layer_brain <- R6::R6Class(
     #' @param remove_specks the size of specks (in pixels) to be removed from each slice prior to display
     #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel
 
-    initialize = function(name = NULL, definition = NULL, data = NULL, 
+    initialize = function(name = NULL, definition = NULL, data = NULL,
       limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL,
-      mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL, 
+      mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL,
       fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
 
       # common initialization steps

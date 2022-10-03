@@ -178,7 +178,7 @@ ggbrain_panel <- R6::R6Class(
           this_ann <- as.list(ann_df[i, , drop = FALSE])
           this_ann <- this_ann[!is.na(this_ann)] # remove any NA elements that occur from a bind_rows operation
           if (is.null(this_ann$color)) this_ann$color <- private$pvt_text_color
-          
+
           do.call(ggplot2::annotate, this_ann)
         })
       }))
@@ -195,7 +195,7 @@ ggbrain_panel <- R6::R6Class(
     #' @param title a title for the panel added to the ggplot object using ggtitle()
     #' @param bg_color the color used for the background of the plot. Default: 'gray10' (nearly black)
     #' @param text_color the color used for text displayed on the plot. Default: 'white'.
-    #' @param border_color the color used for drawing a border around on the plot. Default: 'gray50' 
+    #' @param border_color the color used for drawing a border around on the plot. Default: 'gray50'
     #'   (though borders are not drawn by default).
     #' @param border_size the size of the border line drawn around the panel. Default: NULL. If this value is
     #'   greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel
@@ -301,7 +301,7 @@ ggbrain_panel <- R6::R6Class(
     #' @description Reset the scale limits for the specified layers
     #' @param layer_names not implemented yet
     reset_limits = function(layer_names) {
-      
+
     },
 
     #' @description plot the panel
@@ -386,6 +386,9 @@ ggbrain_panel <- R6::R6Class(
 )
 
 #' S3 method to support adding ggbrain_layer objects to an existing ggplot object
+#' @param object the ggbrain_layer object to be added to an existing ggplot
+#' @param plot the ggplot object
+#' @param object_name not used, but required by ggplot_add
 #' @importFrom ggplot2 ggplot_add
 #' @export
 ggplot_add.ggbrain_panel <- function(object, plot, object_name) {

@@ -52,8 +52,19 @@ add_slices <- function(slices = NULL) {
   return(ret)
 }
 
-#' helper function for adding a slice to the plot, allowing for additional panel attributes to be passed through
+#' helper function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
 #' @details I'm still unclear about whether it would be better to unify with this annotate_panels in some way.
+#' @param coordinate a string specifying the x, y, or z coordinate of the slice to be added. Follows the same logic as add_slices.
+#' @param title a title for the panel added to the ggplot object using ggtitle()
+#' @param bg_color the color used for the background of the panel. Default: \code{'gray10'} (nearly black)
+#' @param text_color the color used for text displayed on the panel. Default: \code{'white'}.
+#' @param border_color the color used for drawing a border around on the panel. Default: \code{'gray50'}
+#'   (though borders are not drawn by default).
+#' @param border_size the size of the border line drawn around the panel. Default: NULL. If this value is
+#'   greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel
+#' @param xlab The label to place on x axis. Default is NULL.
+#' @param ylab The label to place on y axis. Default is NULL.
+#' @param theme_custom Any custom theme() settings to be added to the panel
 add_slice <- function(coordinate = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
   border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
 
@@ -69,12 +80,18 @@ add_slice <- function(coordinate = NULL, title = NULL, bg_color = NULL, text_col
 #' @param plane a character string specifying the 3D plane: "sagittal", "axial", "coronal", "x", "y", or "z"
 #' @param n number of slices to add in this plane. Default: 12
 #' @param min the lowest quantile to be included in the montage (between 0 and 1). Default: 0.1
-#' @param max the highest quantilt to be included in the montage (between 0 and 1). Default: 0.9
-#' @details this can be used with `add_slices` to make a quick montage, such as `add_slices(montage("axial", 10)`.
+#' @param max the highest quantile to be included in the montage (between 0 and 1). Default: 0.9
+#' @param min_coord the lowest spatial position (in image coordinate space) to be included in the montage.
+#' @param max_coord the highest spatial position (in image coordinate space) to be included in the montage.
+#' @details 
+#'   This can be used with `add_slices` to make a quick montage, such as `add_slices(montage("axial", 10)`.
+#'
+#'   Also note that use of standardized coordinates (in quantiles, using `min` and `max`) is mutually exclusive
+#'   with the the image coordinate specifications `min_coord` and `max_coord.`
 #' @importFrom dplyr recode
 #' @importFrom checkmate assert_integerish assert_subset assert_string assert_number
 #' @export
-montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9) {
+montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, max_coord=NULL) {
   checkmate::assert_string(plane)
   plane <- tolower(plane)
   checkmate::assert_subset(plane, c("sagittal", "axial", "coronal", "x", "y", "z"))
@@ -83,7 +100,16 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9) {
   checkmate::assert_number(min, lower=0, upper=1)
   checkmate::assert_number(max, lower = 0, upper = 1)
 
-  paste0(plane, " = ", round(seq(min, max, length.out = n) * 100, 3), "%")
+  if (!is.null(min_coord) && !is.null(max_coord)) {
+    checkmate::assert_number(min_coord)
+    checkmate::assert_number(max_coord)
+    v <- paste0(plane, " = ", round(seq(min_coord, max_coord, length.out = n), 3))
+  } else {
+    v <- paste0(plane, " = ", round(seq(min, max, length.out = n) * 100, 3), "%")
+  }
+
+  return(v)
+
 }
 
 #' Add images to a ggb object
@@ -114,7 +140,6 @@ add_images <- function(images = NULL, labels = NULL, filter = NULL) {
 #'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})
 #' @param fill_scale the color scale to be used for this layer (a scale_fill* object)
 #' @param show_legend whether to show the color scale for this layer in the legend
-
 #' @details Note that the fill_scale and limits must be specified at the time of the geom_contrast creation
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
@@ -210,11 +235,11 @@ annotate_panels <- function(panel_data) {
 
 #' Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)
 #' @param x the x position of the coordinate label. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
-#'   In addition, convenience values of 'left', 'right', or 'q[1-100]' can be used to look up the left-most, right-most, or quantile-based
-#'   positions along the x axis.
+#'   In addition, convenience values of \code{"left"}, \code{"right"}, or \code{"q[1-100]"} can be used to look up the left-most,
+#'   right-most, or quantile-based positions along the x axis.
 #' @param y the y position of the coordinate label. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
-#'   In addition, convenience values of 'top', 'bottom', or 'q[1-100]' can be used to look up the top-most, bottom-most, or quantile-based
-#'   positions along the y axis.
+#'   In addition, convenience values of 'top', \code{"bottom"}, or \code{"q[1-100]"} can be used to look up the top-most, bottom-most,
+#'   or quantile-based positions along the y axis.
 #' @param ... any other arguments to ggplot2::annotate, which will be passed through to each panel
 #' @export
 annotate_coordinates <- function(x="right", y="bottom", ...) {

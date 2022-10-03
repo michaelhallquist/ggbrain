@@ -1,11 +1,12 @@
 # ggbrain 0.8 (DEVELOPMENT)
 
 * update: archive ggbrain_legacy and remove cowplot dependency
+* feature: support `min_coord` and `max_coord` in `montage` function for coordinate-based ranges
 
 # ggbrain 0.7 (23Sep2022)
-* feature: abstract fill_holes, trim_threads, and remove_specks to ggbrain_layer -- exposed in geom_brain and geom_outline. This allows these modifications
+* feature: abstract `fill_holes`, `trim_threads`, and `remove_specks` to `ggbrain_layer` -- exposed in `geom_brain` and `geom_outline`. This allows these modifications
     to be made for contrast layers.
-* feature: fill_holes now supported in add_images. Uses flood fill algorithm to find interior holes, then uses nearest neighbor imputation,
+* feature: fill_holes now supported in `geom_brain` and `geom_outline` objects. Uses flood fill algorithm to find interior holes, then uses nearest neighbor imputation,
     taking the mode for categorical images and mean for continuous images.
 * feature: for annotations, q<number> syntax now allows for quantiles above 1 or below 0, where 2 = 200% of max and -1 is -100% of min.
     This allows for annotations to be placed outside of image boundaries.

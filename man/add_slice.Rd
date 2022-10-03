@@ -2,7 +2,7 @@
 % Please edit documentation in R/sugar.R
 \name{add_slice}
 \alias{add_slice}
-\title{helper function for adding a slice to the plot, allowing for additional panel attributes to be passed through}
+\title{helper function for adding a single slice to the plot, allowing for additional panel attributes to be passed through}
 \usage{
 add_slice(
   coordinate = NULL,
@@ -16,8 +16,29 @@ add_slice(
   theme_custom = NULL
 )
 }
+\arguments{
+\item{coordinate}{a string specifying the x, y, or z coordinate of the slice to be added. Follows the same logic as add_slices.}
+
+\item{title}{a title for the panel added to the ggplot object using ggtitle()}
+
+\item{bg_color}{the color used for the background of the panel. Default: \code{'gray10'} (nearly black)}
+
+\item{text_color}{the color used for text displayed on the panel. Default: \code{'white'}.}
+
+\item{border_color}{the color used for drawing a border around on the panel. Default: \code{'gray50'}
+(though borders are not drawn by default).}
+
+\item{border_size}{the size of the border line drawn around the panel. Default: NULL. If this value is
+greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel}
+
+\item{xlab}{The label to place on x axis. Default is NULL.}
+
+\item{ylab}{The label to place on y axis. Default is NULL.}
+
+\item{theme_custom}{Any custom theme() settings to be added to the panel}
+}
 \description{
-helper function for adding a slice to the plot, allowing for additional panel attributes to be passed through
+helper function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
 }
 \details{
 I'm still unclear about whether it would be better to unify with this annotate_panels in some way.

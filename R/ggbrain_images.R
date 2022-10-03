@@ -294,7 +294,7 @@ ggbrain_images <- R6::R6Class(
     #' @description return the NIfTI headers for one or more images contained in this object
     #' @param img_names The names of images whose header are returned. Use \code{$get_image_names()} if you're uncertain
     #'   about what is available.
-    #' @param drop If TRUE, a single header is returned as an niftiHeader object, rather than a single-element list 
+    #' @param drop If TRUE, a single header is returned as an niftiHeader object, rather than a single-element list
     #'   containing that object.
     get_headers = function(img_names = NULL, drop = TRUE) {
       checkmate::assert_logical(drop, len=1L)
@@ -675,13 +675,13 @@ ggbrain_images <- R6::R6Class(
         return(slc_mat)
       }, simplify = FALSE)
     },
-    
+
     #' @description return a list of data.frames containing labels for a given image
     #' @details the names of the list correspond directly with the names of the images
     get_labels = function() {
       return(private$pvt_img_labels)
     },
-    
+
     #' @description internal function to lookup which slices to display along each axis based on their quantile,
     #'   xyz coordinate, or ijk coordinate
     #' @param slices A character vector of coordinates for slices to display
@@ -690,9 +690,9 @@ ggbrain_images <- R6::R6Class(
     lookup_slices = function(slices, ignore_null_space = TRUE) {
       checkmate::assert_character(slices)
       img_dims <- self$dim()
-      
+
       slc_range_full <- list(i = seq_len(img_dims[1]), j = seq_len(img_dims[2]), k = seq_len(img_dims[2]))
-      
+
       if (isTRUE(ignore_null_space)) {
         slc_range <- self$get_nz_indices()
       } else {
@@ -767,20 +767,20 @@ ggbrain_images <- R6::R6Class(
         } else if (axis_label == "z") {
           slc_coords <- zcoords[slc_num]
         }
-        
+
         slc_coords <- round(slc_coords, 1) # for display
         df <- data.frame(coord_label = paste(axis_label, "=", slc_coords), plane = plane, slice_number = slc_num)
-        
+
         return(df)
       }
-      
+
       slice_df <- lapply(slices, get_slice_num) %>%
         bind_rows() %>%
         distinct() %>% # remove any dupes
         tibble::remove_rownames() %>% # unneeded labels
         mutate(slice_index = 1:n(), coord_input = slices) %>%
         select(slice_index, coord_input, coord_label, everything())
-      
+
       return(slice_df)
     }
   )

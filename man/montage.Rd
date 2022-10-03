@@ -4,7 +4,14 @@
 \alias{montage}
 \title{Convenience function to add many slices in a montage along one of the 3D planes}
 \usage{
-montage(plane = NULL, n = 12, min = 0.1, max = 0.9)
+montage(
+  plane = NULL,
+  n = 12,
+  min = 0.1,
+  max = 0.9,
+  min_coord = NULL,
+  max_coord = NULL
+)
 }
 \arguments{
 \item{plane}{a character string specifying the 3D plane: "sagittal", "axial", "coronal", "x", "y", or "z"}
@@ -13,11 +20,18 @@ montage(plane = NULL, n = 12, min = 0.1, max = 0.9)
 
 \item{min}{the lowest quantile to be included in the montage (between 0 and 1). Default: 0.1}
 
-\item{max}{the highest quantilt to be included in the montage (between 0 and 1). Default: 0.9}
+\item{max}{the highest quantile to be included in the montage (between 0 and 1). Default: 0.9}
+
+\item{min_coord}{the lowest spatial position (in image coordinate space) to be included in the montage.}
+
+\item{max_coord}{the highest spatial position (in image coordinate space) to be included in the montage.}
 }
 \description{
 Convenience function to add many slices in a montage along one of the 3D planes
 }
 \details{
-this can be used with \code{add_slices} to make a quick montage, such as \verb{add_slices(montage("axial", 10)}.
+This can be used with \code{add_slices} to make a quick montage, such as \verb{add_slices(montage("axial", 10)}.
+
+Also note that use of standardized coordinates (in quantiles, using \code{min} and \code{max}) is mutually exclusive
+with the the image coordinate specifications \code{min_coord} and \code{max_coord.}
 }

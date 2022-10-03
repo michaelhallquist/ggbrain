@@ -6,6 +6,13 @@
 \usage{
 \method{ggplot_add}{ggbrain_layer}(object, plot, object_name)
 }
+\arguments{
+\item{object}{the ggbrain_layer object to be added to an existing ggplot}
+
+\item{plot}{the ggplot object}
+
+\item{object_name}{not used, but required by ggplot_add}
+}
 \description{
 S3 method to support adding ggbrain_layer objects to an existing ggplot object
 }

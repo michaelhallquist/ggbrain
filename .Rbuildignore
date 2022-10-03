@@ -5,3 +5,4 @@ local
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^\.github$
