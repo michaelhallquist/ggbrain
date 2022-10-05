@@ -22,15 +22,6 @@
     <loc>https://michaelhallquist.github.io/ggbrain/news/index.html</loc>
   </url>
   <url>
-    <loc>https://michaelhallquist.github.io/ggbrain/reference/add_images.html</loc>
-  </url>
-  <url>
-    <loc>https://michaelhallquist.github.io/ggbrain/reference/add_slice.html</loc>
-  </url>
-  <url>
-    <loc>https://michaelhallquist.github.io/ggbrain/reference/add_slices.html</loc>
-  </url>
-  <url>
     <loc>https://michaelhallquist.github.io/ggbrain/reference/annotate_coordinates.html</loc>
   </url>
   <url>
@@ -118,6 +109,9 @@
     <loc>https://michaelhallquist.github.io/ggbrain/reference/ggplot_add.ggbrain_panel.html</loc>
   </url>
   <url>
+    <loc>https://michaelhallquist.github.io/ggbrain/reference/images.html</loc>
+  </url>
+  <url>
     <loc>https://michaelhallquist.github.io/ggbrain/reference/index.html</loc>
   </url>
   <url>
@@ -164,6 +158,9 @@
   </url>
   <url>
     <loc>https://michaelhallquist.github.io/ggbrain/reference/scale_fill_bisided.html</loc>
+  </url>
+  <url>
+    <loc>https://michaelhallquist.github.io/ggbrain/reference/slices.html</loc>
   </url>
   <url>
     <loc>https://michaelhallquist.github.io/ggbrain/reference/sort_mat.html</loc>
