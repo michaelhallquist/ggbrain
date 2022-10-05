@@ -30,7 +30,7 @@ montage(
 Convenience function to add many slices in a montage along one of the 3D planes
 }
 \details{
-This can be used with \code{add_slices} to make a quick montage, such as \verb{add_slices(montage("axial", 10)}.
+This can be used with \code{slices} to make a quick montage, such as \verb{slices(montage("axial", 10)}.
 
 Also note that use of standardized coordinates (in quantiles, using \code{min} and \code{max}) is mutually exclusive
 with the the image coordinate specifications \code{min_coord} and \code{max_coord.}

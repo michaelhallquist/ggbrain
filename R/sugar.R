@@ -35,26 +35,11 @@ ggbrain <- function(images = NULL, labels = NULL, slices = NULL, title = NULL, b
 
 add_labels <- function(...) {
   args <- list(...)
-  ggb$new(labels=args, action = "add_image_labels")
+  ggb$new(labels = args, action = "add_image_labels")
 }
 
-#' Add slices to a ggb object
-#' @param slices a character vector of slices to be added to the ggb plot object
-#' @return a ggb object with the relevant slices and an action of 'add_slices'
-#' @export
-add_slices <- function(slices = NULL) {
-  if (is.null(slices)) {
-    ret <- ggb$new(action = NULL)
-  } else {
-    checkmate::assert_character(slices)
-    ret <- ggb$new(slices = slices, action = "add_slices")
-  }
-  return(ret)
-}
-
-#' helper function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
-#' @details I'm still unclear about whether it would be better to unify with this annotate_panels in some way.
-#' @param coordinate a string specifying the x, y, or z coordinate of the slice to be added. Follows the same logic as add_slices.
+#' Function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
+#' @param coordinates a string specifying the x, y, or z coordinate of the slice to be added. Follows the same logic as add_slices.
 #' @param title a title for the panel added to the ggplot object using ggtitle()
 #' @param bg_color the color used for the background of the panel. Default: \code{'gray10'} (nearly black)
 #' @param text_color the color used for text displayed on the panel. Default: \code{'white'}.
@@ -65,13 +50,17 @@ add_slices <- function(slices = NULL) {
 #' @param xlab The label to place on x axis. Default is NULL.
 #' @param ylab The label to place on y axis. Default is NULL.
 #' @param theme_custom Any custom theme() settings to be added to the panel
-add_slice <- function(coordinate = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
+#' @details note that if you pass in multiple coordinates (as a vector), the title, bg_color, and other attributes are all treated
+#'   as the same for slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
+#'   multiple addition operations, as in `slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')`.
+#' @export
+slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
   border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
 
-  checkmate::assert_string(coordinate)
+  checkmate::assert_character(coordinates)
 
   # store as single-element list with named list inside
-  slices <- list(named_list(coordinate, title, bg_color, text_color, border_color, border_size, xlab, ylab, theme_custom))
+  slices <- list(named_list(coordinates, title, bg_color, text_color, border_color, border_size, xlab, ylab, theme_custom))
   ret <- ggb$new(slices = slices, action = "add_slices")
   return(ret)
 }
@@ -84,7 +73,7 @@ add_slice <- function(coordinate = NULL, title = NULL, bg_color = NULL, text_col
 #' @param min_coord the lowest spatial position (in image coordinate space) to be included in the montage.
 #' @param max_coord the highest spatial position (in image coordinate space) to be included in the montage.
 #' @details 
-#'   This can be used with `add_slices` to make a quick montage, such as `add_slices(montage("axial", 10)`.
+#'   This can be used with `slices` to make a quick montage, such as `slices(montage("axial", 10)`.
 #'
 #'   Also note that use of standardized coordinates (in quantiles, using `min` and `max`) is mutually exclusive
 #'   with the the image coordinate specifications `min_coord` and `max_coord.`
@@ -121,7 +110,7 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, 
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a ggb object with the relevant images and an action of 'add_images'
 #' @export
-add_images <- function(images = NULL, labels = NULL, filter = NULL) {
+images <- function(images = NULL, labels = NULL, filter = NULL) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
     if (!is.null(labels)) img_obj$add_labels(labels)

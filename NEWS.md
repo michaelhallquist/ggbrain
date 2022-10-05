@@ -1,6 +1,10 @@
 # ggbrain 0.8 (DEVELOPMENT)
 
 * update: archive ggbrain_legacy and remove cowplot dependency
+* update: `add_images()` is now `images()` for nonredundancy
+* update: `add_slices()` is now `slices()` for nonredundancy
+* update: removed `add_slice()` in favor of `slices()`. If attributes such as `bg_color` are set by `slices()`, these
+    will be the same for each slice in the operation.
 * feature: support `min_coord` and `max_coord` in `montage` function for coordinate-based ranges
 
 # ggbrain 0.7 (23Sep2022)
