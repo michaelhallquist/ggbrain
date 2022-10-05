@@ -15,10 +15,19 @@ library(ggbrain)
 The package includes a few images that can be used for demonstrating its capabilities. The locations of the images (and the code to load them) are listed below.
 
 ```{r}
+# MNI 2009c anatomical underlay
 underlay_3mm <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+
+# onset of decision phase for learning task
+decision_onset_3mm <- system.file("extdata", "decision_onset_zstat_3mm.nii.gz", package = "ggbrain")
+
+# Parametric modulator: entropy change following feedback in learning task
 echange_overlay_3mm <- system.file("extdata", "echange_overall_zstat_3mm.nii.gz", package = "ggbrain")
+
+# Schaefer 200-parcel atlas of cortex
 schaefer200_atlas_3mm <- system.file("extdata", "Schaefer_200_7networks_2009c_3mm.nii.gz", package = "ggbrain")
-print(c(underlay_3mm, echange_overlay_3mm, schaefer200_atlas_3mm))
+
+print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, schaefer200_atlas_3mm))
 ```
 
 # Overview of ggbrain
@@ -181,9 +190,9 @@ gg_obj <- gg_obj +
   geom_brain(definition = "overlay", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 ```
 
-### Defining a subset layers
+### Defining subset layers
 
-Oftentimes, we may wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, `geom_brain()` support standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:
+Oftentimes, we wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, `geom_brain()` support standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:
 
 ```{r, eval=FALSE}
 gg_obj <- gg_obj +
@@ -225,8 +234,29 @@ In addition to filling in regions with colors, brain plots often benefit from be
 
 For continuous images (e.g., z-statistics), one typically *sets* the outline color using `geom_outline(outline="cyan")` or whatever color is desired. This draws the outlines for non-NA voxels in a single color. For categorical images (e.g., anatomical or functional atlases), it may be useful to map the color of the outlines to a categorical label such as network or region. This is accomplished with `geom_outline(mapping=aes(outline=roi_name))` or whatever column in the data corresponds to the categories one wishes to draw with different colors.
 
+Here, we might wish to outline voxels whose z-statistics exceed $z > 3$ for the decision onset regressor. These voxels represent areas that are sensitive to the onset of the decision phase of the reinforcement learning trial.
 
-## Adjustments to the appearance of image layers:
+```{r, eval=FALSE}
+gg_obj <- gg_obj +
+  images(onset=decision_onset_3mm) +
+  geom_outline(definition = "onset[abs(onset) > 3]", color="cyan", outline_size=3)
+```
+
+## Converting to a ggplot object and displaying the plot
+
+For reasons that are somewhat boring (having to do with how R handles S3 operators like `+`), the brain-related addition steps for `ggbrain` object must come before generic `ggplot2` modifications of the plot. More specifically, the use of the `+` operator for ggbrain commands like `geom_brain()` or `images()` create and modify an object that is internal to the 
+
+
+# Adjustments to the appearance of image layers
+
+## blur_edge
+
+## remove_specks
+
+## trim_threads
+
+## fill_holes
+
 
       blur_edge = NULL,
       fill_holes = NULL, remove_specks = NULL, trim_threads = NULL)

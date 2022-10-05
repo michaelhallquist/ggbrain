@@ -65,13 +65,16 @@ This value is used to set small values in the images to exactly zero for proper 
 \subsection{Method \code{new()}}{
 create ggbrain_images object consisting of one or more NIfTI images
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL, labels = NULL, filter = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL, volumes = NULL, labels = NULL, filter = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+
+\item{\code{volumes}}{the volumes to be read from each element of \code{images}. By default, this is 1, in which case the first volume is
+used, which is appropriate for all 3-D images. For 4-D images, \code{volumes} gives you more flexibility over the volume to display.}
 
 \item{\code{labels}}{A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
 a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond}
@@ -130,13 +133,17 @@ a row for each region represented in each slice.
 \subsection{Method \code{add_images()}}{
 add one or more images to this ggbrain_images object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images = NULL, volumes = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+
+\item{\code{volumes}}{a number indicating the volume within the \code{images} to read. At present, this must
+be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
+be displayed.}
 }
 \if{html}{\out{</div>}}
 }

@@ -59,8 +59,11 @@ slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color
 
   checkmate::assert_character(coordinates)
 
-  # store as single-element list with named list inside
-  slices <- list(named_list(coordinates, title, bg_color, text_color, border_color, border_size, xlab, ylab, theme_custom))
+  # store as single-element list with named list inside -- title, bg_color, etc. are shared by each slice added
+  slices <- lapply(coordinates, function(coordinate) {
+    named_list(coordinate, title, bg_color, text_color, border_color, border_size, xlab, ylab, theme_custom)
+  })
+
   ret <- ggb$new(slices = slices, action = "add_slices")
   return(ret)
 }
@@ -103,6 +106,9 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, 
 
 #' Add images to a ggb object
 #' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
+#' @param volumes a number indicating the volume within the \code{images} to display. At present, this must
+#'   be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
+#'   be displayed.
 #' @param labels a data.frame or named list of data.frame objects corresponding to images that should be labeled.
 #'   You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
 #'   the \code{labels} list are used to align the labels with a given matching image.
@@ -110,12 +116,12 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, 
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a ggb object with the relevant images and an action of 'add_images'
 #' @export
-images <- function(images = NULL, labels = NULL, filter = NULL) {
+images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
     if (!is.null(labels)) img_obj$add_labels(labels)
   } else {
-    img_obj <- ggbrain_images$new(images, labels, filter)
+    img_obj <- ggbrain_images$new(images, volumes, labels, filter)
   }
 
   ret <- ggb$new(images = img_obj, action = "add_images")

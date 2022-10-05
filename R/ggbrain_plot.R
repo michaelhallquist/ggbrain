@@ -260,7 +260,7 @@ ggbrain_plot <- R6::R6Class(
       panel_settings <- private$pvt_panel_settings
 
       if (!is.null(panel_settings) && length(panel_settings) != private$pvt_nslices) {
-        stop(glue::"The length of the plot panel settings ({length(panel_settings)} does not match the number of slices ({private$pvt_nslices}).")
+        stop(glue::glue("The length of the plot panel settings ({length(panel_settings)}) does not match the number of slices ({private$pvt_nslices})."))
       }
 
       if (!is.null(slice_indices)) {

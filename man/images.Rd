@@ -4,10 +4,14 @@
 \alias{images}
 \title{Add images to a ggb object}
 \usage{
-images(images = NULL, labels = NULL, filter = NULL)
+images(images = NULL, volumes = NULL, labels = NULL, filter = NULL)
 }
 \arguments{
 \item{images}{a character vector or ggbrain_images object containing NIfTI images to add to this plot}
+
+\item{volumes}{a number indicating the volume within the \code{images} to display. At present, this must
+be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
+be displayed.}
 
 \item{labels}{a data.frame or named list of data.frame objects corresponding to images that should be labeled.
 You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of

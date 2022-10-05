@@ -17,14 +17,19 @@ ggbrain_images <- R6::R6Class(
     pvt_imgs = list(), # image data
     pvt_img_labels = list(), # list of data.frames containing labels for a label image
     pvt_img_names = NULL, # names of images
+    pvt_img_volumes = list(), # list of volumes to be read for each image (for now, should be scalar)
     pvt_dims = NULL, # x, y, z extent
     pvt_zero_tol = 1e-6, # threshold for what constitutes a non-zero voxel
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
     pvt_slices = NULL, # allows caching of slices for + approach
     pvt_contrasts = NULL, # allows caching of contrasts for + approach
 
-    set_images = function(images = NULL) {
+    set_images = function(images = NULL, volumes = NULL) {
       if (is.null(images)) return(NULL) # skip out
+      if (is.null(volumes)) volumes <- 1L # just read first volume as default
+
+      # for now, enforce that volumes applies to all elements of images
+      checkmate::assert_integerish(volumes, len=1L, lower=1L)
 
       if (checkmate::test_character(images)) {
         checkmate::assert_file_exists(images)
@@ -40,7 +45,7 @@ ggbrain_images <- R6::R6Class(
         }
 
         img_list <- sapply(images, function(ff) {
-          img <- RNifti::readNifti(ff)
+          img <- RNifti::readNifti(ff, volumes = volumes)
 
           # round very small values to zero
           if (!is.null(private$pvt_zero_tol) && private$pvt_zero_tol > 0) {
@@ -68,6 +73,7 @@ ggbrain_images <- R6::R6Class(
       }
 
       private$pvt_imgs[names(img_list)] <- img_list
+      private$pvt_img_volumes[names(img_list)] <- volumes
       private$pvt_img_names <- names(private$pvt_imgs)
       private$pvt_nz_range <- self$get_nz_indices()
     }
@@ -105,13 +111,15 @@ ggbrain_images <- R6::R6Class(
   public = list(
     #' @description create ggbrain_images object consisting of one or more NIfTI images
     #' @param images a character vector of file names containing NIfTI images to read
+    #' @param volumes the volumes to be read from each element of \code{images}. By default, this is 1, in which case the first volume is
+    #'   used, which is appropriate for all 3-D images. For 4-D images, \code{volumes} gives you more flexibility over the volume to display.
     #' @param labels A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
     #'   a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond
     #' @param filter A named list of filter expressions to be applied to particular images. The names of the list correspond to the names
     #'   of the \code{images} provided. Each element of the list can either be a character vector denoting a filtering expression
     #'   (e.g., \code{'value < 100'}) or a numeric vector denoting values of the image that should be retained (e.g., \code{c(5, 10, 12)}).
-    initialize = function(images = NULL, labels=NULL, filter=NULL) {
-      private$set_images(images)
+    initialize = function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
+      private$set_images(images, volumes)
       if (!is.null(labels)) {
         # if user provides a data.frame as label input, this works in the case of a single image, which is assumed to correspond
         if (checkmate::test_data_frame(labels) && length(images) == 1L) {
@@ -167,7 +175,7 @@ ggbrain_images <- R6::R6Class(
 
     #' @description add a labels data.frame that connects an integer-valued image with a set of labels
     #' @param ... named arguments containing data.frame objects for each image to be labeled. The argument name should
-    #'   match the image name to be labeled and the value should be a data.frame containing \code{value} and \code{label}. 
+    #'   match the image name to be labeled and the value should be a data.frame containing \code{value} and \code{label}.
     #' @details
     #'
     #'   As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
@@ -206,8 +214,11 @@ ggbrain_images <- R6::R6Class(
 
     #' @description add one or more images to this ggbrain_images object
     #' @param images a character vector of file names containing NIfTI images to read
-    add_images = function(images = NULL) {
-      private$set_images(images)
+    #' @param volumes a number indicating the volume within the \code{images} to read. At present, this must
+    #'   be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
+    #'   be displayed.
+    add_images = function(images = NULL, volumes=NULL) {
+      private$set_images(images, volumes)
       return(self)
     },
 
@@ -273,7 +284,7 @@ ggbrain_images <- R6::R6Class(
     #' @description return the RNifti objects of one or more images contained in this object
     #' @param img_names The names of images to return. Use \code{$get_image_names()} if you're uncertain
     #'   about what is available.
-    #' @param drop If TRUE, a single image is returned as an RNifti object, rather than a single-element list 
+    #' @param drop If TRUE, a single image is returned as an RNifti object, rather than a single-element list
     #'   containing that object.
     get_images = function(img_names = NULL, drop = TRUE) {
       checkmate::assert_logical(drop, len=1L)
@@ -535,7 +546,7 @@ ggbrain_images <- R6::R6Class(
             uvals <- uvals[!uvals %in% c(NA, 0)]
             if (length(uvals) == 0L) return(NULL) # no matching positions on this slice
             sapply(uvals, function(u) colMeans(which(xx == u, arr.ind=TRUE)) ) %>%
-              t() %>% data.frame() %>% setNames(c("dim1", "dim2")) %>% 
+              t() %>% data.frame() %>% setNames(c("dim1", "dim2")) %>%
               dplyr::bind_cols(value = uvals, slice_index = dd) %>% dplyr::arrange(uvals)
           })
         })
@@ -758,7 +769,7 @@ ggbrain_images <- R6::R6Class(
             slc_num <- number
           }
         }
-        
+
         # slc_num is the slice number in the plane of interest
         if (axis_label == "x") {
           slc_coords <- xcoords[slc_num]
@@ -778,7 +789,7 @@ ggbrain_images <- R6::R6Class(
         bind_rows() %>%
         distinct() %>% # remove any dupes
         tibble::remove_rownames() %>% # unneeded labels
-        mutate(slice_index = 1:n(), coord_input = slices) %>%
+        mutate(slice_index = seq_len(n()), coord_input = slices) %>%
         select(slice_index, coord_input, coord_label, everything())
 
       return(slice_df)
@@ -805,10 +816,10 @@ summary.ggbrain_images <- function(gg, args) {
   if (!identical(o1$dim(), o2$dim())) {
     stop("ggbrain_images objects must have the same dimensions to be added together")
   }
-  
+
   # always work from copy
   oc <- o1$clone(deep = TRUE)
-  
+
   # add objects using add method
   oc$add(o2)
 }
@@ -816,7 +827,7 @@ summary.ggbrain_images <- function(gg, args) {
 
 # testing
 # test <- data.frame(value=100, label="hello")
-# 
+#
 # i1 <- ggbrain_images$new(images=c(underlay = "template_brain.nii.gz"))
 # i1$add_slices("x=10")
 # i1$add_labels(underlay=test)

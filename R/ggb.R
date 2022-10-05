@@ -104,7 +104,7 @@ ggb <- R6::R6Class(
 
       if (checkmate::test_character(slices)) {
         # if slices is a simple character vector, store as list with coordinate element
-        slices <- lapply(slices, function(x) list(coordinate=x))
+        slices <- lapply(slices, function(x) list(coordinate = x))
       } else if (checkmate::test_list(slices)) {
         sapply(slices, function(x) stopifnot("coordinate" %in% names(x)))
       } else {
