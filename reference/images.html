@@ -51,13 +51,19 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">images</span><span class="op">(</span>images <span class="op">=</span> <span class="cn">NULL</span>, labels <span class="op">=</span> <span class="cn">NULL</span>, filter <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">images</span><span class="op">(</span>images <span class="op">=</span> <span class="cn">NULL</span>, volumes <span class="op">=</span> <span class="cn">NULL</span>, labels <span class="op">=</span> <span class="cn">NULL</span>, filter <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>images</dt>
 <dd><p>a character vector or ggbrain_images object containing NIfTI images to add to this plot</p></dd>
+
+
+<dt>volumes</dt>
+<dd><p>a number indicating the volume within the <code>images</code> to display. At present, this must
+be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
+be displayed.</p></dd>
 
 
 <dt>labels</dt>

@@ -80,13 +80,23 @@
 </h2>
 <p>The package includes a few images that can be used for demonstrating its capabilities. The locations of the images (and the code to load them) are listed below.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">underlay_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># MNI 2009c anatomical underlay</span></span>
+<span><span class="va">underlay_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># onset of decision phase for learning task</span></span>
+<span><span class="va">decision_onset_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"decision_onset_zstat_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Parametric modulator: entropy change following feedback in learning task</span></span>
 <span><span class="va">echange_overlay_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"echange_overall_zstat_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Schaefer 200-parcel atlas of cortex</span></span>
 <span><span class="va">schaefer200_atlas_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Schaefer_200_7networks_2009c_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">underlay_3mm</span>, <span class="va">echange_overlay_3mm</span>, <span class="va">schaefer200_atlas_3mm</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">underlay_3mm</span>, <span class="va">decision_onset_3mm</span>, <span class="va">echange_overlay_3mm</span>, <span class="va">schaefer200_atlas_3mm</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "/home/runner/work/_temp/Library/ggbrain/extdata/mni_template_2009c_3mm.nii.gz"          </span></span>
-<span><span class="co">## [2] "/home/runner/work/_temp/Library/ggbrain/extdata/echange_overall_zstat_3mm.nii.gz"       </span></span>
-<span><span class="co">## [3] "/home/runner/work/_temp/Library/ggbrain/extdata/Schaefer_200_7networks_2009c_3mm.nii.gz"</span></span></code></pre>
+<span><span class="co">## [2] "/home/runner/work/_temp/Library/ggbrain/extdata/decision_onset_zstat_3mm.nii.gz"        </span></span>
+<span><span class="co">## [3] "/home/runner/work/_temp/Library/ggbrain/extdata/echange_overall_zstat_3mm.nii.gz"       </span></span>
+<span><span class="co">## [4] "/home/runner/work/_temp/Library/ggbrain/extdata/Schaefer_200_7networks_2009c_3mm.nii.gz"</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="overview-of-ggbrain">Overview of ggbrain<a class="anchor" aria-label="anchor" href="#overview-of-ggbrain"></a>
@@ -253,9 +263,9 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
-<h4 id="defining-a-subset-layers">Defining a subset layers<a class="anchor" aria-label="anchor" href="#defining-a-subset-layers"></a>
+<h4 id="defining-subset-layers">Defining subset layers<a class="anchor" aria-label="anchor" href="#defining-subset-layers"></a>
 </h4>
-<p>Oftentimes, we may wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, <code><a href="../reference/geom_brain.html">geom_brain()</a></code> support standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:</p>
+<p>Oftentimes, we wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, <code><a href="../reference/geom_brain.html">geom_brain()</a></code> support standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -284,9 +294,35 @@ In private$set_images(images, fill_holes, clean_specks) :
 </h3>
 <p>In addition to filling in regions with colors, brain plots often benefit from being able to outline, rather than fill, regions. This is accomplished using <code><a href="../reference/geom_outline.html">geom_outline()</a></code>. This geometry finds the boundaries of distinct clusters in the image/contrast and traces the boundaries with a line of some thickness (controlled by <code>outline_size</code>).</p>
 <p>For continuous images (e.g., z-statistics), one typically <em>sets</em> the outline color using <code>geom_outline(outline="cyan")</code> or whatever color is desired. This draws the outlines for non-NA voxels in a single color. For categorical images (e.g., anatomical or functional atlases), it may be useful to map the color of the outlines to a categorical label such as network or region. This is accomplished with <code>geom_outline(mapping=aes(outline=roi_name))</code> or whatever column in the data corresponds to the categories one wishes to draw with different colors.</p>
+<p>Here, we might wish to outline voxels whose z-statistics exceed <span class="math inline">\(z &gt; 3\)</span> for the decision onset regressor. These voxels represent areas that are sensitive to the onset of the decision phase of the reinforcement learning trial.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span>onset<span class="op">=</span><span class="va">decision_onset_3mm</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"onset[abs(onset) &gt; 3]"</span>, color<span class="op">=</span><span class="st">"cyan"</span>, outline_size<span class="op">=</span><span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="adjustments-to-the-appearance-of-image-layers">Adjustments to the appearance of image layers:<a class="anchor" aria-label="anchor" href="#adjustments-to-the-appearance-of-image-layers"></a>
+<h3 id="converting-to-a-ggplot-object-and-displaying-the-plot">Converting to a ggplot object and displaying the plot<a class="anchor" aria-label="anchor" href="#converting-to-a-ggplot-object-and-displaying-the-plot"></a>
+</h3>
+<p>For reasons that are somewhat boring (having to do with how R handles S3 operators like <code>+</code>), the brain-related addition steps for <code>ggbrain</code> object must come before generic <code>ggplot2</code> modifications of the plot. More specifically, the use of the <code>+</code> operator for ggbrain commands like <code><a href="../reference/geom_brain.html">geom_brain()</a></code> or <code><a href="../reference/images.html">images()</a></code> create and modify an object that is internal to the</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="adjustments-to-the-appearance-of-image-layers">Adjustments to the appearance of image layers<a class="anchor" aria-label="anchor" href="#adjustments-to-the-appearance-of-image-layers"></a>
+</h2>
+<div class="section level3">
+<h3 id="blur_edge">blur_edge<a class="anchor" aria-label="anchor" href="#blur_edge"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="remove_specks">remove_specks<a class="anchor" aria-label="anchor" href="#remove_specks"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="trim_threads">trim_threads<a class="anchor" aria-label="anchor" href="#trim_threads"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="fill_holes">fill_holes<a class="anchor" aria-label="anchor" href="#fill_holes"></a>
 </h3>
 <pre><code>  blur_edge = NULL,
   fill_holes = NULL, remove_specks = NULL, trim_threads = NULL)</code></pre>
@@ -294,7 +330,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <h4 id="cleaning-small-specks-from-image-slices">Cleaning small ‘specks’ from image slices<a class="anchor" aria-label="anchor" href="#cleaning-small-specks-from-image-slices"></a>
 </h4>
 <p>At times, when slicing a given image (esp. functional activations), it is possible that some clusters are very small, yielding small ‘specks’ on some rendered slices. These are visually unappealing and may merit removal, depending on your tastes. Of course, removing these specks can, at the extreme, misrepresent the data, which is undesirable. This concern notwithstanding, you can use the <code>clean_specks</code> argument of <code>images</code> to specify the voxel threshold used to remove clusters smaller than a certain size. For example, <code>clean_specks = 30</code> would remove any clusters smaller than 30 voxels in size from each slice on the rendered image.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># TODO: make this in geom_brain</span></span>
 <span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span>echange<span class="op">=</span><span class="va">echange_overlay_3mm</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -302,7 +338,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <h4 id="filling-small-holes-in-image-slices">Filling small holes in image slices<a class="anchor" aria-label="anchor" href="#filling-small-holes-in-image-slices"></a>
 </h4>
 <p>Another aesthetic problem is that at times there will be small holes on the interior of a cluster. These may reflect voxels that fall below a statistical threshold (e.g., voxels that have a z-statistic value of 3.02 in a cluster defined by z &gt; 3.1). These can be filled in using the <code>fill_holes</code> argument of <code>images</code>. This specifies the size of holes (in voxels) that should be filled on the rendered slices. For example, <code>fill_holes = 30</code> would fill holes of 30 or fewer voxels on the interior of each cluster. The holes are filled by nearest neighbor imputation in which the nearest non-missing voxels are used to impute missing voxels. In integer-valued/categorical images, the mode of the neighboring voxels is used for imputation.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># TODO: make this in geom_Brain</span></span>
 <span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span>echange<span class="op">=</span><span class="va">echange_overlay_3mm</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -311,7 +347,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <div class="section level2">
 <h2 id="labeling-regions">Labeling regions<a class="anchor" aria-label="anchor" href="#labeling-regions"></a>
 </h2>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray60"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="st">"template_brain.nii.gz"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>dan_clust <span class="op">=</span> <span class="va">dan_clust</span><span class="op">)</span>, fill_holes <span class="op">=</span> <span class="cn">TRUE</span>, clean_specks <span class="op">=</span> <span class="fl">20</span>, labels <span class="op">=</span> <span class="va">dan_labels</span><span class="op">)</span> <span class="op">+</span></span>
