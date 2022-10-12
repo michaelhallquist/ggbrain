@@ -363,9 +363,13 @@ ggbrain_plot <- R6::R6Class(
       return(self)
     },
     #' @description return a plot of all panels as a patchwork object
-    plot = function() {
+    #' @param guides Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
+    #'   is "collect", which collects legends within a given nesting level (removes duplicates).
+    plot = function(guides = "collect") {
+      
       # extract ggplot objects from panels and plot with patchwork wrap_plots
       patchwork::wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg)) +
+        patchwork::plot_layout(guides=guides) +
         patchwork::plot_annotation(
           title = private$pvt_title,
           theme = theme(

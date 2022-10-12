@@ -183,9 +183,12 @@ ggb <- R6::R6Class(
     #' @description this method converts the ggb object into a compiled ggplot2 object that can then be passed to other
     #'   functions from cowplot, ggplot2, and patchwork. Once the object is rendered, it no longer retains the underlying ggb
     #'   fields that contain the elemental data.
-    render = function() {
+    #' @param guides Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
+    #'   is "collect", which collects legends within a given nesting level (removes duplicates).
+    render = function(guides = "collect") {
       if (is.null(self$ggb_layers) || length(self$ggb_layers) == 0L) {
-        stop("No brain layers added to this object yet. Use + geom_brain() to add.")
+        warning("No brain layers added to this object yet. Use + geom_brain() or + geom_outline() to add.")
+        return(NULL)
       }
 
       img <- self$ggb_images$clone(deep = TRUE)
@@ -242,14 +245,16 @@ ggb <- R6::R6Class(
       self$ggb_plot$region_labels <- self$ggb_region_labels # pass through region labels
       self$ggb_plot$generate_plot()
 
-      return(self$ggb_plot$plot())
+      return(self$ggb_plot$plot(guides))
     },
 
     #' @description plot this ggb object
+    #' @param guides Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
+    #'   is "collect", which collects legends within a given nesting level (removes duplicates).
     #' @details requires that required elements are in place already.
-    plot = function() {
+    plot = function(guides="collect") {
       # returns a ggbrain_plot object
-      obj <- self$render()
+      obj <- self$render(guides)
       return(obj)
     }
   )

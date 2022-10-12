@@ -39,8 +39,8 @@ add_labels <- function(...) {
 }
 
 #' Function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
-#' @param coordinates a string specifying the x, y, or z coordinate of the slice to be added. Follows the same logic as add_slices.
-#' @param title a title for the panel added to the ggplot object using ggtitle()
+#' @param coordinates a character vector specifying the x, y, or z coordinates of the slices to be added.
+#' @param title a title for the panel added to the ggplot object using `ggtitle()`
 #' @param bg_color the color used for the background of the panel. Default: \code{'gray10'} (nearly black)
 #' @param text_color the color used for text displayed on the panel. Default: \code{'white'}.
 #' @param border_color the color used for drawing a border around on the panel. Default: \code{'gray50'}

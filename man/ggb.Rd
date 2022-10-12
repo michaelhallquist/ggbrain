@@ -196,9 +196,17 @@ this method converts the ggb object into a compiled ggplot2 object that can then
 functions from cowplot, ggplot2, and patchwork. Once the object is rendered, it no longer retains the underlying ggb
 fields that contain the elemental data.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggb$render()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggb$render(guides = "collect")}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{guides}}{Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
+is "collect", which collects legends within a given nesting level (removes duplicates).}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggb-plot"></a>}}
@@ -206,9 +214,17 @@ fields that contain the elemental data.
 \subsection{Method \code{plot()}}{
 plot this ggb object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggb$plot()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggb$plot(guides = "collect")}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{guides}}{Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
+is "collect", which collects legends within a given nesting level (removes duplicates).}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Details}{
 requires that required elements are in place already.
 }

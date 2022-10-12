@@ -17,9 +17,9 @@ slices(
 )
 }
 \arguments{
-\item{coordinates}{a string specifying the x, y, or z coordinate of the slice to be added. Follows the same logic as add_slices.}
+\item{coordinates}{a character vector specifying the x, y, or z coordinates of the slices to be added.}
 
-\item{title}{a title for the panel added to the ggplot object using ggtitle()}
+\item{title}{a title for the panel added to the ggplot object using \code{ggtitle()}}
 
 \item{bg_color}{the color used for the background of the panel. Default: \code{'gray10'} (nearly black)}
 

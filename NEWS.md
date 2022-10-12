@@ -1,5 +1,8 @@
 # ggbrain 0.8 (DEVELOPMENT)
 
+* feature: `images()` supports a `volumes` argument so that volumes from 4-D images can be visualized
+* feature: `plot()` on a ggbrain object supports `guides` argument that passes to `plot_layout()` in `patchwork`.
+    Also, the default is now `guides="collect"`, which combines shared legends.
 * update: archive ggbrain_legacy and remove cowplot dependency
 * update: `add_images()` is now `images()` for nonredundancy
 * update: `add_slices()` is now `slices()` for nonredundancy

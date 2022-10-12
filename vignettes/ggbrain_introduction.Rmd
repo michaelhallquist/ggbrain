@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggbrain)
+library(ggplot2)
 ```
 
 # Images that will be used in the demo
@@ -52,6 +53,12 @@ One can create an empty ggbrain object using the `ggbrain` function. This is aki
 gg_obj <- ggbrain()
 ```
 
+At this point, trying to plot the `ggbrain` yields a warning given that no data or geometric layers have been added.
+
+```{r}
+plot(gg_obj)
+```
+
 Consistent with the `ggplot2` approach, additional elements can be added using the `+` operator, as we elaborate below. The main thing to know at this point is that **you need to add all ggbrain-specific elements before adding typical ggplot components such as `theme()`**.
 
 Also note that the order of the addition operations for images and slices (`images` and `slices`, respectively) is not important. The example order below -- adding images, slices, layers, and labels -- is conceptually intuitive, but could be reordered without altering the plut. As in `ggplot2`, the order of all geom_* layers *does* matter, such that geom_* layers that are added later are rendered on top of layers added earlier. For example, the `geom_brain()` layer for an underlay image should be added before an overlay.
@@ -76,14 +83,15 @@ Note that the image name of 'underlay' has a special meaning in the package. Spe
 
 You can add many images at once by providing a named vector:
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj + images(c(underlay = underlay_3mm, echange = echange_overlay_3mm))
+```{r}
+gg_obj <- ggbrain() + 
+  images(c(underlay = underlay_3mm, echange = echange_overlay_3mm))
 ```
 
 Or you can add many images in independent `images` steps. Note that the order of addition is not important.
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj +
+```{r}
+gg_obj <- ggbrain() +
   images(c(underlay = underlay_3mm)) +
   images(c(echange = echange_overlay_3mm))
 ```
@@ -100,7 +108,7 @@ The most conventional approach is add slices based on their spatial position alo
 
 You can add one or more slices using `slices()` by passing a character vector of positions.
 
-```{r, eval=FALSE}
+```{r}
 gg_obj <- gg_obj + slices(c("x = 10", "y = 70", "z = 15"))
 ```
 
@@ -110,13 +118,13 @@ This will add one sagittal slice (x=10), one coronal (y=70), and one axis (z=15)
 
 If you want to use standardized coordinates in terms of percentiles, rather than spatial coordinates, you can append `%` at the end of the `slices()` specification. This will find the position of the corresponding slice along the axis between 0% and 100%. These percentiles are computed based on the slices that are not entirely empty (i.e., not all zero).
 
-```{r, eval=FALSE}
+```{r}
 gg_obj <- gg_obj + slices(c("x = 25%", "y = 50%", "z = 90%"))
 ```
 
-### Adding a single slice with additional aesthetic details
+### Adding slices with additional aesthetic details
 
-The `slices()` function can add many slices at once, but it does not allow you to alter specific aesthetic elements such as the panel title, border, or axis labels. If you would like finer control over the aesthetics of a single slice, use `add_slice()`. This function supports a number of additional arguments that will alter the appearance of the slice, including:
+If you would like to alter specific aesthetic elements of the slices such as the panel title, border, or axis labels, these can be added as arguments to `slices()`. Aesthetic arguments that will alter the appearance of the relevant slices include:
 
 - `title`: The panel title
 - `bg_color`: The background color of the panel
@@ -127,9 +135,12 @@ The `slices()` function can add many slices at once, but it does not allow you t
 - `ylab`: The y axis label of the panel
 - `theme_custom`: A ggplot2 `theme()` (or list of theme calls) added to this panel that customizes its appearance.
 
-```{r, eval=FALSE}
+```{r}
 gg_obj <- gg_obj +
-  add_slice("x = 25%", bg_color = "gray25", xlab = "x axis", theme_custom = theme(axis.text.x = element_text(size = 24)))
+  slices(
+    c("x = 25%", "x = 50%"),
+    bg_color = "gray25", xlab = "x axis", theme_custom = theme(axis.text.x = element_text(size = 24))
+  )
 ```
 
 ### Adding montages
@@ -139,37 +150,37 @@ If you would like a set of slices along one of the image planes to form a montag
 - `plane`: "sagittal", "coronal", or "axial" ("x", "y", and "z" also work)
 - `n`: the number of slices to render along this plane
 - `min`: the lowest quantile to be included (between 0 and 1). Default: 0.1
-- `max`: the highest quantile to be included (between 0 and 1). Default: 0.9.
-- `min_coord`: the lowest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL.
-- `max_coord`: the highest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL.
+- `max`: the highest quantile to be included (between 0 and 1). Default: 0.9
+- `min_coord`: the lowest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
+- `max_coord`: the highest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
 
-This code adds 10 axial slices between the 10th and 90th percentiles.
+The code below adds 10 axial slices between the 10th and 90th percentiles.
 
-```{r, eval=FALSE}
+```{r}
 gg_obj <- gg_obj + slices(montage("axial", 10, min = 0.1, max = 0.8))
 ```
 
 This code adds 5 sagittal slices between the x = -10 and x = 10 (millimeters, in image coordinates).
 
-```{r, eval=FALSE}
+```{r}
 gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10))
 ```
 
 ## Adding brain overlay layers to a plot
 
-Now that we have defined the images to read and the slices to render, we need to map the numeric values in the slices to the points on the plot. This is achieved by `geom_brain()`, which is essentially an extension of `geom_raster()` from ggplot2. The numeric values in the slices fill squares on the plot, essentially forming 'pixels'.
+Now that we have defined the images to read and the slices to render, we need to map the numeric values in the slices to the points on the plot. This is achieved by `geom_brain()`, which is essentially an extension of `geom_raster()` from `ggplot2`. The numeric values in the slices fill squares on the plot, essentially forming 'pixels'.
 
-As with standard ggplot2 objects, the color of these pixels is determined by a `scale_fill_*` scale, allowing you to have fine control over the coloration.
+As with standard `ggplot2` objects, the fill color of these pixels is determined by a `scale_fill_*` scale, allowing you to have fine control over the coloration.
 
-Extending `geom_raster()`, the `geom_brain()` layer supports the following standards.
+Extending `geom_raster()`, the `geom_brain()` layer supports the following standards:
 
-- `interpolate`: if TRUE, `geom_raster` smooths the layer, rather than rendering discrete squares
+- `interpolate`: if TRUE, `geom_raster` smooths the layer, rather than rendering discrete squares.
 - `alpha`: A number between 0 and 1 controlling the alpha transparency of the layer
-- `show_legend`: If TRUE (default), a legend mapping the numeric values to a color scale is included in the panel.
+- `show_legend`: If TRUE (default), a legend mapping the numeric values to a color scale is included in the panel
 - `fill`: A color to be used to fill all non-NA pixels. In ggplot2 terms, this is 'setting' the color of all pixels, as opposed to 'mapping' the color to the numeric value via a scale.
-- `mapping`: The aesthetic mapping between the data and the raster layer. In general, the default of `aes(fill=value)` should be retained for parametric layers (i.e., where the color of pixels should map to a continuous scale). But as detailed in a subsequent section, the fill can mapped to label columns in categorical image (e.g., atlas).
+- `mapping`: The aesthetic mapping between the data and the raster layer. In general, the default of `aes(fill=value)` should be retained for parametric layers (i.e., where the color of pixels should map to a continuous scale). But as detailed in a subsequent section, the fill can mapped to label columns in a categorical image (e.g., atlas).
 
-Relative to standard ggplot2 conventions, the use of `geom_brain()` requires that you specify details about the color scale when the layer is added. This results from the fact that `ggbrain` objects re-use the 'fill' geometry when layers are overlaid. For example, if I have an anatomical underlay with a grayscale fill and a statistical overlay with a color fill, each layer needs to have its own fill scale (with a `scale_fill_*` object). This is achieved internally using the `ggnewscale` package.
+Relative to standard ggplot2 conventions, the use of `geom_brain()` requires that you specify details about the fill color scale when the layer is added. This results from the fact that `ggbrain` objects re-use the 'fill' geometry when layers are overlaid. For example, if you have an anatomical underlay with a grayscale fill and a statistical overlay with a color fill, each layer needs to have its own fill scale (with a `scale_fill_*` object). This is achieved internally using the `ggnewscale` package.
 
 The 'take-home message' is that you need to specify fill scale information as part of the `geom_brain()` call. Here are the key arguments:
 
@@ -180,42 +191,62 @@ The 'take-home message' is that you need to specify fill scale information as pa
 
 ### Defining an image layer
 
-The `geom_brain()` function includes an argument called `definition`. This controls the numeric values that are selected for display on the layer. The simplest definition is to name the image to be displayed. Recall that when you use `images()`, you provide names for the images that are used as a reference by `ggbrain`.
+The `geom_brain()` function includes an argument called `definition`. This controls the numeric values that are selected for display on the layer. The simplest definition is to name the image to be displayed. Recall that when you use `images()`, you provide names for the images. These are used as a reference by `ggbrain` to interpret your layer definitions.
 
-For example, if I want to render the underlay and overlay layers as-is, I can use the following approach:
+For example, here I want to render the underlay and overlay layers with their numeric values:
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj +
+```{r}
+# define a reusable object that has the same images and slices
+gg_base <- ggbrain(bg_color = "gray80", text_color = "black") +
+  images(c(underlay = underlay_3mm, overlay = echange_overlay_3mm)) +
+  slices(c("x = 10", "y = 70", "z = 15"))
+#ggbrain(bg_color = "gray80", text_color = "black", title="Rostral PPC")
+
+```
+
+```{r}
+gg_obj <- gg_base +
   geom_brain(definition = "underlay", fill_scale = scale_fill_gradient(low = "grey8", high = "grey62"), show_legend = FALSE) +
   geom_brain(definition = "overlay", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 ```
 
+Now that we have `geom_*` layers in our `ggbrain` object, we can finally plot our figure to see the result.
+
+```{r}
+x <- gg_obj$render() + plot_annotation(theme = theme(plot.background = element_rect(fill = "blue", color = NA)))
+```
+
 ### Defining subset layers
 
-Oftentimes, we wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, `geom_brain()` support standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:
+Oftentimes, we wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, `geom_brain()` supports standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj +
+```{r, fig.width=8, fig.height=6}
+gg_obj <- gg_base +
   geom_brain(definition = "overlay[abs(overlay) > 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
+  #geom_brain(definition = "overlay[abs(overlay) < 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
+plot(gg_obj)
 ```
 
 Note how 'overlay' is treated as an R object that is subset using square brackets. The subsetting expression inside the brackets uses standard R syntax and can reference other images currently in the ggbrain object. For example, you could display overlay values only where the underlay is greater than 10:
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj +
+```{r}
+gg_obj <- gg_base +
   geom_brain(definition = "overlay[underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 ```
 
 Finally, note that one can combine subsetting expressions using logical operators `&` and `|` , as in standard R syntax for vector operations. For example, here's how you could include only pixels that are both `abs(overlay) > 2.5` and where `underlay > 10`:
 
 ```{r, eval=FALSE}
-gg_obj <- gg_obj +
-  geom_brain(definition = "overlay[abs(overlay) > 2.5 & underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
+gg_obj <- gg_base +
+  geom_brain(definition = "overlay[abs(overlay) > 2.5 & underlay > 10]",
+             fill_scale = scale_fill_bisided(), show_legend = TRUE
+  )
+plot(gg_obj)
 ```
 
 ### Defining a contrast layer
 
-The `ggbrain` package also supports full contrasts in which images can be added, subtracted, multiplied, or divided. For example, one might wish to see the difference between one activation map and another. Of course, such contrasts are often computed in the GLM estimation, but it is often useful to compute certain contrasts after the fact.
+The `ggbrain` package also supports full contrasts in which images can be added, subtracted, multiplied, or divided. For example, one might wish to see the difference between one activation map and another. Of course, many such contrasts can be computed in the GLM estimation, but it is often useful to compute certain contrasts after the fact.
 
 For example, what if we have signed and absolute reward prediction error maps from a simple reinforcement learning paradigm? We might be interested to look at areas that are more strongly modulated by signed than absolute PEs.
 
@@ -245,40 +276,6 @@ gg_obj <- gg_obj +
 ## Converting to a ggplot object and displaying the plot
 
 For reasons that are somewhat boring (having to do with how R handles S3 operators like `+`), the brain-related addition steps for `ggbrain` object must come before generic `ggplot2` modifications of the plot. More specifically, the use of the `+` operator for ggbrain commands like `geom_brain()` or `images()` create and modify an object that is internal to the 
-
-
-# Adjustments to the appearance of image layers
-
-## blur_edge
-
-## remove_specks
-
-## trim_threads
-
-## fill_holes
-
-
-      blur_edge = NULL,
-      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL)
-
-
-### Cleaning small 'specks' from image slices
-
-At times, when slicing a given image (esp. functional activations), it is possible that some clusters are very small, yielding small 'specks' on some rendered slices. These are visually unappealing and may merit removal, depending on your tastes. Of course, removing these specks can, at the extreme, misrepresent the data, which is undesirable. This concern notwithstanding, you can use the `clean_specks` argument of `images` to specify the voxel threshold used to remove clusters smaller than a certain size. For example, `clean_specks = 30` would remove any clusters smaller than 30 voxels in size from each slice on the rendered image.
-
-```{r, eval=FALSE}
-# TODO: make this in geom_brain
-gg_obj <- gg_obj + images(echange=echange_overlay_3mm)
-```
-
-### Filling small holes in image slices
-
-Another aesthetic problem is that at times there will be small holes on the interior of a cluster. These may reflect voxels that fall below a statistical threshold (e.g., voxels that have a z-statistic value of 3.02 in a cluster defined by z > 3.1). These can be filled in using the `fill_holes` argument of `images`. This specifies the size of holes (in voxels) that should be filled on the rendered slices. For example, `fill_holes = 30` would fill holes of 30 or fewer voxels on the interior of each cluster. The holes are filled by nearest neighbor imputation in which the nearest non-missing voxels are used to impute missing voxels. In integer-valued/categorical images, the mode of the neighboring voxels is used for imputation.
-
-```{r, eval=FALSE}
-# TODO: make this in geom_Brain
-gg_obj <- gg_obj + images(echange=echange_overlay_3mm)
-```
 
 
 
