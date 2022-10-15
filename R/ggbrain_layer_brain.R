@@ -23,6 +23,7 @@ ggbrain_layer_brain <- R6::R6Class(
         checkmate::assert_string(value)
         private$pvt_fill <- value
         private$pvt_has_fill <- TRUE
+        private$pvt_fill_column <- NULL
       }
     },
 

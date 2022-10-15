@@ -2,13 +2,23 @@
 title: "Introduction to ggbrain"
 author: "Michael Hallquist"
 date: "3 Oct 2022"
-output: html_document
+output:
+  html_document:
+    code_folding: show
+    df_print: kable
+    mathjax: default
+    number_sections: yes
+    theme: spacelab
+    toc: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggbrain)
 library(ggplot2)
+library(patchwork)
 ```
 
 # Images that will be used in the demo
@@ -31,20 +41,6 @@ schaefer200_atlas_3mm <- system.file("extdata", "Schaefer_200_7networks_2009c_3m
 print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, schaefer200_atlas_3mm))
 ```
 
-# Overview of ggbrain
-
-The `ggbrain` package uses the `ggplot2` package to create 2D volume renderings of NIfTI files containing MRI data. It seeks to follow the principles of a graphical grammar in which plots are built from datasets that are mapped onto the visual space via a set of aesthetic mappings. Likewise, `ggbrain` follows the approach of creating layers in which different geometric marks (e.g., square pixels) are overlaid on the plot, such that many images and marks can be combined.
-
-## The hierarchy of a ggbrain plot
-
-Every ggbrain plot is composed of one or more panels that have layers representing different images that have been overlaid. Each panel contains a slice along one of the three axes of the volume: x (Left-Right), y (Anterior-Posterior), or z (Superior-Inferior). Panels can also contain annotations that reflect one or more marks to aid in the interpretation of the plot, as well as region labels in which text is positioned at certain markers within the displayed brain slice.
-
-- Plot
-  - Panels (aka Slices)
-    - Layers: each pixel in the 2D slice contains a value such as a test statistic from a voxelwise analysis. Pixel values can also be categorical, such as levels of a factor (e.g., lobe).
-    - Annotations: custom text or graphical marks overlaid on the panel using the ggplot2 `annotate` function (e.g., coordinate label)
-    - Region Labels: a variant of ggplot2 `geom_text`, region labels represent text that should be overlaid at one or more spatial positions across the panel/slice (e.g., anatomical labels)
-    
 # Building a ggbrain plot layer by layer
 
 One can create an empty ggbrain object using the `ggbrain` function. This is akin to creating an empty ggplot object using `ggplot()`.
@@ -231,13 +227,15 @@ Note how 'overlay' is treated as an R object that is subset using square bracket
 
 ```{r}
 gg_obj <- gg_base +
+  geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay[underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 ```
 
 Finally, note that one can combine subsetting expressions using logical operators `&` and `|` , as in standard R syntax for vector operations. For example, here's how you could include only pixels that are both `abs(overlay) > 2.5` and where `underlay > 10`:
 
-```{r, eval=FALSE}
+```{r}
 gg_obj <- gg_base +
+  geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay[abs(overlay) > 2.5 & underlay > 10]",
              fill_scale = scale_fill_bisided(), show_legend = TRUE
   )
@@ -265,61 +263,85 @@ In addition to filling in regions with colors, brain plots often benefit from be
 
 For continuous images (e.g., z-statistics), one typically *sets* the outline color using `geom_outline(outline="cyan")` or whatever color is desired. This draws the outlines for non-NA voxels in a single color. For categorical images (e.g., anatomical or functional atlases), it may be useful to map the color of the outlines to a categorical label such as network or region. This is accomplished with `geom_outline(mapping=aes(outline=roi_name))` or whatever column in the data corresponds to the categories one wishes to draw with different colors.
 
-Here, we might wish to outline voxels whose z-statistics exceed $z > 3$ for the decision onset regressor. These voxels represent areas that are sensitive to the onset of the decision phase of the reinforcement learning trial.
+Here, we might wish to outline voxels whose z-statistics exceed $|z| > 3$ for the decision onset regressor. These voxels represent areas that are sensitive to the onset of the decision phase of the reinforcement learning trial.
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj +
-  images(onset=decision_onset_3mm) +
-  geom_outline(definition = "onset[abs(onset) > 3]", color="cyan", outline_size=3)
+```{r, warning=FALSE, message=FALSE}
+gg_obj <- ggbrain() +
+  slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
+  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  geom_brain(definition="underlay") +
+  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan")
+plot(gg_obj)
 ```
 
 ## Converting to a ggplot object and displaying the plot
 
-For reasons that are somewhat boring (having to do with how R handles S3 operators like `+`), the brain-related addition steps for `ggbrain` object must come before generic `ggplot2` modifications of the plot. More specifically, the use of the `+` operator for ggbrain commands like `geom_brain()` or `images()` create and modify an object that is internal to the 
+For reasons that are somewhat boring (having to do with how R handles S3 operators like `+`), the brain-related addition steps for `ggbrain` object must come before generic `ggplot2` modifications of the plot. For your `ggbrain` object to be a `ggplot` object, it must be *rendered* using the `render()` function. This function compiles the images, layers, and slices into the requested plot and returns it as a `patchwork` object. The patchwork package is extremely useful for combining ggplot objects in different layouts. More details can be found here: https://patchwork.data-imaginist.com.
 
+In `ggbrain`, each panel is `ggplot` object and the panels are composited using `wrap_plots` in patchwork.
 
+The key message here is: place ggbrain-specific additions *before* `render()` and ggplot-specific additions *afterwards*.
 
+```{r, warning=FALSE, message=FALSE}
 
-# Labeling regions
+# without a render step
+gg_obj <- ggbrain() +
+  slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
+  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  geom_brain(definition="underlay") +
+  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan")
 
-```{r, eval=FALSE}
-a <- ggbrain(bg_color = "gray60", text_color = "black") +
-  images(c(underlay = "template_brain.nii.gz")) +
-  images(c(dan_clust = dan_clust), fill_holes = TRUE, clean_specks = 20, labels = dan_labels) +
-  # slices(paste0("x = ", seq(10, 90, 10), "%")) +
-  slices(montage("axial", 10, min = 0.1, max = 0.8)) +
-  # add_slice("y=50%", title = "hello", xlab = "testx", border_size = 1, border_color = "blue") +
-  geom_brain(definition = "underlay", fill_scale = scale_fill_gradient(low = "grey8", high = "grey62"), show_legend = FALSE) +
-  geom_brain(definition = "dan_clust", mapping = aes(fill = label), fill_scale = scale_fill_brewer("DAN 17 label", palette = "Set1"), show_legend = TRUE) +
-  geom_outline(definition = "dan_clust", mapping = aes(group = roi_label), show_legend = TRUE, outline = "black") + # fill_scale = scale_fill_discrete("hello"),
-  # geom_outline(definition = "dan_clust", show_legend = TRUE, mapping=aes(group=label), outline_size=2, outline="cyan") + #fill_scale = scale_fill_discrete("hello"),
+class(gg_obj)
 
-  # geom_outline(definition = "dan_clust", show_legend = TRUE, outline = "cyan") + #fill_scale = scale_fill_discrete("hello"),
+# note the different class after render
+gg_obj <- ggbrain() +
+  slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
+  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  geom_brain(definition="underlay") +
+  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan") +
+  render()
 
-  geom_region_label_repel(image = "dan_clust", label_column = "roi_label", min.segment.length = 0, size = 1.5, color = "black", force_pull = 0.2, max.overlaps = Inf) +
-  render() + plot_layout(guides = "collect")
+class(gg_obj)
+
+# add a different theme to all panels and add an overall title
+gg_obj + plot_annotation(title="Overall title") & theme_minimal() 
+
 ```
+
+Note, however, that you don't necessarily need to use `render()` at all. When you call `plot()` on a ggbrain object, the render happens automatically behind the scenes, allowing calls like:
+
+```{r, warning=FALSE, message=FALSE}
+gg_obj <- ggbrain() +
+  slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
+  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  geom_brain(definition="underlay") +
+  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan")
+
+plot(gg_obj) + plot_annotation(title = "Overall")
+```
+
+Another point is that by keeping your plots as `ggbrain` object -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them.
 
 # Saving ggbrain plots to file
 
-# Aesthetic mappings for 
+After you see your beautiful brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use `ggsave()`  or the usual graphics device (e.g., `pdf`) and `dev.off()` approach from base R.
 
-# Combining ggbrain plots
+Note that if you pass a `ggbrain` object directly to `ggsave`, it will complain that the plot is not a ggplot object. We can just pass a rendered version like so:
 
-[Principles of patchwork]
-
-# Other considerations
-
-
-### Resampling images to have the same resolution
-
-Oftentimes, higher-resolution images (e.g., 1mm) yield better graphics since they potentially provide more detail. But fMRI data are often of lower resolution than T1-weighted images. If you wish to render your fMRI data on a higher-resolution anatomical template in `ggbrain`, you can first use AFNI's `3dresample` command to resample your functional data to match the anatomical template (underlay).
-
-Here is an example of resampling a 3mm statistic image to a 1mm underlay using nearest neighbor interpolation. Note that the image to be resampled should be in the same sterotaxic space as the master/template image.
-
+```{r, warning=FALSE, message=FALSE}
+ggsave(filename="my_brain_plot.pdf", gg_obj$render(), width=15, height=10)
 ```
-3dresample -input echange_overall_zstat_3mm.nii.gz \
-  -prefix echange_overall_zstat_1mm.nii.gz \
-  -master mni_template_2009c_1mm.nii.gz \
-  -rmode NN
+
+```{r, warning=FALSE, message=FALSE}
+pdf("my_brain_plot_2.pdf", width=10, height=10)
+plot(gg_obj)
+dev.off()
 ```
+
+Like with standard `ggplot`, one of the beautiful aspects of saving files in vector formats such as PDF is that you can open and edit the elements of the plot using vector editors like Adobe Illustrator or Inkscape!
+
+One small note: some PDF viewers will automatically interpolate the 'raster' parts of a PDF, leading the image to look blurry even though it isn't really so. I have seen this in recent version of Apple Preview (which is otherwise a nice piece of software). Thus, if you want to see precisely how your PDFs look coming out of `ggbrain`, I would suggest opening them in Adobe Acrobat Viewer.
+
+# Next steps
+
+Now that you understand the basics of `ggbrain` plots, I encourage you to read the [ggbrain aesthetics](ggbrain_aesthetics.html) vignette.

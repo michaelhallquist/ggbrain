@@ -6,6 +6,7 @@
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg as.pixset pixset split_connected
 #' @importFrom rlang sym
+#' @importFrom dplyr group_by filter row_number select
 #' @export
 ggbrain_layer <- R6::R6Class(
   classname = "ggbrain_layer",
@@ -189,8 +190,9 @@ ggbrain_layer <- R6::R6Class(
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
         raster_args$show.legend <- private$pvt_show_legend
       } else {
-        # fixed fill layer
-        raster_args$data <- df
+        # fixed fill layer -- always need to drop NAs from data because when fill is *set* (not mapped), any row in the
+        # data.frame will be filled with the specified color.
+        raster_args$data <- subset(df, !is.na(value))
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
         raster_args$fill <- private$pvt_fill
         raster_args$show.legend <- FALSE
@@ -206,10 +208,15 @@ ggbrain_layer <- R6::R6Class(
     # general private method for returning data to plot on slice
     # will be overloaded by subclasses for specific purposes
     get_plot_data = function() {
-      vcol <- private$pvt_fill_column # which column in the dataset has the value to map onto the raster
 
       if (isFALSE(private$pvt_has_fill)) {
         return(NULL) # no fill data
+      }
+
+      if (isTRUE(private$pvt_map_fill)) {
+        vcol <- private$pvt_fill_column # which column in the dataset has the value to map onto the raster
+      } else {
+        vcol <- "value" # we have a fill layer, but it is not mapped -- this occurs for outline layers built from continuous images
       }
 
       # Handle bisided situation
@@ -309,7 +316,10 @@ ggbrain_layer <- R6::R6Class(
           # if fill column is character or factor, then fill is categorical
           private$pvt_categorical_fill <- ifelse(checkmate::test_multi_class(private$pvt_data[[private$pvt_fill_column]], c("character", "factor")), TRUE, FALSE)
         }
-      } else if (!is.null(private$pvt_fill)) {
+      }
+
+      # check for fixed fill color in layer -- this will supersede mapping check in pvt_fill_column TRUE above
+      if (!is.null(private$pvt_fill)) {
           private$pvt_has_fill <- TRUE # we have a fill geom
           private$pvt_map_fill <- FALSE # fixed fill color
           private$pvt_categorical_fill <- FALSE # just a fixed value, not a mapped categorical variable
@@ -691,9 +701,14 @@ ggbrain_layer <- R6::R6Class(
       if (self$is_empty()) {
         warning(glue::glue("No data in layer {self$name}! Not adding to ggplot object."))
         return(base_gg)
-      } else if (isTRUE(self$all_na)) {
-        return(base_gg) # nothing to add if the data have no non-NA values
       }
+
+      # Oct2022: disabling this because it will throw an error if the only layer is an all-NA layer
+      # but I added it a while ago to handle a different problem that I can't entirely recall... I think I
+      # refactored the code properly to handke NAs in layers, however.
+      # } else if (isTRUE(self$all_na)) {
+      #   return(base_gg) # nothing to add if the data have no non-NA values
+      # }
 
       checkmate::assert_class(base_gg, "gg")
       n_layers <- length(base_gg$layers)

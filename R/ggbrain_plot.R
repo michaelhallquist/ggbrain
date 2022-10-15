@@ -325,7 +325,7 @@ ggbrain_plot <- R6::R6Class(
 
           return(l_obj)
         })
-
+        
         if (!is.null(private$pvt_region_labels)) {
           slc_labels <- lapply(private$pvt_region_labels, function(ll) {
             ll$data <- slice_df$slice_labels[[i]][[ll$image]]
@@ -366,6 +366,8 @@ ggbrain_plot <- R6::R6Class(
     #' @param guides Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
     #'   is "collect", which collects legends within a given nesting level (removes duplicates).
     plot = function(guides = "collect") {
+      checkmate::assert_string(guides)
+      checkmate::assert_subset(guides, c("collect", "keep", "auto"))
       
       # extract ggplot objects from panels and plot with patchwork wrap_plots
       patchwork::wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg)) +

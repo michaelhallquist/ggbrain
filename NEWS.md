@@ -1,14 +1,17 @@
 # ggbrain 0.8 (DEVELOPMENT)
 
+* feature: fixed fill colors are now supported in `geom_brain` using `geom_brain(fill='color_here')`
 * feature: `images()` supports a `volumes` argument so that volumes from 4-D images can be visualized
 * feature: `plot()` on a ggbrain object supports `guides` argument that passes to `plot_layout()` in `patchwork`.
     Also, the default is now `guides="collect"`, which combines shared legends.
+* feature: support `min_coord` and `max_coord` in `montage` function for coordinate-based ranges
 * update: archive ggbrain_legacy and remove cowplot dependency
 * update: `add_images()` is now `images()` for nonredundancy
 * update: `add_slices()` is now `slices()` for nonredundancy
 * update: removed `add_slice()` in favor of `slices()`. If attributes such as `bg_color` are set by `slices()`, these
     will be the same for each slice in the operation.
-* feature: support `min_coord` and `max_coord` in `montage` function for coordinate-based ranges
+* bugfix: properly display `geom_outline` for continuous images
+
 
 # ggbrain 0.7 (23Sep2022)
 * feature: abstract `fill_holes`, `trim_threads`, and `remove_specks` to `ggbrain_layer` -- exposed in `geom_brain` and `geom_outline`. This allows these modifications

@@ -115,3 +115,20 @@ Here is an example of resampling a 3mm statistic image to a 1mm underlay using n
   -master mni_template_2009c_1mm.nii.gz \
   -rmode NN
 ```
+
+
+
+# Overview of ggbrain
+
+The `ggbrain` package uses the `ggplot2` package to create 2D volume renderings of NIfTI files containing MRI data. It seeks to follow the principles of a graphical grammar in which plots are built from datasets that are mapped onto the visual space via a set of aesthetic mappings. Likewise, `ggbrain` follows the approach of creating layers in which different geometric marks (e.g., square pixels) are overlaid on the plot, such that many images and marks can be combined.
+
+## The hierarchy of a ggbrain plot
+
+Every ggbrain plot is composed of one or more panels that have layers representing different images that have been overlaid. Each panel contains a slice along one of the three axes of the volume: x (Left-Right), y (Anterior-Posterior), or z (Superior-Inferior). Panels can also contain annotations that reflect one or more marks to aid in the interpretation of the plot, as well as region labels in which text is positioned at certain markers within the displayed brain slice.
+
+- Plot
+  - Panels (aka Slices)
+    - Layers: each pixel in the 2D slice contains a value such as a test statistic from a voxelwise analysis. Pixel values can also be categorical, such as levels of a factor (e.g., lobe).
+    - Annotations: custom text or graphical marks overlaid on the panel using the ggplot2 `annotate` function (e.g., coordinate label)
+    - Region Labels: a variant of ggplot2 `geom_text`, region labels represent text that should be overlaid at one or more spatial positions across the panel/slice (e.g., anatomical labels)
+    

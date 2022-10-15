@@ -31,7 +31,7 @@ ggbrain_layer_outline <- R6::R6Class(
       # always drop NAs before proceeding with outline since only non-NA points can contribute
       max_dim1 <- max(df$dim1) # extent of x axis (before na.omit)
       max_dim2 <- max(df$dim2)
-      df <- df %>% dplyr::filter(!is.na(value))
+      df <- subset(df, !is.na(value))
       attr(df, "dim1") <- max_dim1
       attr(df, "dim2") <- max_dim2
 
@@ -104,7 +104,9 @@ ggbrain_layer_outline <- R6::R6Class(
 
       # geom_raster does not render transparent NAs when there is not a scale_fill_* object -- so if it's a simple
       # fixed-color outline, the NAs will render in that color, too. Hence, for outlines, we must drop NAs.
-      return(df_melt %>% na.omit())
+      # In v0.8, this is now handled at the add_raster level so that fixed fills for geom_brain work, too
+      #return(df_melt %>% na.omit())
+      return(df_melt)
     }
   ),
   active = list(
