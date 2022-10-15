@@ -24,6 +24,7 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/ggbrain_aesthetics.html">Aesthetic refinements of ggbrain plots</a>
     <a class="dropdown-item" href="../articles/ggbrain_introduction.html">Introduction to ggbrain</a>
   </div>
 </li>
@@ -46,11 +47,16 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8" id="ggbrain-08-development">ggbrain 0.8 (DEVELOPMENT)<a class="anchor" aria-label="anchor" href="#ggbrain-08-development"></a></h2>
-<ul><li>update: archive ggbrain_legacy and remove cowplot dependency</li>
+<ul><li>feature: fixed fill colors are now supported in <code>geom_brain</code> using <code>geom_brain(fill='color_here')</code>
+</li>
+<li>feature: <code><a href="../reference/images.html">images()</a></code> supports a <code>volumes</code> argument so that volumes from 4-D images can be visualized</li>
+<li>feature: <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a ggbrain object supports <code>guides</code> argument that passes to <code>plot_layout()</code> in <code>patchwork</code>. Also, the default is now <code>guides="collect"</code>, which combines shared legends.</li>
+<li>feature: support <code>min_coord</code> and <code>max_coord</code> in <code>montage</code> function for coordinate-based ranges</li>
+<li>update: archive ggbrain_legacy and remove cowplot dependency</li>
 <li>update: <code>add_images()</code> is now <code><a href="../reference/images.html">images()</a></code> for nonredundancy</li>
 <li>update: <code>add_slices()</code> is now <code><a href="../reference/slices.html">slices()</a></code> for nonredundancy</li>
 <li>update: removed <code>add_slice()</code> in favor of <code><a href="../reference/slices.html">slices()</a></code>. If attributes such as <code>bg_color</code> are set by <code><a href="../reference/slices.html">slices()</a></code>, these will be the same for each slice in the operation.</li>
-<li>feature: support <code>min_coord</code> and <code>max_coord</code> in <code>montage</code> function for coordinate-based ranges</li>
+<li>bugfix: properly display <code>geom_outline</code> for continuous images</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7" id="ggbrain-07-23sep2022">ggbrain 0.7 (23Sep2022)<a class="anchor" aria-label="anchor" href="#ggbrain-07-23sep2022"></a></h2>
