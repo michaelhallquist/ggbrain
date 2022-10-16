@@ -12,7 +12,7 @@ R6 class for a single layer of a ggbrain panel"><!-- mathjax --><script src="htt
     
     <a class="navbar-brand me-2" href="../index.html">ggbrain</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -150,7 +150,6 @@ is added across many panels</p></dd>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/ggbrain_layer.html">ggbrain_layer</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  definition <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  limits <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  breaks <span class="op">=</span> <span class="fu"><a href="../reference/integer_breaks.html">integer_breaks</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  show_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -160,7 +159,8 @@ is added across many panels</p></dd>
 <span>  blur_edge <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_holes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_specks <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  data <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -174,11 +174,6 @@ is added across many panels</p></dd>
 <dd><p>an optional character string defining the image or contrast that should be used
 to lookup data from a ggbrain_slices object. This is mostly used internally by the ggbrain + syntax
 to allow layers to be defined without data in advance of the plot.</p></dd>
-
-
-<dt><code>data</code></dt>
-<dd><p>the data.frame containing image data for this layer. Must contain "dim1", "dim2",
-and "value" as columns</p></dd>
 
 
 <dt><code>limits</code></dt>
@@ -207,7 +202,7 @@ and "value" as columns</p></dd>
 
 <dt><code>blur_edge</code></dt>
 <dd><p>the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
-smooth it (to make the visual less jagged)</p></dd>
+smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.</p></dd>
 
 
 <dt><code>fill_holes</code></dt>
@@ -220,6 +215,11 @@ smooth it (to make the visual less jagged)</p></dd>
 
 <dt><code>trim_threads</code></dt>
 <dd><p>the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel</p></dd>
+
+
+<dt><code>data</code></dt>
+<dd><p>the data.frame containing image data for this layer. Must contain "dim1", "dim2",
+and "value" as columns</p></dd>
 
 
 </dl><p></p></div>
