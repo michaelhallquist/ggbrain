@@ -55,8 +55,6 @@ ggbrain_layer_brain <- R6::R6Class(
     #' @param definition an optional character string defining the image or contrast that should be used
     #'   to lookup data from a ggbrain_slices object. This is mostly used internally by the ggbrain + syntax
     #'   to allow layers to be defined without data in advance of the plot.
-    #' @param data the data.frame containing image data for this layer. Must contain "dim1", "dim2",
-    #'   and "value" as columns
     #' @param limits if provided, sets the upper and lower bounds on the scale
     #' @param breaks if provided, a function to draw the breaks on the color scale
     #' @param show_legend if TRUE, show the scale on the plot legend
@@ -70,20 +68,22 @@ ggbrain_layer_brain <- R6::R6Class(
     #'   distinction to \code{mapping=aes(fill=<variable>)}.
     #' @param fill_scale a ggplot scale object used for mapping the value column as the fill color for the
     #'   layer.
-    #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)
+    #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+    #'   smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.
     #' @param fill_holes the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display
     #' @param remove_specks the size of specks (in pixels) to be removed from each slice prior to display
     #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel
-
-    initialize = function(name = NULL, definition = NULL, data = NULL,
+    #' @param data the data.frame containing image data for this layer. Must contain "dim1", "dim2",
+    #'   and "value" as columns
+    initialize = function(name = NULL, definition = NULL, 
       limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL,
       mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL,
-      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
+      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, data = NULL) {
 
       # common initialization steps
       super$initialize(
-        name, definition, data, limits, breaks, show_legend, interpolate, unify_scales,
-        alpha, blur_edge, fill_holes, remove_specks, trim_threads
+        name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+        alpha, blur_edge, fill_holes, remove_specks, trim_threads, data
       )
 
       # fill-specific initialization steps

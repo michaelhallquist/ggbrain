@@ -2,13 +2,24 @@
 title: "Aesthetic refinements of ggbrain plots"
 author: "Michael Hallquist"
 date: "3 Oct 2022"
-output: html_document
+output: 
+  html_document:
+  rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{Aesthetic refinement of ggbrain plots}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggbrain)
 ```
+
+# This is still in progress
+
+The sections below are incomplete!
 
 # Images that will be used in the demo
 
@@ -84,7 +95,7 @@ a <- ggbrain(bg_color = "gray60", text_color = "black") +
   geom_brain(definition = "underlay", fill_scale = scale_fill_gradient(low = "grey8", high = "grey62"), show_legend = FALSE) +
   geom_brain(definition = "dan_clust", mapping = aes(fill = label), fill_scale = scale_fill_brewer("DAN 17 label", palette = "Set1"), show_legend = TRUE) +
   geom_outline(definition = "dan_clust", mapping = aes(group = roi_label), show_legend = TRUE, outline = "black") + # fill_scale = scale_fill_discrete("hello"),
-  # geom_outline(definition = "dan_clust", show_legend = TRUE, mapping=aes(group=label), outline_size=2, outline="cyan") + #fill_scale = scale_fill_discrete("hello"),
+  # geom_outline(definition = "dan_clust", show_legend = TRUE, mapping=aes(group=label), size=2, outline="cyan") + #fill_scale = scale_fill_discrete("hello"),
 
   # geom_outline(definition = "dan_clust", show_legend = TRUE, outline = "cyan") + #fill_scale = scale_fill_discrete("hello"),
 

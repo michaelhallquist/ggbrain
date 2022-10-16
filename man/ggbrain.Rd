@@ -6,7 +6,6 @@
 \usage{
 ggbrain(
   images = NULL,
-  labels = NULL,
   slices = NULL,
   title = NULL,
   bg_color = "grey8",
@@ -18,13 +17,15 @@ ggbrain(
 \item{images}{a character vector or existing ggbrain_images object defining which
 images should be included in this plot}
 
-\item{labels}{a list of data.frames for labels?}
-
 \item{slices}{a set of slices to be added to the plot}
+
+\item{title}{the overall title to be added to the plot}
 
 \item{bg_color}{The background color of the overall plot}
 
 \item{text_color}{The default text color of the overall plot (passes through to panels)}
+
+\item{base_size}{The base size of fonts used in the plot (cf. \code{theme_minimal})}
 }
 \description{
 create ggb container object for a given plot

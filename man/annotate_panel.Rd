@@ -17,6 +17,8 @@ positions along the x axis.}
 
 \item{slice_index}{the slice number to which this annotation is added. These are numbered in the wrapping order from
 patchwork::wrap_plots, which will normally go from top-left to bottom-right.}
+
+\item{...}{Additional parameters passed to ggplot2::annotate such as \code{label} or \code{geom}}
 }
 \description{
 Adds custom annotations to a single panel on the ggbrain plot

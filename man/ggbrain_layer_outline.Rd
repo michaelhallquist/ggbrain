@@ -20,7 +20,7 @@ R6 class for a single layer of a ggbrain panel using outline geom
 
 \item{\code{outline_scale}}{a scale_fill_* object containing the ggplot2 outline color scale for this layer}
 
-\item{\code{outline_size}}{controls size of outline drawn around non-NA (valid) voxels}
+\item{\code{size}}{controls size of outline drawn around non-NA (valid) voxels}
 }
 \if{html}{\out{</div>}}
 }
@@ -56,7 +56,6 @@ create a new ggbrain_layer object
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer_outline$new(
   name = NULL,
   definition = NULL,
-  data = NULL,
   limits = NULL,
   breaks = integer_breaks(),
   show_legend = TRUE,
@@ -66,11 +65,12 @@ create a new ggbrain_layer object
   mapping = ggplot2::aes(outline = NULL, fill = NULL),
   outline = NULL,
   outline_scale = NULL,
-  outline_size = NULL,
+  size = NULL,
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL
+  trim_threads = NULL,
+  data = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -82,9 +82,6 @@ create a new ggbrain_layer object
 \item{\code{definition}}{an optional character string defining the image or contrast that should be used
 to lookup data from a ggbrain_slices object. This is mostly used internally by the ggbrain + syntax
 to allow layers to be defined without data in advance of the plot.}
-
-\item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
-and "value" as columns}
 
 \item{\code{limits}}{if provided, sets the upper and lower bounds on the scale}
 
@@ -107,15 +104,19 @@ distinction to \code{mapping=aes(outline=<variable>)}.}
 
 \item{\code{outline_scale}}{a ggplot scale object used for mapping the value column as the outline color for the layer.}
 
-\item{\code{outline_size}}{controls the thickness of outlines}
+\item{\code{size}}{controls the thickness of outlines}
 
-\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to smooth it (to make the visual less jagged)}
+\item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.}
 
 \item{\code{fill_holes}}{the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display}
 
 \item{\code{remove_specks}}{the size of specks (in pixels) to be removed from each slice prior to display}
 
 \item{\code{trim_threads}}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel}
+
+\item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
+and "value" as columns}
 }
 \if{html}{\out{</div>}}
 }

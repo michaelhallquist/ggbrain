@@ -2,7 +2,7 @@
 % Please edit documentation in R/sugar.R
 \name{images}
 \alias{images}
-\title{Add images to a ggb object}
+\title{Add images to a ggbrain object}
 \usage{
 images(images = NULL, volumes = NULL, labels = NULL, filter = NULL)
 }
@@ -24,5 +24,11 @@ or a numeric vector of values to retain. Calls ggbrain_images$filter_image()}
 a ggb object with the relevant images and an action of 'add_images'
 }
 \description{
-Add images to a ggb object
+Add images to a ggbrain object
+}
+\examples{
+\dontrun{
+gg_obj <- ggbrain() +
+  images(c(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz"))
+}
 }

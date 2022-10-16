@@ -8,6 +8,7 @@
 * update: archive ggbrain_legacy and remove cowplot dependency
 * update: `add_images()` is now `images()` for nonredundancy
 * update: `add_slices()` is now `slices()` for nonredundancy
+* update: renamed `outline_size` to just `size` in `geom_outline` for consistency with ggplot2 logic (e.g., `geom_contour`).
 * update: removed `add_slice()` in favor of `slices()`. If attributes such as `bg_color` are set by `slices()`, these
     will be the same for each slice in the operation.
 * bugfix: properly display `geom_outline` for continuous images

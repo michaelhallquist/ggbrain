@@ -3,7 +3,7 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang has_name
 #' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin rel
-#'   xlab ylab
+#'   xlab ylab annotate
 #' @importFrom grid unit
 #' @export
 ggbrain_panel <- R6::R6Class(

@@ -3,19 +3,17 @@
 #' create ggb container object for a given plot
 #' @param images a character vector or existing ggbrain_images object defining which
 #'   images should be included in this plot
-#' @param labels a list of data.frames for labels?
 #' @param slices a set of slices to be added to the plot
+#' @param title the overall title to be added to the plot
 #' @param bg_color The background color of the overall plot
 #' @param text_color The default text color of the overall plot (passes through to panels)
+#' @param base_size The base size of fonts used in the plot (cf. `theme_minimal`)
 #' @export
-ggbrain <- function(images = NULL, labels = NULL, slices = NULL, title = NULL, bg_color="grey8", text_color="grey92", base_size = 14) {
+ggbrain <- function(images = NULL, slices = NULL, title = NULL, bg_color="grey8", text_color="grey92", base_size = 14) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
   } else {
     img_obj <- ggbrain_images$new(images)
-  }
-
-  if (!is.null(labels)) {
   }
 
   if (!is.null(slices)) {
@@ -25,7 +23,6 @@ ggbrain <- function(images = NULL, labels = NULL, slices = NULL, title = NULL, b
 
   ggb_obj <- ggb$new(images = img_obj, title=title, bg_color=bg_color, text_color=text_color, base_size=base_size)
 
-  # get_slices = function(slices, img_names = NULL, contrasts = NULL, make_square = TRUE, remove_null_space = TRUE) {
   return(ggb_obj)
 }
 
@@ -38,25 +35,30 @@ add_labels <- function(...) {
   ggb$new(labels = args, action = "add_image_labels")
 }
 
-#' Function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
+#' Adds slices to the ggbrain plot, including additional panel aesthetics
 #' @param coordinates a character vector specifying the x, y, or z coordinates of the slices to be added.
-#' @param title a title for the panel added to the ggplot object using `ggtitle()`
-#' @param bg_color the color used for the background of the panel. Default: \code{'gray10'} (nearly black)
-#' @param text_color the color used for text displayed on the panel. Default: \code{'white'}.
-#' @param border_color the color used for drawing a border around on the panel. Default: \code{'gray50'}
+#' @param title a title for the slice panels added to the ggplot object using `ggtitle()`
+#' @param bg_color the color used for the background of the panels. Default: \code{'gray10'} (nearly black)
+#' @param text_color the color used for text displayed on the panels. Default: \code{'white'}.
+#' @param border_color the color used for drawing a border around on the panels. Default: \code{'gray50'}
 #'   (though borders are not drawn by default).
-#' @param border_size the size of the border line drawn around the panel. Default: NULL. If this value is
-#'   greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel
+#' @param border_size the size of the border line drawn around the panels. Default: NULL. If this value is
+#'   greater than zero, a border of this size and with color \code{border_color} will be drawn around the panels.
 #' @param xlab The label to place on x axis. Default is NULL.
 #' @param ylab The label to place on y axis. Default is NULL.
-#' @param theme_custom Any custom theme() settings to be added to the panel
-#' @details note that if you pass in multiple coordinates (as a vector), the title, bg_color, and other attributes are all treated
-#'   as the same for slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
+#' @param theme_custom Any custom theme() settings to be added to the panels.
+#' @details note that if you pass in multiple coordinates (as a vector), the \code{title}, \code{bg_color}, and other attributes
+#'   will be reused for all slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
 #'   multiple addition operations, as in `slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')`.
+#' @examples
+#' \dontrun{
+#' gg_obj <- ggbrain() +
+#'   images(underlay = "T1.nii.gz") +
+#'   slices(c("x=25%", x = "75%"), border_color = "blue")
+#' }
 #' @export
 slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
-  border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
-
+                   border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
   checkmate::assert_character(coordinates)
 
   # store as single-element list with named list inside -- title, bg_color, etc. are shared by each slice added
@@ -75,21 +77,27 @@ slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color
 #' @param max the highest quantile to be included in the montage (between 0 and 1). Default: 0.9
 #' @param min_coord the lowest spatial position (in image coordinate space) to be included in the montage.
 #' @param max_coord the highest spatial position (in image coordinate space) to be included in the montage.
-#' @details 
+#' @details
 #'   This can be used with `slices` to make a quick montage, such as `slices(montage("axial", 10)`.
 #'
 #'   Also note that use of standardized coordinates (in quantiles, using `min` and `max`) is mutually exclusive
 #'   with the the image coordinate specifications `min_coord` and `max_coord.`
 #' @importFrom dplyr recode
 #' @importFrom checkmate assert_integerish assert_subset assert_string assert_number
+#' @examples
+#' \dontrun{
+#' gg_obj <- ggbrain() +
+#'   images(underlay = "T1.nii.gz") +
+#'   slices(montage("sagittal", 15))
+#' }
 #' @export
-montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, max_coord=NULL) {
+montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL, max_coord = NULL) {
   checkmate::assert_string(plane)
   plane <- tolower(plane)
   checkmate::assert_subset(plane, c("sagittal", "axial", "coronal", "x", "y", "z"))
   plane <- dplyr::recode(plane, sagittal = "x", coronal = "y", axial = "z") # convert to consistent x, y, z
   checkmate::assert_integerish(n, lower = 1, upper = 1e5)
-  checkmate::assert_number(min, lower=0, upper=1)
+  checkmate::assert_number(min, lower = 0, upper = 1)
   checkmate::assert_number(max, lower = 0, upper = 1)
 
   if (!is.null(min_coord) && !is.null(max_coord)) {
@@ -101,10 +109,9 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, 
   }
 
   return(v)
-
 }
 
-#' Add images to a ggb object
+#' Add images to a ggbrain object
 #' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
 #' @param volumes a number indicating the volume within the \code{images} to display. At present, this must
 #'   be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
@@ -115,6 +122,11 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord=NULL, 
 #' @param filter a named list or character string specifying an expression of values to retain in the image,
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a ggb object with the relevant images and an action of 'add_images'
+#' @examples
+#' \dontrun{
+#' gg_obj <- ggbrain() +
+#'   images(c(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz"))
+#' }
 #' @export
 images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
   if (inherits(images, "ggbrain_images")) {
@@ -129,37 +141,105 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
   return(ret)
 }
 
-#' Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer
-#' @param name the name of this brain layer
+#' Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition
+#'
+#' @param name the name of this layer, used for referencing in layer and panel modifications
 #' @param definition a character string of the contrast or image definition used to define this layer.
 #'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})
-#' @param fill_scale the color scale to be used for this layer (a scale_fill* object)
-#' @param show_legend whether to show the color scale for this layer in the legend
-#' @details Note that the fill_scale and limits must be specified at the time of the geom_contrast creation
+#' @param fill A character string indicating the color used to fill all non-NA pixels in this layer. This is used to set
+#'   the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variable>)}.
+#' @param fill_scale a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.
+#' @param mapping the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
+#'   `fill` (color of filled pixels). Default is `aes(fill=value)`, which maps the numeric value of the layer data
+#'   to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.
+#' @param limits if provided, sets the upper and lower bounds on the scale
+#' @param breaks if provided, a function to draw the breaks on the fill scale
+#' @param show_legend if TRUE, show the fill scale in the plot legend
+#' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
+#' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
+#' @param alpha a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1
+#' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+#'   smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.
+#' @param fill_holes An optional positive integer specifying the size of holes (in pixels) inside clusters
+#'   to be filled by nearest neighbor imputation. Default: 0.
+#' @param remove_specks An optional positive integer specifying the size of specks (in pixels) to be removed from each slice prior
+#'   to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.
+#' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.
+#'
+#' @details Note that the fill_scale and limits must be specified at the time of the geom_brain creation
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
-#'   created using the typical + scale_fill_X syntax, and similarly for scale limits.
+#'   created using the typical + scale_fill_* syntax, and similarly for scale limits.
 #' @return a ggb object populated with the ggb_layer and the action of 'add_layers'
+#' @examples
+#' \dontrun{
+#' gg_obj <- ggbrain() +
+#'   images(underlay = "T1.nii.gz", overlay="zstat12.nii.gz") +
+#'   slices(c("x=25%", x = "75%"), border_color = "blue") +
+#'   geom_brain(definition="underlay") +
+#'   geom_brain(definition="overlay[overlay > 1]", fill_scale=scale_fill_viridis_c("pos z"))
+#' }
 #' @export
-#geom_brain <- function(name=NULL, definition=NULL, ) {
-geom_brain <- function(...) {
-  # inp_args <- list(...)
-  # l_obj <- do.call(ggbrain_layer$new, inp_args)
-  l_obj <- ggbrain_layer_brain$new(...)
+geom_brain <- function(name = NULL, definition = NULL, fill = NULL, fill_scale = NULL, mapping = ggplot2::aes_string(fill="value"),
+      limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
+      blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
+
+  l_obj <- ggbrain_layer_brain$new(
+    name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+    alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads
+  )
 
   ggb$new(layers = l_obj, action="add_layers")
 }
 
-#' Variant of geom_brain that only draws outlines, but does not fill them with stats
+#' Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition
+#'
+#' @param name the name of this layer, used for referencing in layer and panel modifications
+#' @param definition a character string of the contrast or image definition used to define this layer.
+#'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})
+#' @param outline A character string indicating the color used to draw outlines in this layer. This is used to set
+#'   the outline color, in distinction to outline color mapping: \code{mapping=aes(outline=<variable>)}.
+#' @param outline_scale a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.
+#' @param mapping the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
+#'   `outline` (outline color of pixels). Default is `aes(outline=NULL)`, which uses a set outline color.
+#' @param size the size of outlines to be drawn in pixel units. Default: 1
+#' @param limits if provided, sets the upper and lower bounds on the scale
+#' @param breaks if provided, a function to draw the breaks on the fill scale
+#' @param show_legend if TRUE, show the fill scale in the plot legend
+#' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
+#' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
+#' @param alpha a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1
+#' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+#'   smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.
+#' @param fill_holes An optional positive integer specifying the size of holes (in pixels) inside clusters
+#'   to be filled by nearest neighbor imputation. Default: 0.
+#' @param remove_specks An optional positive integer specifying the size of specks (in pixels) to be removed from each slice prior
+#'   to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.
+#' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.
+#'
+#' @details Note that the fill_scale and limits must be specified at the time of the geom_brain creation
+#'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
+#'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
+#'   created using the typical + scale_fill_* syntax, and similarly for scale limits.
+#' @return a ggb object populated with the ggb_layer and the action of 'add_layers'
+#' @examples
+#' \dontrun{
+#' gg_obj <- ggbrain() +
+#'   images(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz") +
+#'   slices(c("x=25%", x = "75%"), border_color = "blue") +
+#'   geom_brain(definition = "underlay") +
+#'   geom_outline(definition = "overlay[overlay > 3]", fill="cyan")
+#' }
 #' @export
-geom_outline <- function(...) {
-  # inp_args <- list(...)
-  # if (!"mapping" %in% names(inp_args)) {
-  #   inp_args$mapping <- ggplot2::aes(fill=NULL, outline=NULL)
-  # }
-  # l_obj <- do.call(ggbrain_layer$new, inp_args)
-  l_obj <- ggbrain_layer_outline$new(...)
-  #l_obj$outline_only <- TRUE
+geom_outline <- function(name = NULL, definition = NULL, outline = NULL, outline_scale = NULL, 
+      mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(), 
+      show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
+      blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
+
+  l_obj <- ggbrain_layer_outline$new(
+    name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+    alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads
+  )
 
   ggb$new(layers = l_obj, action = "add_layers")
 }
@@ -213,6 +293,7 @@ geom_region_label_repel <- function(image, label_column = "label", ...) {
 #'   positions along the x axis.
 #' @param slice_index the slice number to which this annotation is added. These are numbered in the wrapping order from
 #'   patchwork::wrap_plots, which will normally go from top-left to bottom-right.
+#' @param ... Additional parameters passed to ggplot2::annotate such as \code{label} or \code{geom}
 #' @details Note that this only handles a single annotation on a single panel! If you want to annotate en masse, use annotate_panels
 #'   with a data.frame where each row is an annotation.
 #' @export

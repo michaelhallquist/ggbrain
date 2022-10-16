@@ -10,8 +10,11 @@ output:
     number_sections: yes
     theme: spacelab
     toc: yes
-editor_options: 
-  chunk_output_type: console
+  rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{Introduction to ggbrain}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -259,7 +262,7 @@ gg_obj <- gg_obj +
 
 ## Adding outlines 
 
-In addition to filling in regions with colors, brain plots often benefit from being able to outline, rather than fill, regions. This is accomplished using `geom_outline()`. This geometry finds the boundaries of distinct clusters in the image/contrast and traces the boundaries with a line of some thickness (controlled by `outline_size`).
+In addition to filling in regions with colors, brain plots often benefit from being able to outline, rather than fill, regions. This is accomplished using `geom_outline()`. This geometry finds the boundaries of distinct clusters in the image/contrast and traces the boundaries with a line of some thickness (controlled by `size`).
 
 For continuous images (e.g., z-statistics), one typically *sets* the outline color using `geom_outline(outline="cyan")` or whatever color is desired. This draws the outlines for non-NA voxels in a single color. For categorical images (e.g., anatomical or functional atlases), it may be useful to map the color of the outlines to a categorical label such as network or region. This is accomplished with `geom_outline(mapping=aes(outline=roi_name))` or whatever column in the data corresponds to the categories one wishes to draw with different colors.
 
@@ -270,7 +273,7 @@ gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
   geom_brain(definition="underlay") +
-  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan")
+  geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 plot(gg_obj)
 ```
 
@@ -289,7 +292,7 @@ gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
   geom_brain(definition="underlay") +
-  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan")
+  geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
 class(gg_obj)
 
@@ -298,7 +301,7 @@ gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
   geom_brain(definition="underlay") +
-  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan") +
+  geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan") +
   render()
 
 class(gg_obj)
@@ -315,7 +318,7 @@ gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
   geom_brain(definition="underlay") +
-  geom_outline(definition = "onset[abs(onset) > 3]", outline_size=1, outline="cyan")
+  geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
 plot(gg_obj) + plot_annotation(title = "Overall")
 ```
@@ -345,3 +348,7 @@ One small note: some PDF viewers will automatically interpolate the 'raster' par
 # Next steps
 
 Now that you understand the basics of `ggbrain` plots, I encourage you to read the [ggbrain aesthetics](ggbrain_aesthetics.html) vignette.
+
+```{r cleanup, include=FALSE, message=FALSE}
+unlink(c("my_brain_plot_2.pdf", "my_brain_plot.pdf"))
+```

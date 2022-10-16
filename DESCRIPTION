@@ -1,11 +1,16 @@
 Package: ggbrain
-Title: Create Images of Brain Data in NIfTI Format Using ggplot2
-Version: 0.7.0
+Title: Create Images of Volumetric Brain Data in NIfTI Format Using ggplot2 Syntax
+Version: 0.8.0
+Date: 2022-10-15
 Authors@R:
     person("Michael", "Hallquist", , "michael.hallquist@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5894-8038"))
 Maintainer: Michael Hallquist <michael.hallquist@gmail.com>
-Description: What the package does (one paragraph).
+Description: The ggbrain package provides a ggplot2-consistent approach to generating 2D displays of
+  volumetric brain imaging data. The package can display data from multiple NIfTI images and uses standard
+  ggplot2 conventions such scales, limits, and themes to control the appearance of displays. The resulting
+  plots are returned as patchwork objects, inheriting from ggplot, allowing for any standard modifications
+  of display aesthetics supported by ggplot2.  
 Depends: R (>= 3.5.0)
 Imports:
     Matrix,

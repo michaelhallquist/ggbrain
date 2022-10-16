@@ -2,7 +2,7 @@
 % Please edit documentation in R/sugar.R
 \name{slices}
 \alias{slices}
-\title{Function for adding a single slice to the plot, allowing for additional panel attributes to be passed through}
+\title{Adds slices to the ggbrain plot, including additional panel aesthetics}
 \usage{
 slices(
   coordinates = NULL,
@@ -19,29 +19,36 @@ slices(
 \arguments{
 \item{coordinates}{a character vector specifying the x, y, or z coordinates of the slices to be added.}
 
-\item{title}{a title for the panel added to the ggplot object using \code{ggtitle()}}
+\item{title}{a title for the slice panels added to the ggplot object using \code{ggtitle()}}
 
-\item{bg_color}{the color used for the background of the panel. Default: \code{'gray10'} (nearly black)}
+\item{bg_color}{the color used for the background of the panels. Default: \code{'gray10'} (nearly black)}
 
-\item{text_color}{the color used for text displayed on the panel. Default: \code{'white'}.}
+\item{text_color}{the color used for text displayed on the panels. Default: \code{'white'}.}
 
-\item{border_color}{the color used for drawing a border around on the panel. Default: \code{'gray50'}
+\item{border_color}{the color used for drawing a border around on the panels. Default: \code{'gray50'}
 (though borders are not drawn by default).}
 
-\item{border_size}{the size of the border line drawn around the panel. Default: NULL. If this value is
-greater than zero, a border of this size and with color \code{border_color} will be drawn around the panel}
+\item{border_size}{the size of the border line drawn around the panels. Default: NULL. If this value is
+greater than zero, a border of this size and with color \code{border_color} will be drawn around the panels.}
 
 \item{xlab}{The label to place on x axis. Default is NULL.}
 
 \item{ylab}{The label to place on y axis. Default is NULL.}
 
-\item{theme_custom}{Any custom theme() settings to be added to the panel}
+\item{theme_custom}{Any custom theme() settings to be added to the panels.}
 }
 \description{
-Function for adding a single slice to the plot, allowing for additional panel attributes to be passed through
+Adds slices to the ggbrain plot, including additional panel aesthetics
 }
 \details{
-note that if you pass in multiple coordinates (as a vector), the title, bg_color, and other attributes are all treated
-as the same for slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
+note that if you pass in multiple coordinates (as a vector), the \code{title}, \code{bg_color}, and other attributes
+will be reused for all slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
 multiple addition operations, as in \code{slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')}.
+}
+\examples{
+\dontrun{
+gg_obj <- ggbrain() +
+  images(underlay = "T1.nii.gz") +
+  slices(c("x=25\%", x = "75\%"), border_color = "blue")
+}
 }

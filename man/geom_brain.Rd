@@ -2,29 +2,82 @@
 % Please edit documentation in R/sugar.R
 \name{geom_brain}
 \alias{geom_brain}
-\title{Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer}
+\title{Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition}
 \usage{
-geom_brain(...)
+geom_brain(
+  name = NULL,
+  definition = NULL,
+  fill = NULL,
+  fill_scale = NULL,
+  mapping = ggplot2::aes_string(fill = "value"),
+  limits = NULL,
+  breaks = integer_breaks(),
+  show_legend = TRUE,
+  interpolate = FALSE,
+  unify_scales = TRUE,
+  alpha = 1,
+  blur_edge = NULL,
+  fill_holes = NULL,
+  remove_specks = NULL,
+  trim_threads = NULL
+)
 }
 \arguments{
-\item{name}{the name of this brain layer}
+\item{name}{the name of this layer, used for referencing in layer and panel modifications}
 
 \item{definition}{a character string of the contrast or image definition used to define this layer.
 Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})}
 
-\item{fill_scale}{the color scale to be used for this layer (a scale_fill* object)}
+\item{fill}{A character string indicating the color used to fill all non-NA pixels in this layer. This is used to set
+the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variable>)}.}
 
-\item{show_legend}{whether to show the color scale for this layer in the legend}
+\item{fill_scale}{a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.}
+
+\item{mapping}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
+\code{fill} (color of filled pixels). Default is \code{aes(fill=value)}, which maps the numeric value of the layer data
+to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.}
+
+\item{limits}{if provided, sets the upper and lower bounds on the scale}
+
+\item{breaks}{if provided, a function to draw the breaks on the fill scale}
+
+\item{show_legend}{if TRUE, show the fill scale in the plot legend}
+
+\item{interpolate}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
+
+\item{unify_scales}{if TRUE, when this layer is reused across panels, unify the scales to match}
+
+\item{alpha}{a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1}
+
+\item{blur_edge}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.}
+
+\item{fill_holes}{An optional positive integer specifying the size of holes (in pixels) inside clusters
+to be filled by nearest neighbor imputation. Default: 0.}
+
+\item{remove_specks}{An optional positive integer specifying the size of specks (in pixels) to be removed from each slice prior
+to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.}
+
+\item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
 }
 \value{
 a ggb object populated with the ggb_layer and the action of 'add_layers'
 }
 \description{
-Helper function to add a contrast layer to the plot. This is a thin wrapper around ggbrain_layer
+Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition
 }
 \details{
-Note that the fill_scale and limits must be specified at the time of the geom_contrast creation
+Note that the fill_scale and limits must be specified at the time of the geom_brain creation
 in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
-created using the typical + scale_fill_X syntax, and similarly for scale limits.
+created using the typical + scale_fill_* syntax, and similarly for scale limits.
+}
+\examples{
+\dontrun{
+gg_obj <- ggbrain() +
+  images(underlay = "T1.nii.gz", overlay="zstat12.nii.gz") +
+  slices(c("x=25\%", x = "75\%"), border_color = "blue") +
+  geom_brain(definition="underlay") +
+  geom_brain(definition="overlay[overlay > 1]", fill_scale=scale_fill_viridis_c("pos z"))
+}
 }

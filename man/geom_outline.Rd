@@ -2,10 +2,84 @@
 % Please edit documentation in R/sugar.R
 \name{geom_outline}
 \alias{geom_outline}
-\title{Variant of geom_brain that only draws outlines, but does not fill them with stats}
+\title{Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition}
 \usage{
-geom_outline(...)
+geom_outline(
+  name = NULL,
+  definition = NULL,
+  outline = NULL,
+  outline_scale = NULL,
+  mapping = ggplot2::aes(outline = NULL, fill = NULL),
+  size = NULL,
+  limits = NULL,
+  breaks = integer_breaks(),
+  show_legend = TRUE,
+  interpolate = FALSE,
+  unify_scales = TRUE,
+  alpha = 1,
+  blur_edge = NULL,
+  fill_holes = NULL,
+  remove_specks = NULL,
+  trim_threads = NULL
+)
+}
+\arguments{
+\item{name}{the name of this layer, used for referencing in layer and panel modifications}
+
+\item{definition}{a character string of the contrast or image definition used to define this layer.
+Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})}
+
+\item{outline}{A character string indicating the color used to draw outlines in this layer. This is used to set
+the outline color, in distinction to outline color mapping: \code{mapping=aes(outline=<variable>)}.}
+
+\item{outline_scale}{a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.}
+
+\item{mapping}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
+\code{outline} (outline color of pixels). Default is \code{aes(outline=NULL)}, which uses a set outline color.}
+
+\item{size}{the size of outlines to be drawn in pixel units. Default: 1}
+
+\item{limits}{if provided, sets the upper and lower bounds on the scale}
+
+\item{breaks}{if provided, a function to draw the breaks on the fill scale}
+
+\item{show_legend}{if TRUE, show the fill scale in the plot legend}
+
+\item{interpolate}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
+
+\item{unify_scales}{if TRUE, when this layer is reused across panels, unify the scales to match}
+
+\item{alpha}{a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1}
+
+\item{blur_edge}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
+smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.}
+
+\item{fill_holes}{An optional positive integer specifying the size of holes (in pixels) inside clusters
+to be filled by nearest neighbor imputation. Default: 0.}
+
+\item{remove_specks}{An optional positive integer specifying the size of specks (in pixels) to be removed from each slice prior
+to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.}
+
+\item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
+}
+\value{
+a ggb object populated with the ggb_layer and the action of 'add_layers'
 }
 \description{
-Variant of geom_brain that only draws outlines, but does not fill them with stats
+Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition
+}
+\details{
+Note that the fill_scale and limits must be specified at the time of the geom_brain creation
+in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
+object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
+created using the typical + scale_fill_* syntax, and similarly for scale limits.
+}
+\examples{
+\dontrun{
+gg_obj <- ggbrain() +
+  images(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz") +
+  slices(c("x=25\%", x = "75\%"), border_color = "blue") +
+  geom_brain(definition = "underlay") +
+  geom_outline(definition = "overlay[overlay > 3]", fill="cyan")
+}
 }
