@@ -225,17 +225,27 @@ define <- function(contrasts = NULL) {
 #'   geom_brain(definition="overlay[overlay > 1]", fill_scale=scale_fill_viridis_c("pos z"))
 #' }
 #' @export
-geom_brain <- function(name = NULL, definition = NULL, fill = NULL, fill_scale = NULL, mapping = ggplot2::aes_string(fill="value"),
-      limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
+geom_brain <- function(name = NULL, definition = NULL, fill = NULL, fill_scale = NULL, mapping = NULL,
+      limits = NULL, breaks = NULL, show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = NULL,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
 
-  l_obj <- ggbrain_layer_brain$new(
-    name, definition, limits, breaks, show_legend, interpolate, unify_scales,
-    alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads
-  )
+  arglist <- named_list(name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+                  alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads)
+
+  # only pass through non-NULLs so that default arguments of layer are used when no input is provided
+  arglist <- arglist[!sapply(arglist, is.null)]
+
+  # this generates problems because it overrides default arguments of layer class
+  # l_obj <- ggbrain_layer_brain$new(
+  #   name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+  #   alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads
+  # )
+
+  l_obj <- do.call(ggbrain_layer_brain$new, arglist)
 
   ggb$new(layers = l_obj, action="add_layers")
 }
+
 
 #' Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition
 #'
@@ -280,11 +290,20 @@ geom_outline <- function(name = NULL, definition = NULL, outline = NULL, outline
       mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(), 
       show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
-
-  l_obj <- ggbrain_layer_outline$new(
-    name, definition, limits, breaks, show_legend, interpolate, unify_scales,
-    alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads
-  )
+  
+  arglist <- named_list(name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+                        alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads)
+  
+  # only pass through non-NULLs so that default arguments of layer are used when no input is provided
+  arglist <- arglist[!sapply(arglist, is.null)]
+  
+  # this generates problems because it overrides default arguments of layer class
+  # l_obj <- ggbrain_layer_outline$new(
+  #   name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+  #   alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads
+  # )
+  
+  l_obj <- do.call(ggbrain_layer_outline$new, arglist)
 
   ggb$new(layers = l_obj, action = "add_layers")
 }

@@ -43,4 +43,3 @@ LinkingTo:
     Rcpp,
     RcppArmadillo
 VignetteBuilder: knitr
-URL: https://michaelhallquist.github.io/ggbrain/

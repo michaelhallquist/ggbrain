@@ -282,7 +282,6 @@ plot(gg_obj)
 An equivalent plot would be achieved by including the definition inline:
 
 ```{r}
-```{r}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
