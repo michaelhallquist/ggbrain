@@ -6,11 +6,15 @@
 \usage{
 define(contrasts = NULL)
 }
+\arguments{
+\item{contrasts}{a character vector or list containing contrasts to be computed as part of the
+ggbrain object definition.}
+}
 \description{
 Adds contrast definitions to the ggbrain plot
 }
 \details{
-Contrasts must take the form of \verb{<name> := <value expression>}.
+\code{contrasts} must take the form of \verb{<name> := <value expression>} or must use a named vector.
 Note that defining a contrast does not directly impact the appearance of the plot unless the
 contrast is named in a geom_* layer.
 
@@ -28,6 +32,13 @@ gg_obj <- ggbrain() +
   define("onset_gt_feedback := onset - feedback") +
   geom_brain("onset_gt_feedback")
 
+# you can also use a named vector in define(), which is equivalent
+gg_obj <- ggbrain() +
+  images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
+  slices(c("x=25\%", x = "75\%")) +
+  define(c(onset_gt_feedback = "onset - feedback")) +
+  geom_brain("onset_gt_feedback")
+
 # contrast definitions can also occur inline, yielding equivalent plots
 gg_obj <- ggbrain() +
   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
@@ -39,9 +50,10 @@ gg_obj <- ggbrain() +
   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
   slices(c("x=25\%", x = "75\%")) +
   define("onset_gt_feedback := onset - feedback") +
-  geom_brain("onset_gt_feedback[onset_gt_feedback > 0]", fill_scale=scale_fill_distiller("Pos diff", palette = "Reds")))
-
+  geom_brain(
+    "onset_gt_feedback[onset_gt_feedback > 0]", 
+    fill_scale=scale_fill_distiller("Pos diff", palette = "Reds")
+  )
 }
-
 
 }

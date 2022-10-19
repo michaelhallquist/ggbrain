@@ -12,7 +12,7 @@ Description: The ggbrain package provides a ggplot2-consistent approach to gener
   ggplot2 conventions such scales, limits, and themes to control the appearance of displays. The resulting
   plots are returned as patchwork objects, inheriting from ggplot, allowing for any standard modifications
   of display aesthetics supported by ggplot2.
-URL: https://michaelhallquist.github.io/ggbrain/, https://github.com/michaelhallquist/ggbrain
+URL: https://michaelhallquist.github.io/ggbrain/
 BugReports: https://github.com/michaelhallquist/ggbrain/issues
 Depends: R (>= 3.5.0)
 Imports:

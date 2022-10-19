@@ -143,3 +143,13 @@ Every ggbrain plot is composed of one or more panels that have layers representi
     - Annotations: custom text or graphical marks overlaid on the panel using the ggplot2 `annotate` function (e.g., coordinate label)
     - Region Labels: a variant of ggplot2 `geom_text`, region labels represent text that should be overlaid at one or more spatial positions across the panel/slice (e.g., anatomical labels)
     
+# Question of how to get entire background to match in color
+
+Use bg argument
+```
+ggsave("test.png", gg_obj$render(), width=8, height=6, bg="blue")
+
+pdf("test_dev.pdf", width=8, height=6, bg="blue")
+plot(gg_obj)
+dev.off()
+```

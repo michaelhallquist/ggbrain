@@ -368,7 +368,7 @@ ggbrain_plot <- R6::R6Class(
     plot = function(guides = "collect") {
       checkmate::assert_string(guides)
       checkmate::assert_subset(guides, c("collect", "keep", "auto"))
-      
+
       # extract ggplot objects from panels and plot with patchwork wrap_plots
       patchwork::wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg)) +
         patchwork::plot_layout(guides=guides) +
@@ -379,6 +379,17 @@ ggbrain_plot <- R6::R6Class(
             plot.title = ggplot2::element_text(hjust = 0.5, vjust = 0, size = 1.4*private$pvt_base_size, color = private$pvt_text_color)
           )
         )
+
+      #& theme(plot.background = ggplot2::element_rect(fill = "blue", color = NA))
+
+      # only cowplot::ggdraw produces the expected result here... with the green border that fill the plotting space
+      #png("test.png")
+      #cowplot::ggdraw(a) + theme(plot.background = element_rect(fill = "green", colour = NA)) # plot(a)
+      #plot(a) + theme(plot.background = element_rect(fill = "green", colour = NA)) # plot(a)
+      #cowplot::as_grob(a) + theme(plot.background = element_rect(fill = "green", colour = NA)) # plot(a)
+      #dev.off()
+
+      #bg <- calc_element("plot.background", plot_theme(plot))$fill
     }
   )
 )

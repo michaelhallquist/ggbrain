@@ -1,7 +1,7 @@
 ---
 title: "Introduction to ggbrain"
 author: "Michael Hallquist"
-date: "3 Oct 2022"
+date: "19 Oct 2022"
 output:
   html_document:
     code_folding: show
@@ -18,7 +18,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, dev.args=list(bg="gray80"))
 library(ggbrain)
 library(ggplot2)
 library(patchwork)
@@ -46,7 +46,7 @@ schaefer200_atlas_3mm <- system.file("extdata", "Schaefer_200_7networks_2009c_3m
 
 This vignette provides an overview of basic usage of the `ggbrain` package. The package seeks to generate 2D volumetric plots of brain data stored in the NIfTI format. Additional details about the structure of NIfTI data are here: https://neuroconductor.org/tutorials/nifti_basics. The `ggbrain` package uses `ggplot2` to generate its plots, allowing users to access the wide array of popular features in `ggplot2`, including annotations and fine control over coloration and themes.
 
-Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github.io/ggBrain-debut.html) package developed by Aaron Fisher in 2014. I had developed most of the current `ggbrain` package and had named it prior to discovering Aaron's earlier work. The earlier `ggBrain` package was also not released publicly to CRAN and has not been updated much over the years, whereas `ggbrain` is hosted on CRAN and also offers a wider array of functionality.
+Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github.io/ggBrain-debut.html) package developed by Aaron Fisher in 2014. I had developed most of the current `ggbrain` package and had named it prior to discovering Aaron's work. The earlier `ggBrain` package was also not released publicly to CRAN and has not been updated much over the years, whereas `ggbrain` is hosted on CRAN and also offers a wider array of functionality.
 
 # Images that will be used in the demo
 
@@ -222,16 +222,15 @@ gg_obj <- gg_base +
 
 Now that we have `geom_*` layers in our `ggbrain` object, we can finally plot our figure to see the result.
 
-```{r}
-gg_obj$render() + 
-  plot_annotation(theme = theme(plot.background = element_rect(fill = "blue", color = NA)))
+```{r, fig.width=8, fig.height=3.5}
+gg_obj$render()
 ```
 
 ### Defining subset layers
 
 Oftentimes, we wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, `geom_brain()` supports standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:
 
-```{r, fig.width=8, fig.height=6}
+```{r, fig.width=8, fig.height=3.5}
 gg_obj <- gg_base +
   geom_brain(definition = "overlay[abs(overlay) > 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 
@@ -240,7 +239,7 @@ plot(gg_obj)
 
 Note how 'overlay' is treated as an R object that is subset using square brackets. The subsetting expression inside the brackets uses standard R syntax and can reference other images currently in the ggbrain object. For example, you could display overlay values only where the underlay is greater than 10:
 
-```{r}
+```{r, fig.width=8, fig.height=3.5}
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay[underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
@@ -250,7 +249,7 @@ plot(gg_obj)
 
 Finally, note that one can combine subsetting expressions using logical operators `&` and `|` , as in standard R syntax for vector operations. For example, here's how you could include pixels where `abs(overlay) > 2.5` and `underlay > 20`:
 
-```{r}
+```{r, fig.width=8, fig.height=3.5}
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(
@@ -269,11 +268,12 @@ For example, what if we have signed and absolute reward prediction error maps fr
 
 These contrasts can either be defined inline within the `definition` field of `geom_brain` or `geom_outline`. Or, they can be added to the `ggbrain` object in advance using the `define()` function.
 
-```{r}
+```{r, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
   define("diff := pe - abspe") +
+  geom_brain(definition = "underlay") +
   geom_brain(definition = "diff", fill_scale = scale_fill_bisided(symmetric = FALSE), show_legend = TRUE)
 
 plot(gg_obj)
@@ -290,7 +290,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 
 The advantage of `define()` is that you can re-use and modify contrasts in multiple layers. Here, we subset the difference to only voxels where the PE - abs(PE) contrast is strongly in favor of signed PEs (i.e., positive difference in the z-statistic > 3).
 
-```{r}
+```{r, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
@@ -309,7 +309,7 @@ For continuous images (e.g., z-statistics), one typically *sets* the outline col
 
 Here, we might wish to outline voxels whose z-statistics exceed $|z| > 3$ for the decision onset regressor. These voxels represent areas that are sensitive to the onset of the decision phase of the reinforcement learning trial.
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
@@ -328,7 +328,6 @@ In `ggbrain`, each panel is `ggplot` object and the panels are composited using 
 The key message here is: place ggbrain-specific additions *before* `render()` and ggplot-specific additions *afterwards*.
 
 ```{r, warning=FALSE, message=FALSE}
-
 # without a render step
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
@@ -347,15 +346,20 @@ gg_obj <- ggbrain() +
   render()
 
 class(gg_obj)
+```
+
+Using the general approach provided by patchwork, we can add annotations and aesthetic modifications to the overall plot using the [`plot_annotation`](https://patchwork.data-imaginist.com/articles/guides/annotation.html). Likewise, you can modify the overall theme information using the `theme()` function, as articulated [here](https://patchwork.data-imaginist.com/articles/guides/assembly.html#modifying-patches).
+
+```{r,  warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
 
 # add a different theme to all panels and add an overall title
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 
 ```
 
-Note, however, that you don't necessarily need to use `render()` at all. When you call `plot()` on a ggbrain object, the render happens automatically behind the scenes, allowing calls like:
+Note that you don't necessarily need to use `render()` at all. When you call `plot()` on a ggbrain object, the render happens automatically behind the scenes, allowing calls like:
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
@@ -365,11 +369,11 @@ gg_obj <- ggbrain() +
 plot(gg_obj) + plot_annotation(title = "Overall")
 ```
 
-Another point is that by keeping your plots as `ggbrain` object -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them. Thus, you may wish to use the `plot(gg_obj) + [ggplot2 stuff here]` approach above so that the `ggbrain` 
+Another point is that by keeping your plots as `ggbrain` objects -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them. Thus, you may wish to use the `plot(gg_obj) + [ggplot2 stuff here]` approach above so that the `ggbrain` object remains in its original form and can be modified prior to display.
 
 # Saving ggbrain plots to file
 
-After you see your beautiful brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use `ggsave()`  or the usual graphics device (e.g., `pdf`) and `dev.off()` approach from base R.
+After you see your brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use `ggsave()`  or the usual graphics device (e.g., `pdf`) and `dev.off()` approach from base R.
 
 Note that if you pass a `ggbrain` object directly to `ggsave`, it will complain that the plot is not a ggplot object. We can just pass a rendered version like so:
 
@@ -379,6 +383,14 @@ ggsave(filename="my_brain_plot.pdf", gg_obj$render(), width=15, height=10)
 
 ```{r, warning=FALSE, message=FALSE}
 pdf("my_brain_plot_2.pdf", width=10, height=10)
+plot(gg_obj)
+dev.off()
+```
+
+Note that at present, the overall size of the plot may be different from the size of the graphical output device. For example, if you specify a size such as 9 x 6 inches, but the plot has an aspect ratio closer to 1:1, you'll have a lot of 'white space' around the plot. Intuitively, the `bg_color` argument to the overall `ggbrain` call should capture this, but for boring technical reasons that are not directly related to `ggbrain`, it is not so simple. At present, to ensure that the entire background of your plot uses the same color as the `ggplot` object, add the `bg` argument to your output device, or use the `ggsave` command (as above), which automatically uses the background color of the plot to extend to the output device/file.
+
+```{r warning=FALSE, message=FALSE}
+pdf("my_brain_plot_2.pdf", width=10, height=10, bg="gray80")
 plot(gg_obj)
 dev.off()
 ```
