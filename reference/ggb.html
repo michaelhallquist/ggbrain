@@ -36,7 +36,13 @@ Generic R6 base class that is used to support + semantics"><!-- mathjax --><scri
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/michaelhallquist/ggbrain/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -44,7 +50,7 @@ Generic R6 base class that is used to support + semantics"><!-- mathjax --><scri
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Generic R6 base class that is used to support + semantics</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/michaelhallquist/ggbrain/blob/HEAD/R/ggb.R" class="external-link"><code>R/ggb.R</code></a></small>
       <div class="d-none name"><code>ggb.Rd</code></div>
     </div>
 
@@ -71,6 +77,10 @@ Generic R6 base class that is used to support + semantics"><!-- mathjax --><scri
 
 <dt><code>ggb_slices</code></dt>
 <dd><p>list slices to extract for this plot</p></dd>
+
+
+<dt><code>ggb_contrasts</code></dt>
+<dd><p>a character vector of contrasts to be computed as part of this plot</p></dd>
 
 
 <dt><code>ggb_layers</code></dt>
@@ -104,6 +114,7 @@ Generic R6 base class that is used to support + semantics"><!-- mathjax --><scri
 <ul><li><p><a href="#method-ggb-new"><code>ggb$new()</code></a></p></li>
 <li><p><a href="#method-ggb-add_layers"><code>ggb$add_layers()</code></a></p></li>
 <li><p><a href="#method-ggb-add_slices"><code>ggb$add_slices()</code></a></p></li>
+<li><p><a href="#method-ggb-add_contrasts"><code>ggb$add_contrasts()</code></a></p></li>
 <li><p><a href="#method-ggb-add_annotations"><code>ggb$add_annotations()</code></a></p></li>
 <li><p><a href="#method-ggb-add_image_labels"><code>ggb$add_image_labels()</code></a></p></li>
 <li><p><a href="#method-ggb-add_region_labels"><code>ggb$add_region_labels()</code></a></p></li>
@@ -118,6 +129,7 @@ unintended modify-in-place behaviors of R6 classes.</p><div class="section">
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/ggb.html">ggb</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  images <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  slices <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  contrasts <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  layers <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotations <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -138,6 +150,10 @@ unintended modify-in-place behaviors of R6 classes.</p><div class="section">
 
 <dt><code>slices</code></dt>
 <dd><p>a character vector of slices to extract</p></dd>
+
+
+<dt><code>contrasts</code></dt>
+<dd><p>a character vector of contrasts to define and compute</p></dd>
 
 
 <dt><code>layers</code></dt>
@@ -212,15 +228,31 @@ will get this list from obj$ggb_layers</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-ggb-add_annotations"></a><div class="section">
-<h3 id="method-add-annotations-">Method <code>add_annotations()</code><a class="anchor" aria-label="anchor" href="#method-add-annotations-"></a></h3>
-<p>add annotations to panels</p><div class="section">
+</div><p></p><hr><a id="method-ggb-add_contrasts"></a><div class="section">
+<h3 id="method-add-contrasts-">Method <code>add_contrasts()</code><a class="anchor" aria-label="anchor" href="#method-add-contrasts-"></a></h3>
+<p>add contrast definitions to the plot object</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_annotations</span><span class="op">(</span>annotations <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_contrasts</span><span class="op">(</span><span class="va">contrasts</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>contrasts</code></dt>
+<dd><p>a character vector of contrasts to compute as part of the plot generation</p></dd>
+
+
+</dl><p></p></div>
+</div>
+
+</div><p></p><hr><a id="method-ggb-add_annotations"></a><div class="section">
+<h3 id="method-add-annotations-">Method <code>add_annotations()</code><a class="anchor" aria-label="anchor" href="#method-add-annotations-"></a></h3>
+<p>add annotations to panels</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_annotations</span><span class="op">(</span>annotations <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>annotations</code></dt>
 <dd><p>a list or data.frame containing the annotations to add to each panel. Minimally,
 the list or data.frame must contain <code>position</code> and <code>label</code> columns that define the position
@@ -234,12 +266,12 @@ in <code>annotations</code> and these will be passed through to annotate</p></dd
 </div><p></p><hr><a id="method-ggb-add_image_labels"></a><div class="section">
 <h3 id="method-add-image-labels-">Method <code>add_image_labels()</code><a class="anchor" aria-label="anchor" href="#method-add-image-labels-"></a></h3>
 <p>add labels to a given image</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_image_labels</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>a named list of arguments where each is a data.frame with labels denoting corresponding images</p></dd>
 
@@ -250,12 +282,12 @@ in <code>annotations</code> and these will be passed through to annotate</p></dd
 </div><p></p><hr><a id="method-ggb-add_region_labels"></a><div class="section">
 <h3 id="method-add-region-labels-">Method <code>add_region_labels()</code><a class="anchor" aria-label="anchor" href="#method-add-region-labels-"></a></h3>
 <p>add a list of ggbrain_label objects to the overall ggb for compiling a plot</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_region_labels</span><span class="op">(</span>labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>labels</code></dt>
 <dd><p>a list of data.frames with region labels that should be plotted on each slice. This is generated
 internally by ggbrain_images$get_slices() in the $slice_labels field.</p></dd>
@@ -269,12 +301,12 @@ internally by ggbrain_images$get_slices() in the $slice_labels field.</p></dd>
 <p>this method converts the ggb object into a compiled ggplot2 object that can then be passed to other
 functions from cowplot, ggplot2, and patchwork. Once the object is rendered, it no longer retains the underlying ggb
 fields that contain the elemental data.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>guides</code></dt>
 <dd><p>Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
 is "collect", which collects legends within a given nesting level (removes duplicates).</p></dd>
@@ -286,12 +318,12 @@ is "collect", which collects legends within a given nesting level (removes dupli
 </div><p></p><hr><a id="method-ggb-plot"></a><div class="section">
 <h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
 <p>plot this ggb object</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>guides</code></dt>
 <dd><p>Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
 is "collect", which collects legends within a given nesting level (removes duplicates).</p></dd>
@@ -308,12 +340,12 @@ is "collect", which collects legends within a given nesting level (removes dupli
 </div><p></p><hr><a id="method-ggb-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
