@@ -206,5 +206,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
 # compound logical expressions (conjunction)
 # res <- contrast_parser("1 = bin1 == 1L; 2 = bin2 == 1L; 3 = bin1 == 1L & bin2 == 1L", data)
 
+
+
 # simple logical expression
 #res <- contrast_parser("bin1 == 1L", data)

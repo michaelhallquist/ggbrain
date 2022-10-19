@@ -35,6 +35,36 @@ add_labels <- function(...) {
   ggb$new(labels = args, action = "add_image_labels")
 }
 
+#' Add images to a ggbrain object
+#' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
+#' @param volumes a number indicating the volume within the \code{images} to display. At present, this must
+#'   be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
+#'   be displayed.
+#' @param labels a data.frame or named list of data.frame objects corresponding to images that should be labeled.
+#'   You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
+#'   the \code{labels} list are used to align the labels with a given matching image.
+#' @param filter a named list or character string specifying an expression of values to retain in the image,
+#'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
+#' @return a ggb object with the relevant images and an action of 'add_images'
+#' @examples
+#' \dontrun{
+#' gg_obj <- ggbrain() +
+#'   images(c(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz"))
+#' }
+#' @export
+images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
+  if (inherits(images, "ggbrain_images")) {
+    img_obj <- images$clone(deep = TRUE) # work from copy
+    if (!is.null(labels)) img_obj$add_labels(labels)
+  } else {
+    img_obj <- ggbrain_images$new(images, volumes, labels, filter)
+  }
+
+  ret <- ggb$new(images = img_obj, action = "add_images")
+
+  return(ret)
+}
+
 #' Adds slices to the ggbrain plot, including additional panel aesthetics
 #' @param coordinates a character vector specifying the x, y, or z coordinates of the slices to be added.
 #' @param title a title for the slice panels added to the ggplot object using `ggtitle()`
@@ -111,35 +141,50 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL
   return(v)
 }
 
-#' Add images to a ggbrain object
-#' @param images a character vector or ggbrain_images object containing NIfTI images to add to this plot
-#' @param volumes a number indicating the volume within the \code{images} to display. At present, this must
-#'   be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
-#'   be displayed.
-#' @param labels a data.frame or named list of data.frame objects corresponding to images that should be labeled.
-#'   You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
-#'   the \code{labels} list are used to align the labels with a given matching image.
-#' @param filter a named list or character string specifying an expression of values to retain in the image,
-#'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
-#' @return a ggb object with the relevant images and an action of 'add_images'
+#' Adds contrast definitions to the ggbrain plot
+#'
+#' @details Contrasts must take the form of `<name> := <value expression>`.
+#'   Note that defining a contrast does not directly impact the appearance of the plot unless the
+#'   contrast is named in a geom_* layer.
+#'
+#'   Also note that contrasts can be specified in the definition of a layer. Thus, the \code{define} function
+#'   has two primary virtues. First, it allows for the conceptual separation of contrast definition versus usage
+#'   inside a geom_* layer, which is particularly useful if a contrast is used across several layers. Second, it allows
+#'   downstream layers to further modify the contrast, such as when we compute a
+#'
 #' @examples
 #' \dontrun{
+#' # simple example of a difference contrast, separating definition from usage in geom_brain
 #' gg_obj <- ggbrain() +
-#'   images(c(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz"))
+#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
+#'   slices(c("x=25%", x = "75%")) +
+#'   define("onset_gt_feedback := onset - feedback") +
+#'   geom_brain("onset_gt_feedback")
+#'
+#' # contrast definitions can also occur inline, yielding equivalent plots
+#' gg_obj <- ggbrain() +
+#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
+#'   slices(c("x=25%", x = "75%")) +
+#'   geom_brain("onset - feedback")
+#'
+#' # The use of contrasts() is helpful when layers modify the contrast (e.g., subsetting)
+#' gg_obj <- ggbrain() +
+#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
+#'   slices(c("x=25%", x = "75%")) +
+#'   define("onset_gt_feedback := onset - feedback") +
+#'   geom_brain("onset_gt_feedback[onset_gt_feedback > 0]", fill_scale=scale_fill_distiller("Pos diff", palette = "Reds")))
+#' 
 #' }
+#' 
+#' 
 #' @export
-images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
-  if (inherits(images, "ggbrain_images")) {
-    img_obj <- images$clone(deep = TRUE) # work from copy
-    if (!is.null(labels)) img_obj$add_labels(labels)
-  } else {
-    img_obj <- ggbrain_images$new(images, volumes, labels, filter)
-  }
+define <- function(contrasts = NULL) {
+  checkmate::assert_character(contrasts)
 
-  ret <- ggb$new(images = img_obj, action = "add_images")
-
+  ret <- ggb$new(contrasts = contrasts, action = "add_contrasts")
   return(ret)
 }
+
 
 #' Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition
 #'

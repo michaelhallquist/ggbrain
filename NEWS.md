@@ -1,5 +1,7 @@
 # ggbrain 0.8 (DEVELOPMENT)
 
+* first public release of the package to CRAN (hooray!)
+* feature: add `define()` function to support contrast definition in ggbrain pipeline outside of a given layer.
 * feature: fixed fill colors are now supported in `geom_brain` using `geom_brain(fill='color_here')`
 * feature: `images()` supports a `volumes` argument so that volumes from 4-D images can be visualized
 * feature: `plot()` on a ggbrain object supports `guides` argument that passes to `plot_layout()` in `patchwork`.

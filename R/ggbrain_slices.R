@@ -155,6 +155,8 @@ ggbrain_slices <- R6::R6Class(
     #'   slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
     #' }
     compute_contrasts = function(contrast_list=NULL) {
+      if (is.null(contrast_list)) return(self) # skip out if no contrasts to compute
+
       if (checkmate::test_class(contrast_list, "character")) {
         contrast_list <- as.list(contrast_list) # tolerate named character vector input
       }

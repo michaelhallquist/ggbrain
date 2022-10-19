@@ -22,6 +22,8 @@ this object becomes a simple storage class that contains all relevant objects
 
 \item{\code{ggb_slices}}{list slices to extract for this plot}
 
+\item{\code{ggb_contrasts}}{a character vector of contrasts to be computed as part of this plot}
+
 \item{\code{ggb_layers}}{a list of ggbrain_layer objects containing the bottom-to-top layers to be plotted}
 
 \item{\code{ggb_plot}}{a ggbrain_plot object containing the specification of the plot}
@@ -40,6 +42,7 @@ this object becomes a simple storage class that contains all relevant objects
 \item \href{#method-ggb-new}{\code{ggb$new()}}
 \item \href{#method-ggb-add_layers}{\code{ggb$add_layers()}}
 \item \href{#method-ggb-add_slices}{\code{ggb$add_slices()}}
+\item \href{#method-ggb-add_contrasts}{\code{ggb$add_contrasts()}}
 \item \href{#method-ggb-add_annotations}{\code{ggb$add_annotations()}}
 \item \href{#method-ggb-add_image_labels}{\code{ggb$add_image_labels()}}
 \item \href{#method-ggb-add_region_labels}{\code{ggb$add_region_labels()}}
@@ -58,6 +61,7 @@ unintended modify-in-place behaviors of R6 classes.
 \if{html}{\out{<div class="r">}}\preformatted{ggb$new(
   images = NULL,
   slices = NULL,
+  contrasts = NULL,
   layers = NULL,
   labels = NULL,
   annotations = NULL,
@@ -76,6 +80,8 @@ unintended modify-in-place behaviors of R6 classes.
 \item{\code{images}}{a ggbrain_images object containing relevant images}
 
 \item{\code{slices}}{a character vector of slices to extract}
+
+\item{\code{contrasts}}{a character vector of contrasts to define and compute}
 
 \item{\code{layers}}{a list of ggbrain_layer objects}
 
@@ -129,6 +135,23 @@ add slices to the existing vector of slices
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{slices}}{a character vector of slices to be appended to the existing slices}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_contrasts"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_contrasts}{}}}
+\subsection{Method \code{add_contrasts()}}{
+add contrast definitions to the plot object
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_contrasts(contrasts)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{contrasts}}{a character vector of contrasts to compute as part of the plot generation}
 }
 \if{html}{\out{</div>}}
 }

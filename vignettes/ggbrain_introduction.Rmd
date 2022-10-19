@@ -22,13 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggbrain)
 library(ggplot2)
 library(patchwork)
-```
 
-# Images that will be used in the demo
-
-The package includes a few images that can be used for demonstrating its capabilities. The locations of the images (and the code to load them) are listed below.
-
-```{r}
 # MNI 2009c anatomical underlay
 underlay_3mm <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
 
@@ -38,10 +32,28 @@ decision_onset_3mm <- system.file("extdata", "decision_onset_zstat_3mm.nii.gz", 
 # Parametric modulator: entropy change following feedback in learning task
 echange_overlay_3mm <- system.file("extdata", "echange_overall_zstat_3mm.nii.gz", package = "ggbrain")
 
+# Parametric modulator: signed reward prediction error following feedback in learning task
+# thresholded to be whole-brain significant at FWE p < .05 using pTFCE
+pe_overlay_3mm <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+
+# Parametric modulator: absolute reward prediction error following feedback in learning task
+# thresholded to be whole-brain significant at FWE p < .05 using pTFCE
+abspe_overlay_3mm <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+
 # Schaefer 200-parcel atlas of cortex
 schaefer200_atlas_3mm <- system.file("extdata", "Schaefer_200_7networks_2009c_3mm.nii.gz", package = "ggbrain")
+```
 
-print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, schaefer200_atlas_3mm))
+This vignette provides an overview of basic usage of the `ggbrain` package. The package seeks to generate 2D volumetric plots of brain data stored in the NIfTI format. Additional details about the structure of NIfTI data are here: https://neuroconductor.org/tutorials/nifti_basics. The `ggbrain` package uses `ggplot2` to generate its plots, allowing users to access the wide array of popular features in `ggplot2`, including annotations and fine control over coloration and themes.
+
+Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github.io/ggBrain-debut.html) package developed by Aaron Fisher in 2014. I had developed most of the current `ggbrain` package and had named it prior to discovering Aaron's earlier work. The earlier `ggBrain` package was also not released publicly to CRAN and has not been updated much over the years, whereas `ggbrain` is hosted on CRAN and also offers a wider array of functionality.
+
+# Images that will be used in the demo
+
+The package includes a few images that can be used for demonstrating its capabilities. The locations of the images on your machine are listed below.
+
+```{r}
+print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, pe_overlay_3mm, abspe_overlay_3mm, schaefer200_atlas_3mm))
 ```
 
 # Building a ggbrain plot layer by layer
@@ -199,7 +211,6 @@ For example, here I want to render the underlay and overlay layers with their nu
 gg_base <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_3mm, overlay = echange_overlay_3mm)) +
   slices(c("x = 10", "y = 70", "z = 15"))
-#ggbrain(bg_color = "gray80", text_color = "black", title="Rostral PPC")
 
 ```
 
@@ -212,7 +223,8 @@ gg_obj <- gg_base +
 Now that we have `geom_*` layers in our `ggbrain` object, we can finally plot our figure to see the result.
 
 ```{r}
-x <- gg_obj$render() + plot_annotation(theme = theme(plot.background = element_rect(fill = "blue", color = NA)))
+gg_obj$render() + 
+  plot_annotation(theme = theme(plot.background = element_rect(fill = "blue", color = NA)))
 ```
 
 ### Defining subset layers
@@ -222,7 +234,7 @@ Oftentimes, we wish to modify the display by selecting a subset of values to dis
 ```{r, fig.width=8, fig.height=6}
 gg_obj <- gg_base +
   geom_brain(definition = "overlay[abs(overlay) > 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
-  #geom_brain(definition = "overlay[abs(overlay) < 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
+
 plot(gg_obj)
 ```
 
@@ -232,16 +244,20 @@ Note how 'overlay' is treated as an R object that is subset using square bracket
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay[underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
+
+plot(gg_obj)
 ```
 
-Finally, note that one can combine subsetting expressions using logical operators `&` and `|` , as in standard R syntax for vector operations. For example, here's how you could include only pixels that are both `abs(overlay) > 2.5` and where `underlay > 10`:
+Finally, note that one can combine subsetting expressions using logical operators `&` and `|` , as in standard R syntax for vector operations. For example, here's how you could include pixels where `abs(overlay) > 2.5` and `underlay > 20`:
 
 ```{r}
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
-  geom_brain(definition = "overlay[abs(overlay) > 2.5 & underlay > 10]",
-             fill_scale = scale_fill_bisided(), show_legend = TRUE
+  geom_brain(
+    definition = "overlay[abs(overlay) > 2.5 & underlay > 20]",
+    fill_scale = scale_fill_bisided("z"), show_legend = TRUE
   )
+
 plot(gg_obj)
 ```
 
@@ -251,13 +267,39 @@ The `ggbrain` package also supports full contrasts in which images can be added,
 
 For example, what if we have signed and absolute reward prediction error maps from a simple reinforcement learning paradigm? We might be interested to look at areas that are more strongly modulated by signed than absolute PEs.
 
-TODO: finish implementation and make up mind about := as contrast name versus level definition.
-Maybe `test := choose(1=a > 2; 2=b > 3)` and `test := conjunction(1=a > 2; 2=b > 3; 3 = a > 4)`
-where choose would be a left-to-right evaluation and conjunction compute the first-order values, then determine their combinations.
+These contrasts can either be defined inline within the `definition` field of `geom_brain` or `geom_outline`. Or, they can be added to the `ggbrain` object in advance using the `define()` function.
 
-```{r, eval=FALSE}
-gg_obj <- gg_obj +
-  geom_brain(definition = "diff := absPE - PE; diff[abs(diff) > 1]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
+```{r}
+gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
+  images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
+  slices(c("x = 10", "y = 50", "z = 15")) +
+  define("diff := pe - abspe") +
+  geom_brain(definition = "diff", fill_scale = scale_fill_bisided(symmetric = FALSE), show_legend = TRUE)
+
+plot(gg_obj)
+```
+
+An equivalent plot would be achieved by including the definition inline:
+
+```{r}
+```{r}
+gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
+  images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
+  slices(c("x = 10", "y = 50", "z = 15")) +
+  geom_brain(definition = "diff := pe - abspe", fill_scale = scale_fill_bisided(symmetric = FALSE), show_legend = TRUE)
+```
+
+The advantage of `define()` is that you can re-use and modify contrasts in multiple layers. Here, we subset the difference to only voxels where the PE - abs(PE) contrast is strongly in favor of signed PEs (i.e., positive difference in the z-statistic > 3).
+
+```{r}
+gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
+  images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
+  slices(c("x = 10", "y = 50", "z = 15")) +
+  define("diff := pe - abspe") +
+  geom_brain(definition = "underlay") +
+  geom_brain(definition = "diff[diff > 3]", fill_scale = scale_fill_distiller("PE > absPE", palette="Reds"), show_legend = TRUE)
+
+plot(gg_obj)
 ```
 
 ## Adding outlines 
@@ -272,8 +314,9 @@ Here, we might wish to outline voxels whose z-statistics exceed $|z| > 3$ for th
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
-  geom_brain(definition="underlay") +
-  geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
+  geom_brain(definition = "underlay") +
+  geom_outline(definition = "onset[abs(onset) > 3]", size = 1, outline = "cyan")
+
 plot(gg_obj)
 ```
 
@@ -307,7 +350,7 @@ gg_obj <- ggbrain() +
 class(gg_obj)
 
 # add a different theme to all panels and add an overall title
-gg_obj + plot_annotation(title="Overall title") & theme_minimal() 
+gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 
 ```
 
@@ -323,7 +366,7 @@ gg_obj <- ggbrain() +
 plot(gg_obj) + plot_annotation(title = "Overall")
 ```
 
-Another point is that by keeping your plots as `ggbrain` object -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them.
+Another point is that by keeping your plots as `ggbrain` object -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them. Thus, you may wish to use the `plot(gg_obj) + [ggplot2 stuff here]` approach above so that the `ggbrain` 
 
 # Saving ggbrain plots to file
 
@@ -347,7 +390,7 @@ One small note: some PDF viewers will automatically interpolate the 'raster' par
 
 # Next steps
 
-Now that you understand the basics of `ggbrain` plots, I encourage you to read the [ggbrain aesthetics](ggbrain_aesthetics.html) vignette.
+Now that you understand the basics of `ggbrain` plots, I encourage you to read the [ggbrain aesthetics](ggbrain_aesthetics.html) vignette, which provides more detailed guidance about how to clean up the appearance of brain displays and to add more complex annotations.
 
 ```{r cleanup, include=FALSE, message=FALSE}
 unlink(c("my_brain_plot_2.pdf", "my_brain_plot.pdf"))

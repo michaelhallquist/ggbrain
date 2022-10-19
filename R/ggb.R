@@ -1,7 +1,7 @@
 #' Generic R6 base class that is used to support + semantics
 #' @details this object becomes a simple storage class that contains all relevant objects
 #'   (e.g., ggbrain_images) required to generate a brain plot
-#' @importFrom checkmate assert_class
+#' @importFrom checkmate assert_class test_character
 #' @keywords internal
 ggb <- R6::R6Class(
   "ggb",
@@ -15,6 +15,9 @@ ggb <- R6::R6Class(
 
     #' @field ggb_slices list slices to extract for this plot
     ggb_slices = NULL,
+
+    #' @field ggb_contrasts a character vector of contrasts to be computed as part of this plot
+    ggb_contrasts = NULL,
 
     #' @field ggb_layers a list of ggbrain_layer objects containing the bottom-to-top layers to be plotted
     ggb_layers = NULL,
@@ -35,6 +38,7 @@ ggb <- R6::R6Class(
     #'   unintended modify-in-place behaviors of R6 classes.
     #' @param images a ggbrain_images object containing relevant images
     #' @param slices a character vector of slices to extract
+    #' @param contrasts a character vector of contrasts to define and compute
     #' @param layers a list of ggbrain_layer objects
     #' @param labels a list of data.frames with labels that align with one or more images
     #' @param annotations a list of data.frames with annotations that will be added to specific slices
@@ -44,7 +48,7 @@ ggb <- R6::R6Class(
     #' @param text_color the text color of the overall plot
     #' @param base_size the base size of text on the plot
     #' @param action the action to be taken when adding this object to an existing ggb
-    initialize=function(images=NULL, slices=NULL, layers = NULL, labels = NULL, annotations=NULL, region_labels = NULL,
+    initialize=function(images=NULL, slices=NULL, contrasts = NULL, layers = NULL, labels = NULL, annotations=NULL, region_labels = NULL,
       title = NULL, bg_color=NULL, text_color=NULL, base_size = NULL, action=NULL) {
       if (!is.null(images)) {
         checkmate::assert_class(images, "ggbrain_images")
@@ -52,6 +56,8 @@ ggb <- R6::R6Class(
       }
 
       if (!is.null(slices)) self$add_slices(slices)
+
+      if (!is.null(contrasts)) self$add_contrasts(contrasts)
 
       if (!is.null(layers)) {
         # form one-element list if a ggbrain_object is passed
@@ -112,6 +118,56 @@ ggb <- R6::R6Class(
       }
 
       self$ggb_slices <- c(self$ggb_slices, slices)
+      return(self)
+    },
+
+    #' @description add contrast definitions to the plot object
+    #' @param contrasts a character vector of contrasts to compute as part of the plot generation
+    add_contrasts = function(contrasts) {
+      
+      if (checkmate::test_character(contrasts)) {
+        contrasts <- as.list(contrasts) # convert to list for type consistency
+      }
+      
+      # for testing
+      #contrasts <- c(x="a - b", "diff := a*b", c="x := y + z", "t + j")
+      #contrasts <- c(x="a - b", "diff := a*b") #, c="x := y + z")
+      has_names <- sapply(seq_along(contrasts), function(i) { checkmate::test_named(contrasts[i]) })
+      if (any(has_names)) {
+        # verify that the named arguments don't use := operator
+        nm <- contrasts[has_names]
+        sapply(seq_along(nm), function(i) {
+          if (grepl(":=", nm[i], fixed=TRUE)) {
+            stop(glue::glue(
+              "Contrasts must either use the named form c(nm='con def')",
+              "or the := operator: 'nm := con def'.",
+              " Problem with {names(nm)[i]}='{nm[i]}'"
+            ))
+          }
+        })
+      }
+        
+      if (any(!has_names)) {
+        un <- contrasts[!has_names]
+        un <- lapply(seq_along(un), function(i) {
+          if (!grepl("^\\s*\\w+\\s*:=.*$", un[i], perl = TRUE)) {
+            stop(glue::glue(
+              "Contrasts must either use the named form c(nm='con def')",
+              "or the := operator: 'nm := con def'.",
+              " Problem with '{un[i]}'"
+            ))
+          } else {
+            con_name <- sub("^\\s*(\\w+)\\s*:=.*$", "\\1", un[i], perl = TRUE) # parse name
+            con_val <- trimws(sub("^\\s*\\w+\\s*:=\\s*(.*)$", "\\1", un[i], perl = TRUE)) # parse contrast
+            return(c(con_name, con_val))
+          }
+        })
+        
+        contrasts[!has_names] <- lapply(un, "[[", 2) # retain contrast definitions as value (named list)
+        names(contrasts)[!has_names] <- sapply(un, "[[", 1) # use first element (contrast name) as list names
+      }
+      
+      self$ggb_contrasts <- c(self$ggb_contrasts, contrasts)
       return(self)
     },
 
@@ -197,6 +253,9 @@ ggb <- R6::R6Class(
       if (!is.null(self$ggb_image_labels))  do.call(img$add_labels, self$ggb_image_labels)
       slc <- img$get_slices()
 
+      # compute any defined contrasts before looking at inline contrasts
+      slc$compute_contrasts(self$ggb_contrasts)
+
       # image/contrast definitions for each layer
       layer_defs <- trimws(sapply(self$ggb_layers, "[[", "definition"))
       is_contrast <- !layer_defs %in% img$get_image_names() # if definition is just an image name, it's not a contrast to be computed
@@ -208,7 +267,7 @@ ggb <- R6::R6Class(
       # compute any contrasts requested
       if (any(is_contrast)) {
         # allow for definitions of the form "con1 := overlay*2"
-        contrast_list <- lapply(layer_defs[is_contrast], function(x) {
+        inline_contrasts <- lapply(layer_defs[is_contrast], function(x) {
           if (grepl("^\\s*\\w+\\s*:=.*$", x, perl = TRUE)) {
             con_name <- sub("^\\s*(\\w+)\\s*:=.*$", "\\1", x, perl = TRUE) # parse name
             con_val <- trimws(sub("^\\s*\\w+\\s*:=\\s*(.*)$", "\\1", x, perl = TRUE)) # parse contrast
@@ -220,15 +279,15 @@ ggb <- R6::R6Class(
           return(c(name = con_name, value = con_val))
         })
 
-        con_names <- sapply(contrast_list, "[[", "name")
+        con_names <- sapply(inline_contrasts, "[[", "name")
         con_names[con_names == ""] <- make.unique(rep("con", sum(con_names == "")))
-        contrast_list <- lapply(contrast_list, "[[", "value")
-        names(contrast_list) <- con_names
+        inline_contrasts <- lapply(inline_contrasts, "[[", "value")
+        names(inline_contrasts) <- con_names
 
         # fill in layer_sources with appropriate contrast names
         layer_sources[is_contrast] <- con_names
 
-        slc$compute_contrasts(contrast_list)
+        slc$compute_contrasts(inline_contrasts)
       }
 
       # populate source fields in layers so that the appropriate layer can be looked up from slices
@@ -284,6 +343,8 @@ plot.ggb <- function(x, ...) {
     oc$action <- NULL # always make sure no action is needed in combined object
     if (o2$action == "add_slices") {
       oc$add_slices(o2$ggb_slices)
+    } else if (o2$action == "add_contrasts") {
+      oc$add_contrasts(o2$ggb_contrasts)
     } else if (o2$action == "add_images") {
       # use direct addition approach (by reference) -- yields single ggbrain_images object
       oc$ggb_images$add(o2$ggb_images)
