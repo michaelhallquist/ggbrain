@@ -224,6 +224,16 @@
 </ul>
 </div>
 </div>
+<div class="section level2">
+<h2 id="question-of-how-to-get-entire-background-to-match-in-color">Question of how to get entire background to match in color<a class="anchor" aria-label="anchor" href="#question-of-how-to-get-entire-background-to-match-in-color"></a>
+</h2>
+<p>Use bg argument</p>
+<pre><code><span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"test.png"</span>, <span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">8</span>, height<span class="op">=</span><span class="fl">6</span>, bg<span class="op">=</span><span class="st">"blue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"test_dev.pdf"</span>, width<span class="op">=</span><span class="fl">8</span>, height<span class="op">=</span><span class="fl">6</span>, bg<span class="op">=</span><span class="st">"blue"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre>
+</div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
 </div>

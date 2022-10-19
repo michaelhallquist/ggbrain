@@ -75,7 +75,7 @@
       <img src="" class="logo" alt=""><h1>Introduction to ggbrain</h1>
                         <h4 data-toc-skip class="author">Michael Hallquist</h4>
             
-            <h4 data-toc-skip class="date">3 Oct 2022</h4>
+            <h4 data-toc-skip class="date">19 Oct 2022</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/michaelhallquist/ggbrain/blob/HEAD/vignettes/ggbrain_introduction.Rmd" class="external-link"><code>vignettes/ggbrain_introduction.Rmd</code></a></small>
       <div class="d-none name"><code>ggbrain_introduction.Rmd</code></div>
@@ -84,7 +84,7 @@
     
     
 <p>This vignette provides an overview of basic usage of the <code>ggbrain</code> package. The package seeks to generate 2D volumetric plots of brain data stored in the NIfTI format. Additional details about the structure of NIfTI data are here: <a href="https://neuroconductor.org/tutorials/nifti_basics" class="external-link uri">https://neuroconductor.org/tutorials/nifti_basics</a>. The <code>ggbrain</code> package uses <code>ggplot2</code> to generate its plots, allowing users to access the wide array of popular features in <code>ggplot2</code>, including annotations and fine control over coloration and themes.</p>
-<p>Note that this package is unrelated to the <a href="https://aaronjfisher.github.io/ggBrain-debut.html" class="external-link">ggBrain</a> package developed by Aaron Fisher in 2014. I had developed most of the current <code>ggbrain</code> package and had named it prior to discovering Aaron’s earlier work. The earlier <code>ggBrain</code> package was also not released publicly to CRAN and has not been updated much over the years, whereas <code>ggbrain</code> is hosted on CRAN and also offers a wider array of functionality.</p>
+<p>Note that this package is unrelated to the <a href="https://aaronjfisher.github.io/ggBrain-debut.html" class="external-link">ggBrain</a> package developed by Aaron Fisher in 2014. I had developed most of the current <code>ggbrain</code> package and had named it prior to discovering Aaron’s work. The earlier <code>ggBrain</code> package was also not released publicly to CRAN and has not been updated much over the years, whereas <code>ggbrain</code> is hosted on CRAN and also offers a wider array of functionality.</p>
 <div class="section level2">
 <h2 id="images-that-will-be-used-in-the-demo">Images that will be used in the demo<a class="anchor" aria-label="anchor" href="#images-that-will-be-used-in-the-demo"></a>
 </h2>
@@ -255,9 +255,8 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Now that we have <code>geom_*</code> layers in our <code>ggbrain</code> object, we can finally plot our figure to see the result.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">plot_annotation</span><span class="op">(</span>theme <span class="op">=</span> <span class="fu">theme</span><span class="op">(</span>plot.background <span class="op">=</span> <span class="fu">element_rect</span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"blue"</span>, color <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<code class="sourceCode R"><span><span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
 </div>
 <div class="section level4">
 <h4 id="defining-subset-layers">Defining subset layers<a class="anchor" aria-label="anchor" href="#defining-subset-layers"></a>
@@ -276,7 +275,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[underlay &gt; 10]"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
 <p>Finally, note that one can combine subsetting expressions using logical operators <code>&amp;</code> and <code>|</code> , as in standard R syntax for vector operations. For example, here’s how you could include pixels where <code>abs(overlay) &gt; 2.5</code> and <code>underlay &gt; 20</code>:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
@@ -287,7 +286,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png" width="768"></p>
 </div>
 <div class="section level4">
 <h4 id="defining-a-contrast-layer">Defining a contrast layer<a class="anchor" aria-label="anchor" href="#defining-a-contrast-layer"></a>
@@ -300,10 +299,11 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_3mm</span>, pe <span class="op">=</span> <span class="va">pe_overlay_3mm</span>, abspe <span class="op">=</span> <span class="va">abspe_overlay_3mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 10"</span>, <span class="st">"y = 50"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/define.html">define</a></span><span class="op">(</span><span class="st">"diff := pe - abspe"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"diff"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span>symmetric <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png" width="768"></p>
 <p>An equivalent plot would be achieved by including the definition inline:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -320,7 +320,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"diff[diff &gt; 3]"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"PE &gt; absPE"</span>, palette<span class="op">=</span><span class="st">"Reds"</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png" width="768"></p>
 </div>
 </div>
 <div class="section level3">
@@ -337,7 +337,7 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"onset[abs(onset) &gt; 3]"</span>, size <span class="op">=</span> <span class="fl">1</span>, outline <span class="op">=</span> <span class="st">"cyan"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="converting-to-a-ggplot-object-and-displaying-the-plot">Converting to a ggplot object and displaying the plot<a class="anchor" aria-label="anchor" href="#converting-to-a-ggplot-object-and-displaying-the-plot"></a>
@@ -366,11 +366,12 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "patchwork" "gg"        "ggplot"</span></span></code></pre>
+<p>Using the general approach provided by patchwork, we can add annotations and aesthetic modifications to the overall plot using the <a href="https://patchwork.data-imaginist.com/articles/guides/annotation.html" class="external-link"><code>plot_annotation</code></a>. Likewise, you can modify the overall theme information using the <code>theme()</code> function, as articulated <a href="https://patchwork.data-imaginist.com/articles/guides/assembly.html#modifying-patches" class="external-link">here</a>.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># add a different theme to all panels and add an overall title</span></span>
 <span><span class="va">gg_obj</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title<span class="op">=</span><span class="st">"Overall title"</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
-<p>Note, however, that you don’t necessarily need to use <code><a href="../reference/render.html">render()</a></code> at all. When you call <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a ggbrain object, the render happens automatically behind the scenes, allowing calls like:</p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png" width="768"></p>
+<p>Note that you don’t necessarily need to use <code><a href="../reference/render.html">render()</a></code> at all. When you call <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a ggbrain object, the render happens automatically behind the scenes, allowing calls like:</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -2"</span>, <span class="st">"x=2"</span>, <span class="st">"y = 40"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -379,19 +380,26 @@ In private$set_images(images, fill_holes, clean_specks) :
 <span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"onset[abs(onset) &gt; 3]"</span>, size<span class="op">=</span><span class="fl">1</span>, outline<span class="op">=</span><span class="st">"cyan"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Overall"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
-<p>Another point is that by keeping your plots as <code>ggbrain</code> object – that is not adding <code><a href="../reference/render.html">render()</a></code> – you can continue to add brain-related calls like <code><a href="../reference/geom_brain.html">geom_brain()</a></code> or <code><a href="../reference/annotate_coordinates.html">annotate_coordinates()</a></code> to them. Thus, you may wish to use the <code>plot(gg_obj) + [ggplot2 stuff here]</code> approach above so that the <code>ggbrain</code></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png" width="768"></p>
+<p>Another point is that by keeping your plots as <code>ggbrain</code> objects – that is not adding <code><a href="../reference/render.html">render()</a></code> – you can continue to add brain-related calls like <code><a href="../reference/geom_brain.html">geom_brain()</a></code> or <code><a href="../reference/annotate_coordinates.html">annotate_coordinates()</a></code> to them. Thus, you may wish to use the <code>plot(gg_obj) + [ggplot2 stuff here]</code> approach above so that the <code>ggbrain</code> object remains in its original form and can be modified prior to display.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="saving-ggbrain-plots-to-file">Saving ggbrain plots to file<a class="anchor" aria-label="anchor" href="#saving-ggbrain-plots-to-file"></a>
 </h2>
-<p>After you see your beautiful brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use <code>ggsave()</code> or the usual graphics device (e.g., <code>pdf</code>) and <code><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off()</a></code> approach from base R.</p>
+<p>After you see your brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use <code>ggsave()</code> or the usual graphics device (e.g., <code>pdf</code>) and <code><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off()</a></code> approach from base R.</p>
 <p>Note that if you pass a <code>ggbrain</code> object directly to <code>ggsave</code>, it will complain that the plot is not a ggplot object. We can just pass a rendered version like so:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggsave</span><span class="op">(</span>filename<span class="op">=</span><span class="st">"my_brain_plot.pdf"</span>, <span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">15</span>, height<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"my_brain_plot_2.pdf"</span>, width<span class="op">=</span><span class="fl">10</span>, height<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## agg_png </span></span>
+<span><span class="co">##       2</span></span></code></pre>
+<p>Note that at present, the overall size of the plot may be different from the size of the graphical output device. For example, if you specify a size such as 9 x 6 inches, but the plot has an aspect ratio closer to 1:1, you’ll have a lot of ‘white space’ around the plot. Intuitively, the <code>bg_color</code> argument to the overall <code>ggbrain</code> call should capture this, but for boring technical reasons that are not directly related to <code>ggbrain</code>, it is not so simple. At present, to ensure that the entire background of your plot uses the same color as the <code>ggplot</code> object, add the <code>bg</code> argument to your output device, or use the <code>ggsave</code> command (as above), which automatically uses the background color of the plot to extend to the output device/file.</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"my_brain_plot_2.pdf"</span>, width<span class="op">=</span><span class="fl">10</span>, height<span class="op">=</span><span class="fl">10</span>, bg<span class="op">=</span><span class="st">"gray80"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## agg_png </span></span>
