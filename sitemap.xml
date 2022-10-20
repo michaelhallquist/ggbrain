@@ -4,7 +4,7 @@
     <loc>https://michaelhallquist.github.io/ggbrain/404.html</loc>
   </url>
   <url>
-    <loc>https://michaelhallquist.github.io/ggbrain/LICENSE-text.html</loc>
+    <loc>https://michaelhallquist.github.io/ggbrain/LICENSE.html</loc>
   </url>
   <url>
     <loc>https://michaelhallquist.github.io/ggbrain/articles/ggbrain_aesthetics.html</loc>
@@ -29,9 +29,6 @@
   </url>
   <url>
     <loc>https://michaelhallquist.github.io/ggbrain/reference/annotate_panel.html</loc>
-  </url>
-  <url>
-    <loc>https://michaelhallquist.github.io/ggbrain/reference/annotate_panels.html</loc>
   </url>
   <url>
     <loc>https://michaelhallquist.github.io/ggbrain/reference/center_matrix.html</loc>

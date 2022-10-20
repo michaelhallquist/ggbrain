@@ -59,8 +59,8 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">geom_outline</span><span class="op">(</span></span>
-<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  definition <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outline <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outline_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mapping <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>outline <span class="op">=</span> <span class="cn">NULL</span>, fill <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>,</span>
@@ -80,13 +80,13 @@
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>name</dt>
-<dd><p>the name of this layer, used for referencing in layer and panel modifications</p></dd>
-
-
-<dt>definition</dt>
+    <dl><dt>definition</dt>
 <dd><p>a character string of the contrast or image definition used to define this layer.
 Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., <code>'overlay[overlay &gt; 5]'</code>)</p></dd>
+
+
+<dt>name</dt>
+<dd><p>the name of this layer, used for referencing in layer and panel modifications</p></dd>
 
 
 <dt>outline</dt>
@@ -154,7 +154,7 @@ to display. Specks are small clusters that may be distracting and contribute to 
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>a ggb object populated with the ggb_layer and the action of 'add_layers'</p>
+<p>a ggb object populated with the geom_outline layer and the action of 'add_layers'</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -166,13 +166,17 @@ created using the typical + scale_fill_* syntax, and similarly for scale limits.
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="images.html">images</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="st">"T1.nii.gz"</span>, overlay <span class="op">=</span> <span class="st">"zstat12.nii.gz"</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x=25%"</span>, x <span class="op">=</span> <span class="st">"75%"</span><span class="op">)</span>, border_color <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>  <span class="fu">geom_outline</span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[overlay &gt; 3]"</span>, fill<span class="op">=</span><span class="st">"cyan"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span>  <span class="co"># T1-weighted template</span></span></span>
+<span class="r-in"><span>  <span class="va">t1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="co"># signed reward prediction error map</span></span></span>
+<span class="r-in"><span>  <span class="va">signed_pe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pe_ptfce_fwep_0.05.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  </span></span>
+<span class="r-in"><span>  <span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">t1</span>, overlay <span class="op">=</span> <span class="va">signed_pe</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 25%"</span>, <span class="st">"x = 75%"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="fu">geom_outline</span><span class="op">(</span>definition<span class="op">=</span><span class="st">"overlay[overlay &gt; 2]"</span>, outline<span class="op">=</span><span class="st">"cyan"</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

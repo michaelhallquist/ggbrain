@@ -61,6 +61,17 @@ R6 class for compiling images to render in ggplot"><!-- mathjax --><script src="
 
 
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>a <code>ggbrain_images</code> R6 class containing fields related to a set of NIfTI images imported into R</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Note that this class is exported only for power users and rarely needs to be called directly
+in typical use of the package. Instead, look at images().</p>
+    </div>
+    <div class="section level2">
     <h2 id="active-bindings">Active bindings<a class="anchor" aria-label="anchor" href="#active-bindings"></a></h2>
     <p></p><div class="r6-active-bindings"><dl><dt><code>zero_tol</code></dt>
 <dd><p>the (positive) numeric value that should be treated as indistinguishable from zero.
@@ -170,7 +181,7 @@ match the image name to be labeled and the value should be a data.frame containi
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
+<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
 <p>As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
 text-based labels in the label data. In addition, a new attribute will be returned called "slice_labels" that contains
 a row for each region represented in each slice.</p>
@@ -215,7 +226,7 @@ be displayed.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
+<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
 <p>if expr is a numeric vector, only values in this set will be retained. If a character
 string expression is used, it should use the variable name <code>'value'</code> to refer to the numeric
 values to be filtered, such as <code>'value &gt; 10'</code>.</p>
@@ -373,7 +384,7 @@ If <code>NULL</code>, use the pvt_zero_tol field (default 1e-6).</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
+<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
 <p>Note that this function looks for non-zero voxels in any of the images specified by <code>img_names</code>.</p>
 </div>
 
@@ -466,7 +477,7 @@ have a corresponding label in the labels data.frame. Default: FALSE</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
+<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
 <p>This function always returns a data.frame where each row represents a slice requested
 by the user. The $slice_data element is a list-column where each element is itself a list
 of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
@@ -520,7 +531,7 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 </div>
 
 <div class="section">
-<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
+<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
 <p>the names of the list correspond directly with the names of the images</p>
 </div>
 
