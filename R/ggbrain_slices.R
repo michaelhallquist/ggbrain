@@ -149,11 +149,6 @@ ggbrain_slices <- R6::R6Class(
     #' @param contrast_list a named list or character vector containing contrasts to be computed.
     #'   The names of the list form the contrast names, while the values should be character strings
     #'   that use standard R syntax for logical tests, subsetting, and arithmetic
-    #' @examples
-    #' \dontrun{
-    #'   slc <- ggbrain_slices$new(slice_df=my_data)
-    #'   slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
-    #' }
     compute_contrasts = function(contrast_list=NULL) {
       if (is.null(contrast_list)) return(self) # skip out if no contrasts to compute
 

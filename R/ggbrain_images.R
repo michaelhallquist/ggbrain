@@ -230,12 +230,6 @@ ggbrain_images <- R6::R6Class(
     #' @details if expr is a numeric vector, only values in this set will be retained. If a character
     #'   string expression is used, it should use the variable name \code{'value'} to refer to the numeric
     #'   values to be filtered, such as \code{'value > 10'}.
-    #' @examples
-    #' \dontrun{
-    #'   x <- ggbrain_images$new(
-    #'     images=c(img1="test.nii.gz"),
-    #'     filter=list(img1=c("value < 15", "value > 5")))
-    #' }
     filter_images = function(filter = NULL) {
       checkmate::assert_named(filter, type="unique")
       if (checkmate::test_list(filter)) {

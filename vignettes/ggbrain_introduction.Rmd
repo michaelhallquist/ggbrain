@@ -392,11 +392,12 @@ After you see your brain plot on the screen, you may soon wish to have it as an 
 Note that if you pass a `ggbrain` object directly to `ggsave`, it will complain that the plot is not a ggplot object. We can just pass a rendered version like so:
 
 ```{r, warning=FALSE, message=FALSE}
-ggsave(filename="my_brain_plot.pdf", gg_obj$render(), width=15, height=10)
+td <- tempdir()
+ggsave(filename=file.path(td, "my_brain_plot.pdf"), gg_obj$render(), width=15, height=10)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-pdf("my_brain_plot_2.pdf", width=10, height=10)
+pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10)
 plot(gg_obj)
 dev.off()
 ```
@@ -404,7 +405,7 @@ dev.off()
 Note that at present, the overall size of the plot may be different from the size of the graphical output device. For example, if you specify a size such as 9 x 6 inches, but the plot has an aspect ratio closer to 1:1, you'll have a lot of 'white space' around the plot. Intuitively, the `bg_color` argument to the overall `ggbrain` call should capture this, but for boring technical reasons that are not directly related to `ggbrain`, it is not so simple. At present, to ensure that the entire background of your plot uses the same color as the `ggplot` object, add the `bg` argument to your output device, or use the `ggsave` command (as above), which automatically uses the background color of the plot to extend to the output device/file.
 
 ```{r warning=FALSE, message=FALSE}
-pdf("my_brain_plot_2.pdf", width=10, height=10, bg="gray80")
+pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10, bg="gray80")
 plot(gg_obj)
 dev.off()
 ```
@@ -418,5 +419,5 @@ One small note: some PDF viewers will automatically interpolate the 'raster' par
 Now that you understand the basics of `ggbrain` plots, I encourage you to read the [ggbrain aesthetics](ggbrain_aesthetics.html) vignette, which provides more detailed guidance about how to clean up the appearance of brain displays and to add more complex annotations.
 
 ```{r cleanup, include=FALSE, message=FALSE}
-unlink(c("my_brain_plot_2.pdf", "my_brain_plot.pdf"))
+unlink(file.path(td, c("my_brain_plot_2.pdf", "my_brain_plot.pdf")))
 ```
