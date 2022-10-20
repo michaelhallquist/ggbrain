@@ -21,6 +21,10 @@ scale_fill_bisided(
 \item{symmetric}{if TRUE, the limits of the positive scale will equal the inverse limits of
 the negative scale. Said differently, this makes the positive and negative scales symmetric}
 }
+\value{
+a \code{ggplot2} scale of type \code{ScaleContinuous} that includes negative and positive fill
+scales internally in the \verb{$neg_scale} and \verb{$pos_scale} elements
+}
 \description{
 scale for plotting separate color gradients for positive and negative values
 }

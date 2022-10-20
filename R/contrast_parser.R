@@ -6,20 +6,6 @@
 #' @param default_val the value to be returned for any element of the contrast calculation that
 #'   does not pass through the arithmetic, either because of logical subsetting or because it
 #'   is exactly zero. In general, leave this as \code{NA_real_} unless you know what you're doing.
-#' @examples
-#' \dontrun{
-#'  data <- matrix(rnorm(1000), ncol=5) %>% data.frame() %>%
-#'    setNames(c("a", "f", "dsf", "abc", "b"))
-#'  data$bin1 <- rbinom(200, 1, .5)
-#'  data$bin2 <- rbinom(200, 1, .5)
-#'  data$dim1 <- rep(1:20, each=10)
-#'  data$dim2 <- rep(1:10, 20)
-#'
-#'  res <- contrast_parser("a + f + dsf [ bin1 == 1 ] * abc[ abc > 1 ] + b", data)
-#'  res <- contrast_parser("dsf [ bin1 == 1 ] + b", data)
-#'  res <- contrast_parser("dsf * abc", data)
-#'  res <- contrast_parser("1 := a > 3; 2 := b > 3; 3 := a > 3 & b > 3")
-#' }
 #' @author Michael Hallquist
 #' @importFrom checkmate assert_data_frame assert_subset
 #' @importFrom dplyr across mutate

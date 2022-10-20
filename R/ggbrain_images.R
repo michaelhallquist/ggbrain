@@ -1,4 +1,7 @@
 #' @title R6 class for compiling images to render in ggplot
+#' @details 
+#'   Note that this class is exported only for power users and rarely needs to be called directly
+#'     in typical use of the package. Instead, look at images().
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
 #' @importFrom rlang flatten
 #' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
@@ -9,7 +12,7 @@
 #' @importFrom imager as.cimg as.pixset split_connected
 #' @importFrom glue glue
 #' @importFrom stats setNames
-#'
+#' @return a `ggbrain_images` R6 class containing fields related to a set of NIfTI images imported into R
 #' @export
 ggbrain_images <- R6::R6Class(
   classname = "ggbrain_images",

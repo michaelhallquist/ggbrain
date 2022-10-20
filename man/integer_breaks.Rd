@@ -11,6 +11,9 @@ integer_breaks(n = 5, ...)
 
 \item{...}{Additional arguments passed to the pretty() function}
 }
+\value{
+a function for generating integer-valued breaks on a continuous scale
+}
 \description{
 breaks function to encourage integer-valued breaks, based on input from pretty
 }

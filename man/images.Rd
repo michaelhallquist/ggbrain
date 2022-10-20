@@ -21,14 +21,13 @@ the \code{labels} list are used to align the labels with a given matching image.
 or a numeric vector of values to retain. Calls ggbrain_images$filter_image()}
 }
 \value{
-a ggb object with the relevant images and an action of 'add_images'
+a \code{ggb} object with the relevant images and an action of 'add_images'
 }
 \description{
 Add images to a ggbrain object
 }
 \examples{
-\dontrun{
-gg_obj <- ggbrain() +
-  images(c(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz"))
-}
+  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1))
 }

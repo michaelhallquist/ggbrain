@@ -2,10 +2,13 @@
 % Please edit documentation in R/sugar.R
 \name{render}
 \alias{render}
-\title{Function to convert ggb object to ggplot/patchwork object}
+\title{Function to convert \code{ggb} object to ggplot/patchwork object}
 \usage{
 render()
 }
+\value{
+a \code{ggb} object with the action 'render', used in a \code{ggbrain} addition chain
+}
 \description{
-Function to convert ggb object to ggplot/patchwork object
+Function to convert \code{ggb} object to ggplot/patchwork object
 }

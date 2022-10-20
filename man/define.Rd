@@ -10,6 +10,9 @@ define(contrasts = NULL)
 \item{contrasts}{a character vector or list containing contrasts to be computed as part of the
 ggbrain object definition.}
 }
+\value{
+a \code{ggb} object with the relevant contrasts and an action of 'add_contrasts'
+}
 \description{
 Adds contrast definitions to the ggbrain plot
 }
@@ -24,36 +27,42 @@ inside a geom_* layer, which is particularly useful if a contrast is used across
 downstream layers to further modify the contrast, such as when we compute a
 }
 \examples{
-\dontrun{
-# simple example of a difference contrast, separating definition from usage in geom_brain
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-  slices(c("x=25\%", x = "75\%")) +
-  define("onset_gt_feedback := onset - feedback") +
-  geom_brain("onset_gt_feedback")
+  # T1-weighted template
+  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
 
-# you can also use a named vector in define(), which is equivalent
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-  slices(c("x=25\%", x = "75\%")) +
-  define(c(onset_gt_feedback = "onset - feedback")) +
-  geom_brain("onset_gt_feedback")
+  # signed reward prediction error map
+  signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
 
-# contrast definitions can also occur inline, yielding equivalent plots
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-  slices(c("x=25\%", x = "75\%")) +
-  geom_brain("onset - feedback")
+  # unsigned (absolute value) prediction error map
+  abspe <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
 
-# The use of contrasts() is helpful when layers modify the contrast (e.g., subsetting)
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-  slices(c("x=25\%", x = "75\%")) +
-  define("onset_gt_feedback := onset - feedback") +
-  geom_brain(
-    "onset_gt_feedback[onset_gt_feedback > 0]", 
-    fill_scale=scale_fill_distiller("Pos diff", palette = "Reds")
-  )
-}
+  # simple example of a difference contrast, separating definition from usage in geom_brain
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+    slices(c("x = 25\%", "x = 75\%")) +
+    define("signed_gt_abs := signed_pe - abspe") +
+    geom_brain("signed_gt_abs")
 
+  # you can also use a named vector in define(), which is equivalent
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+    slices(c("x = 25\%", "x = 75\%")) +
+    define(c(signed_gt_abs = "signed_pe - abspe")) +
+    geom_brain("signed_gt_abs")
+    
+  # contrast definitions can also occur inline, yielding equivalent plots
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+    slices(c("x = 25\%", "x = 75\%")) +
+    geom_brain("signed_pe - abspe")
+    
+  # The use of contrasts() is helpful when layers modify the contrast (e.g., subsetting)
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+    slices(c("x = 25\%", "x = 75\%")) +
+    define(c(signed_gt_abs = "signed_pe - abspe")) +
+    geom_brain(
+      "signed_gt_abs[signed_gt_abs > 0]", 
+      fill_scale=ggplot2::scale_fill_distiller("Pos diff", palette = "Reds")
+    )
 }

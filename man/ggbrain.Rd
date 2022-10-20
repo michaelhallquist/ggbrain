@@ -27,6 +27,10 @@ images should be included in this plot}
 
 \item{base_size}{The base size of fonts used in the plot (cf. \code{theme_minimal})}
 }
+\value{
+a \code{ggb} object containing basic information for a \code{ggbrain} plot such as background color,
+text color, and font size
+}
 \description{
 create ggb container object for a given plot
 }

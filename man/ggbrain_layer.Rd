@@ -3,10 +3,17 @@
 \name{ggbrain_layer}
 \alias{ggbrain_layer}
 \title{R6 class for a single layer of a ggbrain panel}
+\value{
+a \code{ggbrain_layer} R6 class containing fields related to a visual layer on the \code{ggbrain} plot
+}
 \description{
 R6 class for a single layer of a ggbrain panel
 
 R6 class for a single layer of a ggbrain panel
+}
+\details{
+Note that this class is exported only for power users and rarely needs to be called directly
+in typical use of the package. Instead, look at geom_brain() and geom_outline().
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}

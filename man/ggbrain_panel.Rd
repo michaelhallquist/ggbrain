@@ -3,10 +3,17 @@
 \name{ggbrain_panel}
 \alias{ggbrain_panel}
 \title{R6 class for a single panel of a ggbrain image}
+\value{
+a \code{ggbrain_panel} R6 class with fields related to a panel on the \code{ggbrain} plot
+}
 \description{
 R6 class for a single panel of a ggbrain image
 
 R6 class for a single panel of a ggbrain image
+}
+\details{
+Note that this class is exported only for power users and rarely needs to be called directly
+in typical use of the package. Instead, look at \code{slices()}.
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}

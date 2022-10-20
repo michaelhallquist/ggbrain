@@ -1,4 +1,7 @@
 #' R6 class for a single layer of a ggbrain panel
+#' @details 
+#'   Note that this class is exported only for power users and rarely needs to be called directly
+#'     in typical use of the package. Instead, look at geom_brain() and geom_outline().
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
 #' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string geom_raster
 #'   guide_colorbar
@@ -7,6 +10,7 @@
 #' @importFrom imager as.cimg as.pixset pixset split_connected
 #' @importFrom rlang sym
 #' @importFrom dplyr group_by filter row_number select
+#' @return a `ggbrain_layer` R6 class containing fields related to a visual layer on the `ggbrain` plot
 #' @export
 ggbrain_layer <- R6::R6Class(
   classname = "ggbrain_layer",

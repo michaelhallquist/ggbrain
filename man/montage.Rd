@@ -26,6 +26,9 @@ montage(
 
 \item{max_coord}{the highest spatial position (in image coordinate space) to be included in the montage.}
 }
+\value{
+a character string containing the slice positions along the requested axis
+}
 \description{
 Convenience function to add many slices in a montage along one of the 3D planes
 }
@@ -36,9 +39,8 @@ Also note that use of standardized coordinates (in quantiles, using \code{min} a
 with the the image coordinate specifications \code{min_coord} and \code{max_coord.}
 }
 \examples{
-\dontrun{
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz") +
-  slices(montage("sagittal", 15))
-}
+  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1)) +
+    slices(montage("sagittal", 15))
 }

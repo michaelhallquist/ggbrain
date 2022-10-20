@@ -5,8 +5,8 @@
 \title{Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition}
 \usage{
 geom_brain(
-  name = NULL,
   definition = NULL,
+  name = NULL,
   fill = NULL,
   fill_scale = NULL,
   mapping = NULL,
@@ -23,10 +23,10 @@ geom_brain(
 )
 }
 \arguments{
-\item{name}{the name of this layer, used for referencing in layer and panel modifications}
-
 \item{definition}{a character string of the contrast or image definition used to define this layer.
 Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})}
+
+\item{name}{the name of this layer, used for referencing in layer and panel modifications}
 
 \item{fill}{A character string indicating the color used to fill all non-NA pixels in this layer. This is used to set
 the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variable>)}.}
@@ -61,7 +61,7 @@ to display. Specks are small clusters that may be distracting and contribute to 
 \item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
 }
 \value{
-a ggb object populated with the ggb_layer and the action of 'add_layers'
+a ggb object populated with the relevant geom_brainand the action of 'add_layers'
 }
 \description{
 Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition
@@ -73,11 +73,15 @@ object that all use the fill aesthetic mapping, it becomes hard to map the color
 created using the typical + scale_fill_* syntax, and similarly for scale limits.
 }
 \examples{
-\dontrun{
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz", overlay="zstat12.nii.gz") +
-  slices(c("x=25\%", x = "75\%"), border_color = "blue") +
-  geom_brain(definition="underlay") +
-  geom_brain(definition="overlay[overlay > 1]", fill_scale=scale_fill_viridis_c("pos z"))
-}
+  # T1-weighted template
+  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+
+  # signed reward prediction error map
+  signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+  
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1, overlay = signed_pe)) +
+    slices(c("x = 25\%", "x = 75\%")) +
+    geom_brain("underlay") +
+    geom_brain(definition="overlay[overlay > 1]", fill_scale=ggplot2::scale_fill_viridis_c("pos z"))
 }

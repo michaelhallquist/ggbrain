@@ -37,6 +37,9 @@ greater than zero, a border of this size and with color \code{border_color} will
 
 \item{theme_custom}{Any custom theme() settings to be added to the panels.}
 }
+\value{
+a \code{ggb} object with the relevant slices and an action of 'add_slices'
+}
 \description{
 Adds slices to the ggbrain plot, including additional panel aesthetics
 }
@@ -46,9 +49,8 @@ will be reused for all slices added by this operation. Thus, if you want to cust
 multiple addition operations, as in \code{slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')}.
 }
 \examples{
-\dontrun{
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz") +
-  slices(c("x=25\%", x = "75\%"), border_color = "blue")
-}
+  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1)) +
+    slices(c("x = 25\%", "x = 75\%"), border_color = "blue")
 }

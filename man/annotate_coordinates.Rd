@@ -17,6 +17,9 @@ or quantile-based positions along the y axis.}
 
 \item{...}{any other arguments to ggplot2::annotate, which will be passed through to each panel}
 }
+\value{
+a \code{ggb} object with the action 'add_annotations', used in a \code{ggbrain} addition chain
+}
 \description{
 Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)
 }

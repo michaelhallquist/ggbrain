@@ -20,10 +20,12 @@ patchwork::wrap_plots, which will normally go from top-left to bottom-right.}
 
 \item{...}{Additional parameters passed to ggplot2::annotate such as \code{label} or \code{geom}}
 }
+\value{
+a \code{ggb} object with the relevant annotations field and an action of "add_annotations"
+}
 \description{
 Adds custom annotations to a single panel on the ggbrain plot
 }
 \details{
-Note that this only handles a single annotation on a single panel! If you want to annotate en masse, use annotate_panels
-with a data.frame where each row is an annotation.
+Note that this only handles a single annotation on a single panel!
 }

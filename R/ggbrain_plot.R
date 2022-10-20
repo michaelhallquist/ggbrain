@@ -1,8 +1,12 @@
-#' An R6 class for constructing a ggbrain plot from a ggbrain_slices object
+#' @title An R6 class for constructing a ggbrain plot from a ggbrain_slices object
+#' @details 
+#'   Note that this class is exported only for power users and rarely needs to be called directly
+#'     in typical use of the package. Instead, look at `ggbrain()`.
 #' @importFrom ggplot2 scale_fill_distiller ggplot
 #' @importFrom dplyr if_else %>% bind_rows left_join mutate select
 #' @importFrom patchwork wrap_plots plot_annotation plot_layout
 #' @importFrom checkmate assert_integerish assert_class
+#' @return a `ggbrain_plot` R6 class containing fields related to a ggbrain plot object
 #' @export
 ggbrain_plot <- R6::R6Class(
   classname="ggbrain_plot",

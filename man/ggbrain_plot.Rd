@@ -3,10 +3,17 @@
 \name{ggbrain_plot}
 \alias{ggbrain_plot}
 \title{An R6 class for constructing a ggbrain plot from a ggbrain_slices object}
+\value{
+a \code{ggbrain_plot} R6 class containing fields related to a ggbrain plot object
+}
 \description{
 An R6 class for constructing a ggbrain plot from a ggbrain_slices object
 
 An R6 class for constructing a ggbrain plot from a ggbrain_slices object
+}
+\details{
+Note that this class is exported only for power users and rarely needs to be called directly
+in typical use of the package. Instead, look at \code{ggbrain()}.
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}

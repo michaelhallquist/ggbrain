@@ -3,6 +3,7 @@
 #' @importFrom dplyr bind_rows
 #' @importFrom ggrepel geom_text_repel geom_label_repel
 #' @importFrom ggplot2 aes_string
+#' @return a `ggbrain_label` R6 class containing fields related to ggbrain plot labels
 #' @export
 ggbrain_label <- R6::R6Class(
   classname = "ggbrain_label",

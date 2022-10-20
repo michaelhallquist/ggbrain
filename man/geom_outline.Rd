@@ -5,8 +5,8 @@
 \title{Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition}
 \usage{
 geom_outline(
-  name = NULL,
   definition = NULL,
+  name = NULL,
   outline = NULL,
   outline_scale = NULL,
   mapping = ggplot2::aes(outline = NULL, fill = NULL),
@@ -24,10 +24,10 @@ geom_outline(
 )
 }
 \arguments{
-\item{name}{the name of this layer, used for referencing in layer and panel modifications}
-
 \item{definition}{a character string of the contrast or image definition used to define this layer.
 Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})}
+
+\item{name}{the name of this layer, used for referencing in layer and panel modifications}
 
 \item{outline}{A character string indicating the color used to draw outlines in this layer. This is used to set
 the outline color, in distinction to outline color mapping: \code{mapping=aes(outline=<variable>)}.}
@@ -63,7 +63,7 @@ to display. Specks are small clusters that may be distracting and contribute to 
 \item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
 }
 \value{
-a ggb object populated with the ggb_layer and the action of 'add_layers'
+a ggb object populated with the geom_outline layer and the action of 'add_layers'
 }
 \description{
 Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition
@@ -75,11 +75,15 @@ object that all use the fill aesthetic mapping, it becomes hard to map the color
 created using the typical + scale_fill_* syntax, and similarly for scale limits.
 }
 \examples{
-\dontrun{
-gg_obj <- ggbrain() +
-  images(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz") +
-  slices(c("x=25\%", x = "75\%"), border_color = "blue") +
-  geom_brain(definition = "underlay") +
-  geom_outline(definition = "overlay[overlay > 3]", fill="cyan")
-}
+  # T1-weighted template
+  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+
+  # signed reward prediction error map
+  signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+  
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1, overlay = signed_pe)) +
+    slices(c("x = 25\%", "x = 75\%")) +
+    geom_brain("underlay") +
+    geom_outline(definition="overlay[overlay > 2]", outline="cyan")
 }

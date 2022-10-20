@@ -1,6 +1,10 @@
-#' R6 class for a single layer of a ggbrain panel using fill geom
+#' @title R6 class for a single layer of a ggbrain panel using fill geom
+#' @details 
+#'   Note that this class is exported only for power users and rarely needs to be called directly
+#'     in typical use of the package. Instead, look at `geom_brain()`.
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
 #' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes
+#' @return a `ggbrain_layer_brain` R6 class with fields related to a brain visual layer (relates to `geom_brain`)
 #' @export
 ggbrain_layer_brain <- R6::R6Class(
   classname = "ggbrain_layer_brain",

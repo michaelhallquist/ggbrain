@@ -11,6 +11,9 @@ range_breaks(n = 3, digits = 2)
 
 \item{digits}{number of decimal places to display}
 }
+\value{
+a function for generating breaks on a continuous scale with the min and max labeled
+}
 \description{
 breaks function for including min + max with labels, and a few unlabeled ticks in between
 }

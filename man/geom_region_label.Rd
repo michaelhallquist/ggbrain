@@ -13,6 +13,9 @@ geom_region_label(image, label_column = "label", ...)
 
 \item{...}{All other parameters passed through to geom_label}
 }
+\value{
+a \code{ggb} object with the relevant ggbrain_label field and an action of "add_region_labels"
+}
 \description{
 Variant of geom_label used for plotting region labels on slices
 }

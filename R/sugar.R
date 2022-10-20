@@ -8,6 +8,8 @@
 #' @param bg_color The background color of the overall plot
 #' @param text_color The default text color of the overall plot (passes through to panels)
 #' @param base_size The base size of fonts used in the plot (cf. `theme_minimal`)
+#' @return a `ggb` object containing basic information for a `ggbrain` plot such as background color,
+#'   text color, and font size
 #' @export
 ggbrain <- function(images = NULL, slices = NULL, title = NULL, bg_color="grey8", text_color="grey92", base_size = 14) {
   if (inherits(images, "ggbrain_images")) {
@@ -45,12 +47,11 @@ add_labels <- function(...) {
 #'   the \code{labels} list are used to align the labels with a given matching image.
 #' @param filter a named list or character string specifying an expression of values to retain in the image,
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
-#' @return a ggb object with the relevant images and an action of 'add_images'
+#' @return a `ggb` object with the relevant images and an action of 'add_images'
 #' @examples
-#' \dontrun{
-#' gg_obj <- ggbrain() +
-#'   images(c(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz"))
-#' }
+#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1))
 #' @export
 images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
   if (inherits(images, "ggbrain_images")) {
@@ -80,12 +81,12 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
 #' @details note that if you pass in multiple coordinates (as a vector), the \code{title}, \code{bg_color}, and other attributes
 #'   will be reused for all slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
 #'   multiple addition operations, as in `slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')`.
+#' @return a `ggb` object with the relevant slices and an action of 'add_slices'
 #' @examples
-#' \dontrun{
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz") +
-#'   slices(c("x=25%", x = "75%"), border_color = "blue")
-#' }
+#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1)) +
+#'     slices(c("x = 25%", "x = 75%"), border_color = "blue")
 #' @export
 slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
                    border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
@@ -112,14 +113,14 @@ slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color
 #'
 #'   Also note that use of standardized coordinates (in quantiles, using `min` and `max`) is mutually exclusive
 #'   with the the image coordinate specifications `min_coord` and `max_coord.`
+#' @return a character string containing the slice positions along the requested axis
+#' @examples
+#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1)) +
+#'     slices(montage("sagittal", 15))
 #' @importFrom dplyr recode
 #' @importFrom checkmate assert_integerish assert_subset assert_string assert_number
-#' @examples
-#' \dontrun{
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz") +
-#'   slices(montage("sagittal", 15))
-#' }
 #' @export
 montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL, max_coord = NULL) {
   checkmate::assert_string(plane)
@@ -154,38 +155,45 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL
 #'   downstream layers to further modify the contrast, such as when we compute a
 #'
 #' @examples
-#' \dontrun{
-#' # simple example of a difference contrast, separating definition from usage in geom_brain
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-#'   slices(c("x=25%", x = "75%")) +
-#'   define("onset_gt_feedback := onset - feedback") +
-#'   geom_brain("onset_gt_feedback")
+#'   # T1-weighted template
+#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
 #' 
-#' # you can also use a named vector in define(), which is equivalent
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-#'   slices(c("x=25%", x = "75%")) +
-#'   define(c(onset_gt_feedback = "onset - feedback")) +
-#'   geom_brain("onset_gt_feedback")
-#'
-#' # contrast definitions can also occur inline, yielding equivalent plots
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-#'   slices(c("x=25%", x = "75%")) +
-#'   geom_brain("onset - feedback")
-#'
-#' # The use of contrasts() is helpful when layers modify the contrast (e.g., subsetting)
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz", onset="zstat1.nii.gz", feedback="zstat2.nii.gz") +
-#'   slices(c("x=25%", x = "75%")) +
-#'   define("onset_gt_feedback := onset - feedback") +
-#'   geom_brain(
-#'     "onset_gt_feedback[onset_gt_feedback > 0]", 
-#'     fill_scale=scale_fill_distiller("Pos diff", palette = "Reds")
-#'   )
-#' }
+#'   # signed reward prediction error map
+#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
 #' 
+#'   # unsigned (absolute value) prediction error map
+#'   abspe <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#' 
+#'   # simple example of a difference contrast, separating definition from usage in geom_brain
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     define("signed_gt_abs := signed_pe - abspe") +
+#'     geom_brain("signed_gt_abs")
+#' 
+#'   # you can also use a named vector in define(), which is equivalent
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     define(c(signed_gt_abs = "signed_pe - abspe")) +
+#'     geom_brain("signed_gt_abs")
+#'     
+#'   # contrast definitions can also occur inline, yielding equivalent plots
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     geom_brain("signed_pe - abspe")
+#'     
+#'   # The use of contrasts() is helpful when layers modify the contrast (e.g., subsetting)
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     define(c(signed_gt_abs = "signed_pe - abspe")) +
+#'     geom_brain(
+#'       "signed_gt_abs[signed_gt_abs > 0]", 
+#'       fill_scale=ggplot2::scale_fill_distiller("Pos diff", palette = "Reds")
+#'     )
+#' @return a `ggb` object with the relevant contrasts and an action of 'add_contrasts'
 #' @export
 define <- function(contrasts = NULL) {
   checkmate::assert_character(contrasts)
@@ -197,9 +205,9 @@ define <- function(contrasts = NULL) {
 
 #' Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition
 #'
-#' @param name the name of this layer, used for referencing in layer and panel modifications
 #' @param definition a character string of the contrast or image definition used to define this layer.
 #'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})
+#' @param name the name of this layer, used for referencing in layer and panel modifications
 #' @param fill A character string indicating the color used to fill all non-NA pixels in this layer. This is used to set
 #'   the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variable>)}.
 #' @param fill_scale a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.
@@ -224,21 +232,25 @@ define <- function(contrasts = NULL) {
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 #'   created using the typical + scale_fill_* syntax, and similarly for scale limits.
-#' @return a ggb object populated with the ggb_layer and the action of 'add_layers'
+#' @return a ggb object populated with the relevant geom_brainand the action of 'add_layers'
 #' @examples
-#' \dontrun{
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz", overlay="zstat12.nii.gz") +
-#'   slices(c("x=25%", x = "75%"), border_color = "blue") +
-#'   geom_brain(definition="underlay") +
-#'   geom_brain(definition="overlay[overlay > 1]", fill_scale=scale_fill_viridis_c("pos z"))
-#' }
+#'   # T1-weighted template
+#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#' 
+#'   # signed reward prediction error map
+#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#'   
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1, overlay = signed_pe)) +
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     geom_brain("underlay") +
+#'     geom_brain(definition="overlay[overlay > 1]", fill_scale=ggplot2::scale_fill_viridis_c("pos z"))
 #' @export
-geom_brain <- function(name = NULL, definition = NULL, fill = NULL, fill_scale = NULL, mapping = NULL,
+geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale = NULL, mapping = NULL,
       limits = NULL, breaks = NULL, show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = NULL,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
 
-  arglist <- named_list(name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+  arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
                   alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads)
 
   # only pass through non-NULLs so that default arguments of layer are used when no input is provided
@@ -258,9 +270,9 @@ geom_brain <- function(name = NULL, definition = NULL, fill = NULL, fill_scale =
 
 #' Adds an outline layer to the ggbrain plot, displaying outlines from the non-missing pixels in the specified layer definition
 #'
-#' @param name the name of this layer, used for referencing in layer and panel modifications
 #' @param definition a character string of the contrast or image definition used to define this layer.
 #'   Can be a simple image name (e.g., 'underlay') or a contrast string (e.g., \code{'overlay[overlay > 5]'})
+#' @param name the name of this layer, used for referencing in layer and panel modifications
 #' @param outline A character string indicating the color used to draw outlines in this layer. This is used to set
 #'   the outline color, in distinction to outline color mapping: \code{mapping=aes(outline=<variable>)}.
 #' @param outline_scale a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.
@@ -285,22 +297,26 @@ geom_brain <- function(name = NULL, definition = NULL, fill = NULL, fill_scale =
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 #'   created using the typical + scale_fill_* syntax, and similarly for scale limits.
-#' @return a ggb object populated with the ggb_layer and the action of 'add_layers'
+#' @return a ggb object populated with the geom_outline layer and the action of 'add_layers'
 #' @examples
-#' \dontrun{
-#' gg_obj <- ggbrain() +
-#'   images(underlay = "T1.nii.gz", overlay = "zstat12.nii.gz") +
-#'   slices(c("x=25%", x = "75%"), border_color = "blue") +
-#'   geom_brain(definition = "underlay") +
-#'   geom_outline(definition = "overlay[overlay > 3]", fill="cyan")
-#' }
+#'   # T1-weighted template
+#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#' 
+#'   # signed reward prediction error map
+#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#'   
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1, overlay = signed_pe)) +
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     geom_brain("underlay") +
+#'     geom_outline(definition="overlay[overlay > 2]", outline="cyan")
 #' @export
-geom_outline <- function(name = NULL, definition = NULL, outline = NULL, outline_scale = NULL, 
+geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline_scale = NULL, 
       mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(), 
       show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
   
-  arglist <- named_list(name, definition, limits, breaks, show_legend, interpolate, unify_scales,
+  arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
                         alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads)
   
   # only pass through non-NULLs so that default arguments of layer are used when no input is provided
@@ -321,6 +337,7 @@ geom_outline <- function(name = NULL, definition = NULL, outline = NULL, outline
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
 #' @param ... All other parameters passed through to geom_text
+#' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
 geom_region_text <- function(image, label_column = "label", ...) {
   l_obj <- ggbrain_label$new(geom = "text", image = image, label_column = label_column, ...)
@@ -331,6 +348,7 @@ geom_region_text <- function(image, label_column = "label", ...) {
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
 #' @param ... All other parameters passed through to geom_label
+#' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
 geom_region_label <- function(image, label_column = "label", ...) {
   l_obj <- ggbrain_label$new(geom = "label", image = image, label_column = label_column, ...)
@@ -341,6 +359,7 @@ geom_region_label <- function(image, label_column = "label", ...) {
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
 #' @param ... All other parameters passed through to geom_text_repel
+#' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
 geom_region_text_repel <- function(image, label_column = "label", ...) {
   l_obj <- ggbrain_label$new(geom = "text_repel", image = image, label_column = label_column, ...)
@@ -351,6 +370,7 @@ geom_region_text_repel <- function(image, label_column = "label", ...) {
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
 #' @param ... All other parameters passed through to geom_label_repel
+#' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
 geom_region_label_repel <- function(image, label_column = "label", ...) {
   l_obj <- ggbrain_label$new(geom = "label_repel", image = image, label_column = label_column, ...)
@@ -367,19 +387,12 @@ geom_region_label_repel <- function(image, label_column = "label", ...) {
 #' @param slice_index the slice number to which this annotation is added. These are numbered in the wrapping order from
 #'   patchwork::wrap_plots, which will normally go from top-left to bottom-right.
 #' @param ... Additional parameters passed to ggplot2::annotate such as \code{label} or \code{geom}
-#' @details Note that this only handles a single annotation on a single panel! If you want to annotate en masse, use annotate_panels
-#'   with a data.frame where each row is an annotation.
+#' @details Note that this only handles a single annotation on a single panel!
+#' @return a `ggb` object with the relevant annotations field and an action of "add_annotations"
 #' @export
 annotate_panel <- function(x = "middle", y = "middle", slice_index=NULL, ...) {
   checkmate::assert_number(slice_index, lower=1)
   ggb$new(annotations = list(list(x = x, y = y, slice_index=slice_index, ...)), action = "add_annotations")
-}
-
-#' Adds custom annotations to one or more panels on the ggbrain plot
-#' @param panel_data a list or data.frame containing annotations to be added
-#' @export
-annotate_panels <- function(panel_data) {
-
 }
 
 #' Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)
@@ -390,12 +403,14 @@ annotate_panels <- function(panel_data) {
 #'   In addition, convenience values of 'top', \code{"bottom"}, or \code{"q[1-100]"} can be used to look up the top-most, bottom-most,
 #'   or quantile-based positions along the y axis.
 #' @param ... any other arguments to ggplot2::annotate, which will be passed through to each panel
+#' @return a `ggb` object with the action 'add_annotations', used in a `ggbrain` addition chain
 #' @export
 annotate_coordinates <- function(x="right", y="bottom", ...) {
   ggb$new(annotations = list(list(label = ".coord_label", x = x, y = y, ...)), action = "add_annotations")
 }
 
-#' Function to convert ggb object to ggplot/patchwork object
+#' Function to convert `ggb` object to ggplot/patchwork object
+#' @return a `ggb` object with the action 'render', used in a `ggbrain` addition chain
 #' @export
 render <- function() {
   ggb$new(action = "render")
@@ -421,6 +436,8 @@ named_list <- function(...) {
 #'   The positive/negative combination is achieved by adding two layers/geoms behind the
 #'   scenes with different color scale.
 #' @importFrom ggplot2 waiver
+#' @return a `ggplot2` scale of type `ScaleContinuous` that includes negative and positive fill
+#'   scales internally in the `$neg_scale` and `$pos_scale` elements
 #' @export
 scale_fill_bisided <- function(
   name = ggplot2::waiver(),

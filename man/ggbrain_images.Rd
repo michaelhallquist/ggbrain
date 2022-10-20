@@ -3,10 +3,17 @@
 \name{ggbrain_images}
 \alias{ggbrain_images}
 \title{R6 class for compiling images to render in ggplot}
+\value{
+a \code{ggbrain_images} R6 class containing fields related to a set of NIfTI images imported into R
+}
 \description{
 R6 class for compiling images to render in ggplot
 
 R6 class for compiling images to render in ggplot
+}
+\details{
+Note that this class is exported only for power users and rarely needs to be called directly
+in typical use of the package. Instead, look at images().
 }
 \examples{
 

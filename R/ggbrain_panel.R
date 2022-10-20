@@ -1,10 +1,14 @@
 #' R6 class for a single panel of a ggbrain image
+#' @details 
+#'   Note that this class is exported only for power users and rarely needs to be called directly
+#'     in typical use of the package. Instead, look at `slices()`.
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
 #' @importFrom rlang has_name
 #' @importFrom ggplot2 coord_fixed theme theme_void element_blank element_rect element_text margin rel
 #'   xlab ylab annotate
 #' @importFrom grid unit
+#' @return a `ggbrain_panel` R6 class with fields related to a panel on the `ggbrain` plot
 #' @export
 ggbrain_panel <- R6::R6Class(
   #classname = c("ggbrain_panel", "gg", "ggplot"),

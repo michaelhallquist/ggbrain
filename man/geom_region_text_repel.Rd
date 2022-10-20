@@ -13,6 +13,9 @@ geom_region_text_repel(image, label_column = "label", ...)
 
 \item{...}{All other parameters passed through to geom_text_repel}
 }
+\value{
+a \code{ggb} object with the relevant ggbrain_label field and an action of "add_region_labels"
+}
 \description{
 Variant of geom_text_repel used for plotting region labels on slices with separation from other labels
 }

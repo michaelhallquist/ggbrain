@@ -3,6 +3,9 @@
 \name{ggbrain_label}
 \alias{ggbrain_label}
 \title{R6 class for adding labels to a ggbrain_panel}
+\value{
+a \code{ggbrain_label} R6 class containing fields related to ggbrain plot labels
+}
 \description{
 R6 class for adding labels to a ggbrain_panel
 

@@ -56,6 +56,20 @@ The package includes a few images that can be used for demonstrating its capabil
 print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, pe_overlay_3mm, abspe_overlay_3mm, schaefer200_atlas_3mm))
 ```
 
+# Installing the package
+
+You can install the latest public version of the `ggbrain` package using `install.packages()`:
+
+```{r, eval=FALSE}
+install.packages("ggbrain")
+```
+
+You can also to install the development version. It may may have new features and bugfixes, though it may also have new bugs or include works in progress.
+
+```{r, eval=FALSE}
+devtools::install_github("michaelhallquist/ggbrain")
+```
+
 # Building a ggbrain plot layer by layer
 
 One can create an empty ggbrain object using the `ggbrain` function. This is akin to creating an empty ggplot object using `ggplot()`.

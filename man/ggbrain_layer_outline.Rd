@@ -3,10 +3,17 @@
 \name{ggbrain_layer_outline}
 \alias{ggbrain_layer_outline}
 \title{R6 class for a single layer of a ggbrain panel using outline geom}
+\value{
+a \code{ggbrain_layer_outline} R6 class with fields related to a brain visual layer (relates to \code{geom_outline})
+}
 \description{
 R6 class for a single layer of a ggbrain panel using outline geom
 
 R6 class for a single layer of a ggbrain panel using outline geom
+}
+\details{
+Note that this class is exported only for power users and rarely needs to be called directly
+in typical use of the package. Instead, look at \code{geom_outline()}.
 }
 \section{Super class}{
 \code{\link[ggbrain:ggbrain_layer]{ggbrain::ggbrain_layer}} -> \code{ggbrain_layer_outline}
