@@ -1,4 +1,4 @@
-# ggbrain 0.8 (DEVELOPMENT)
+# ggbrain 0.8 (21Oct2022)
 
 * first public release of the package to CRAN (hooray!)
 * feature: add `define()` function to support contrast definition in ggbrain pipeline outside of a given layer.

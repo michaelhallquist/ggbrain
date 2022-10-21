@@ -15,18 +15,6 @@ R6 class for compiling images to render in ggplot
 Note that this class is exported only for power users and rarely needs to be called directly
 in typical use of the package. Instead, look at images().
 }
-\examples{
-
-## ------------------------------------------------
-## Method `ggbrain_images$filter_images`
-## ------------------------------------------------
-
-\dontrun{
-  x <- ggbrain_images$new(
-    images=c(img1="test.nii.gz"),
-    filter=list(img1=c("value < 15", "value > 5")))
-}
-}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
@@ -175,18 +163,6 @@ filters an image based on an expression such as a subsetting operation
 if expr is a numeric vector, only values in this set will be retained. If a character
 string expression is used, it should use the variable name \code{'value'} to refer to the numeric
 values to be filtered, such as \code{'value > 10'}.
-}
-
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-  x <- ggbrain_images$new(
-    images=c(img1="test.nii.gz"),
-    filter=list(img1=c("value < 15", "value > 5")))
-}
-}
-\if{html}{\out{</div>}}
-
 }
 
 }

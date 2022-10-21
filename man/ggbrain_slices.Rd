@@ -8,17 +8,6 @@ R6 class for managing slice data for ggbrain plots
 
 R6 class for managing slice data for ggbrain plots
 }
-\examples{
-
-## ------------------------------------------------
-## Method `ggbrain_slices$compute_contrasts`
-## ------------------------------------------------
-
-\dontrun{
-  slc <- ggbrain_slices$new(slice_df=my_data)
-  slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
-}
-}
 \author{
 Michael Hallquist
 }
@@ -95,17 +84,6 @@ that use standard R syntax for logical tests, subsetting, and arithmetic}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{\dontrun{
-  slc <- ggbrain_slices$new(slice_df=my_data)
-  slc$compute_contrasts(list(pos_vals="overlay[overlay> 0]"))
-}
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_slices-as_tibble"></a>}}
