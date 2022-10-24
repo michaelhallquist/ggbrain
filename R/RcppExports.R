@@ -64,7 +64,7 @@ fill_from_edge <- function(im, nedges = 2L) {
 #'
 #' @details This algorithm runs count_neighbors iteratively until no pixel exceeds the trimming threshold \code{min_neighbors}
 #'   or the maximum number of iterations, \code{maxit}, is reached.
-#'   
+#'
 #'   By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.
 #' @author Michael Hallquist
 NULL
@@ -106,7 +106,7 @@ integer_mode <- function(v, demote_zeros) {
 }
 
 #' Fast conversion of 2D mat to 3-column data.frame with dim1, dim2, value
-#' 
+#'
 #' @name mat2df
 #' @description Converts a 2D numeric matrix into a 3-column data.frame
 #' @details This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2.5x faster than melt.
@@ -122,14 +122,14 @@ mat2df <- function(mat, na_zeros = FALSE) {
 
 #' Finds the nearest non-missing neighbors of a target point in a 2D matrix
 #' @name nearest_pts
-#' 
+#'
 #' @param x x-position of the point whose neighbors should be found within \code{in_mat}
 #' @param y y-position of the point whose neighbors should be found within \code{in_mat}
 #' @param in_mat a 2D matrix to search for neighbors of \code{pt}
 #' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}
 #' @param radius the radius around \code{pt} to search. Default: 8.
 #' @param ignore_zeros if TRUE, then zero is not a valid imputation value (since these are not data in NIfTIs)
-#' 
+#'
 #' @return A vector of \code{neighbors} closest neighboring values around \code{pt}
 #' @keywords internal
 NULL

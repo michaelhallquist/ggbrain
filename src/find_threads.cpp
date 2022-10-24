@@ -11,7 +11,7 @@
 //'
 //' @details This algorithm runs count_neighbors iteratively until no pixel exceeds the trimming threshold \code{min_neighbors}
 //'   or the maximum number of iterations, \code{maxit}, is reached.
-//'   
+//'
 //'   By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.
 //' @author Michael Hallquist
 
@@ -22,7 +22,7 @@ LogicalMatrix find_threads(const arma::mat& img, int min_neighbors = 2, int maxi
   if (maxit < 1) {
     Rcpp::stop("maxit must be at least 1");
   }
-  
+
   if (min_neighbors <= 0) {
     Rcpp::stop("min_neighbors must be a positive integer");
   } else if (diagonal && min_neighbors > 8) {
@@ -30,24 +30,24 @@ LogicalMatrix find_threads(const arma::mat& img, int min_neighbors = 2, int maxi
   } else if (!diagonal && min_neighbors > 4) {
     Rcpp::stop("min_neighbors cannot exceed 8 for diagonal counting");
   }
-  
+
   arma::umat threads(img.n_rows, img.n_cols, fill::zeros);
   arma::umat img_bool(img.n_rows, img.n_cols, fill::zeros);
   arma::uvec nzpix = find(abs(img) > 1e-4);
   img_bool.elem(nzpix).fill(1);
-  
+
   bool pixels_remain = true;
   int it = 0;
-  
+
   while (pixels_remain && it < maxit) {
     arma::imat neighbors = count_neighbors(img_bool, diagonal);
-    
+
     //Rcout << "it: " << it << endl;
     //Rcout << "hasnan: " << neighbors.has_nan() << endl;
-    
+
     // Armadillo doesn't support NaN for integer matrices, so we use INT_MIN
     arma::uvec below_thresh = find(neighbors < min_neighbors && neighbors > INT_MIN);
-    
+
     //arma::uvec miss = find(neighbors == INT_MIN);
     //Rcout << "nonfinite size: " << miss.n_elem << endl;
     if (below_thresh.size() > 0) {
@@ -57,15 +57,15 @@ LogicalMatrix find_threads(const arma::mat& img, int min_neighbors = 2, int maxi
     } else {
       pixels_remain = false;
     }
-    
+
     //pixels_remain = any(vectorise(neighbors) > 0);
     it++;
   }
-  
+
   // these attempts at conversion to LogicalMatrix from umat fail
   //LogicalMatrix tlog = Rcpp::as<Rcpp::LogicalMatrix>(threads);
   //LogicalMatrix tlog(threads.begin(), threads.end());
-  
+
   // use wrap to return logical matrix from umat
   return(wrap(threads));
 }
