@@ -4,12 +4,14 @@
 \alias{geom_region_text}
 \title{Variant of geom_text used for plotting region labels on slices}
 \usage{
-geom_region_text(image, label_column = "label", ...)
+geom_region_text(image, label_column = "label", min_px = 1L, ...)
 }
 \arguments{
 \item{image}{The name of the image within the underlying ggbrain_slices object that contains the labeled data positions}
 
 \item{label_column}{The column name name for the labels to use within the slice data}
+
+\item{min_px}{The minimum number of pixels present on a slice that will result in a text label. Default: 1}
 
 \item{...}{All other parameters passed through to geom_text}
 }

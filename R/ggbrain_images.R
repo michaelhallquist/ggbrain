@@ -541,10 +541,20 @@ ggbrain_images <- R6::R6Class(
           lapply(label_slc[[dd]], function(xx) {
             uvals <- unique(as.vector(xx))
             uvals <- uvals[!uvals %in% c(NA, 0)]
-            if (length(uvals) == 0L) return(NULL) # no matching positions on this slice
-            sapply(uvals, function(u) colMeans(which(xx == u, arr.ind=TRUE)) ) %>%
-              t() %>% data.frame() %>% setNames(c("dim1", "dim2")) %>%
-              dplyr::bind_cols(value = uvals, slice_index = dd) %>% dplyr::arrange(uvals)
+            if (length(uvals) == 0L) {
+              return(NULL)
+            } # no matching positions on this slice
+            sapply(uvals, function(u) {
+              match_vox <- which(xx == u, arr.ind = TRUE)
+              n <- nrow(match_vox) # number of pixels on this slice
+              cm <- colMeans(match_vox)
+              c(cm, n)
+            }) %>%
+              t() %>%
+              data.frame() %>%
+              setNames(c("dim1", "dim2", "n")) %>%
+              dplyr::bind_cols(value = uvals, slice_index = dd) %>%
+              dplyr::arrange(uvals)
           })
         })
       } else {

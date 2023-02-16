@@ -11,7 +11,8 @@ ggbrain_label <- R6::R6Class(
     pvt_data = NULL, # data.frame containing label data with coordinates of label positions
     pvt_image = NULL, # placeholder for image that contains relevant slice data
     pvt_geom = NULL,
-    pvt_label_column = "label"
+    pvt_label_column = "label",
+    pvt_min_px = 1L # minimum number of pixels on a slice required to display label
   ),
   active = list(
 
@@ -24,11 +25,11 @@ ggbrain_label <- R6::R6Class(
         private$pvt_data <- NULL
       } else {
         checkmate::assert_data_frame(value)
-        if (!all(c("dim1", "dim2") %in% names(value))) {
-          stop("data must contain dim1, dim2")
+        if (!all(c("dim1", "dim2", "n") %in% names(value))) {
+          stop("data must contain dim1, dim2, n")
         }
-        col_classes <- sum(sapply(value, function(v) inherits(v, c("character", "ordered", "factor"))))
-        if (ncol(value) < 1L) {
+        n_discrete_cols <- sum(sapply(value, function(v) inherits(v, c("character", "ordered", "factor"))))
+        if (n_discrete_cols < 1L) {
           stop("At least one character, factor, or ordered label column must be supplied")
         }
         private$pvt_data <- value
@@ -56,8 +57,17 @@ ggbrain_label <- R6::R6Class(
         }
         private$pvt_label_column <- value
       }
+    },
+    
+    #' @field min_px A positive integer indicating the minimum number of pixels present on slice that will generate a label
+    min_px = function(value) {
+      if (missing(value)) {
+        return(private$pvt_min_px)
+      } else {
+        checkmate::assert_integerish(value, lower=1L, len=1L)
+        private$pvt_min_px <- as.integer(value)
+      }
     }
-
   ),
   public = list(
     #' @field addl_args a named list of additional argument to be passed to geom_text/geom_label at render
@@ -69,10 +79,13 @@ ggbrain_label <- R6::R6Class(
     #' @param geom The geom type to be plotted. Must be "text" or "label", corresponding to geom_text and geom_label, respectively.
     #' @param image A string specifying the image to which these labels pertain
     #' @param label_column the column in \code{data} that should be drawn as labels on the plot
+    #' @param min_px the minimum number of pixels 
     #' @param ... All other arguments that will be passed directly to geom_text or geom_label such as hjust, size, and color
-    initialize = function(data = NULL, geom="text", image = NULL, label_column = NULL, ...) {
+    initialize = function(data = NULL, geom="text", image = NULL, label_column = NULL, min_px = NULL, ...) {
       self$addl_args <- list(...)
       self$data <- data
+      self$min_px <- min_px
+
       if (!is.null(label_column)) self$label_column <- label_column
       checkmate::assert_string(geom)
       checkmate::assert_subset(geom, c("text", "label", "text_repel", "label_repel"))
@@ -92,11 +105,17 @@ ggbrain_label <- R6::R6Class(
       if (!private$pvt_label_column %in% names(private$pvt_data)) {
         stop(glue::glue("Requested label_column: {private$pvt_label_column} does not exist in label data.frame"))
       }
-
+      
+      # subset labels so that only regions with at least min_px pixels on the slice are labeled
+      df <- private$pvt_data
+      if (self$min_px > 1L) {
+        df <- df %>% dplyr::filter(n >= !!self$min_px)
+      }
+      
       # return the modified ggplot object with the labels added
       base_gg +
         do.call(paste0("geom_", private$pvt_geom),
-                args = c(list(data = private$pvt_data, mapping = ggplot2::aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), self$addl_args)
+                args = c(list(data = df, mapping = ggplot2::aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), self$addl_args)
         )
     }
   )

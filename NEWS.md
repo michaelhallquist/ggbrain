@@ -1,5 +1,7 @@
 # ggbrain 0.8-1 (DEVELOPMENT)
 
+* feature: `geom_region_label*` and `geom_region_text*` now support a `min_px` argument that controls
+   the minimum number of pixels on a slice that will result in a label. Helps reduce labeling of small regions.
 * feature: support aes(outline=<x>, group=<y>) for geom_outline, allowing for subdivision of outlines
 * bugfix: add workaround for show.legend bug when there are multiple fill layers: https://github.com/eliocamp/ggnewscale/issues/32
 * bugfix: switch to linewidth instead of size for borders in ggbrain_panel object

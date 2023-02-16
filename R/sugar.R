@@ -336,44 +336,48 @@ geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline
 #' Variant of geom_text used for plotting region labels on slices
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
+#' @param min_px The minimum number of pixels present on a slice that will result in a text label. Default: 1
 #' @param ... All other parameters passed through to geom_text
 #' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
-geom_region_text <- function(image, label_column = "label", ...) {
-  l_obj <- ggbrain_label$new(geom = "text", image = image, label_column = label_column, ...)
+geom_region_text <- function(image, label_column = "label", min_px=1L, ...) {
+  l_obj <- ggbrain_label$new(geom = "text", image = image, label_column = label_column, min_px=min_px, ...)
   ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
 
 #' Variant of geom_label used for plotting region labels on slices
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
+#' @param min_px The minimum number of pixels present on a slice that will result in a text label. Default: 1
 #' @param ... All other parameters passed through to geom_label
 #' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
-geom_region_label <- function(image, label_column = "label", ...) {
-  l_obj <- ggbrain_label$new(geom = "label", image = image, label_column = label_column, ...)
+geom_region_label <- function(image, label_column = "label", min_px=1L, ...) {
+  l_obj <- ggbrain_label$new(geom = "label", image = image, label_column = label_column, min_px=min_px, ...)
   ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
 
 #' Variant of geom_text_repel used for plotting region labels on slices with separation from other labels
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
+#' @param min_px The minimum number of pixels present on a slice that will result in a text label. Default: 1
 #' @param ... All other parameters passed through to geom_text_repel
 #' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
-geom_region_text_repel <- function(image, label_column = "label", ...) {
-  l_obj <- ggbrain_label$new(geom = "text_repel", image = image, label_column = label_column, ...)
+geom_region_text_repel <- function(image, label_column = "label", min_px=1L, ...) {
+  l_obj <- ggbrain_label$new(geom = "text_repel", image = image, label_column = label_column, min_px=min_px, ...)
   ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
 
 #' Variant of geom_label_repel used for plotting region labels on slices with separation from other labels
 #' @param image The name of the image within the underlying ggbrain_slices object that contains the labeled data positions
 #' @param label_column The column name name for the labels to use within the slice data
+#' @param min_px The minimum number of pixels present on a slice that will result in a text label. Default: 1
 #' @param ... All other parameters passed through to geom_label_repel
 #' @return a `ggb` object with the relevant ggbrain_label field and an action of "add_region_labels"
 #' @export
-geom_region_label_repel <- function(image, label_column = "label", ...) {
-  l_obj <- ggbrain_label$new(geom = "label_repel", image = image, label_column = label_column, ...)
+geom_region_label_repel <- function(image, label_column = "label", min_px=1L, ...) {
+  l_obj <- ggbrain_label$new(geom = "label_repel", image = image, label_column = label_column, min_px=min_px, ...)
   ggb$new(region_labels = l_obj, action = "add_region_labels")
 }
 
