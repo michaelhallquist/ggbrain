@@ -53,7 +53,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8-1" id="ggbrain-08-1-development">ggbrain 0.8-1 (DEVELOPMENT)<a class="anchor" aria-label="anchor" href="#ggbrain-08-1-development"></a></h2>
-<ul><li>feature: support aes(outline=<x>, group=<y>) for geom_outline, allowing for subdivision of outlines</y></x></li>
+<ul><li>feature: <code>geom_region_label*</code> and <code>geom_region_text*</code> now support a <code>min_px</code> argument that controls the minimum number of pixels on a slice that will result in a label. Helps reduce labeling of small regions.</li>
+<li>feature: support aes(outline=<x>, group=<y>) for geom_outline, allowing for subdivision of outlines</y></x></li>
 <li>bugfix: add workaround for show.legend bug when there are multiple fill layers: <a href="https://github.com/eliocamp/ggnewscale/issues/32" class="external-link uri">https://github.com/eliocamp/ggnewscale/issues/32</a>
 </li>
 <li>bugfix: switch to linewidth instead of size for borders in ggbrain_panel object</li>

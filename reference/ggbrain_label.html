@@ -89,6 +89,10 @@ The dim1 and dim2 columns control where the labels will appear on the panel</p><
 <dd><p>A character string indicating which data.frame column should be used for drawing labels</p></dd>
 
 
+<dt><code>min_px</code></dt>
+<dd><p>A positive integer indicating the minimum number of pixels present on slice that will generate a label</p></dd>
+
+
 </dl><p></p></div>
     </div>
     <div class="section level2">
@@ -109,6 +113,7 @@ The dim1 and dim2 columns control where the labels will appear on the panel</p><
 <span>  geom <span class="op">=</span> <span class="st">"text"</span>,</span>
 <span>  image <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label_column <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  min_px <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -130,6 +135,10 @@ The dim1 and dim2 columns control where the labels will appear on the panel</p><
 
 <dt><code>label_column</code></dt>
 <dd><p>the column in <code>data</code> that should be drawn as labels on the plot</p></dd>
+
+
+<dt><code>min_px</code></dt>
+<dd><p>the minimum number of pixels</p></dd>
 
 
 <dt><code>...</code></dt>
