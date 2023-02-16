@@ -1,3 +1,10 @@
+# ggbrain 0.8-1 (DEVELOPMENT)
+
+* feature: support aes(outline=<x>, group=<y>) for geom_outline, allowing for subdivision of outlines
+* bugfix: add workaround for show.legend bug when there are multiple fill layers: https://github.com/eliocamp/ggnewscale/issues/32
+* bugfix: switch to linewidth instead of size for borders in ggbrain_panel object
+* bugfix: default to cyan color (with message) if geom_outline is added without any color information
+
 # ggbrain 0.8 (21Oct2022)
 
 * first public release of the package to CRAN (hooray!)

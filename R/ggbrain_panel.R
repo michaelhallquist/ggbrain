@@ -46,7 +46,7 @@ ggbrain_panel <- R6::R6Class(
           plot.background = element_rect(
             fill = private$pvt_bg_color,
             color = border_color,
-            size = border_size
+            linewidth = border_size
           ),
           plot.title = ggplot2::element_text(size = ggplot2::rel(1.1), hjust = 0.5, vjust = 1, margin = margin(t = half_line / 2, b = half_line / 2)),
           panel.background = element_rect(fill = private$pvt_bg_color, color = NA),
@@ -63,7 +63,7 @@ ggbrain_panel <- R6::R6Class(
       to_plot <- private$pvt_layer_objs[!empty]
 
       # use reduce to add layers from left to right in the list
-      gg <- Reduce("+", to_plot, init=blank_gg)
+      gg <- Reduce("+", to_plot, init = blank_gg)
 
       # always start with default panel theme
       gg <- gg + private$pvt_default_theme + private$pvt_theme_custom

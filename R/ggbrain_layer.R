@@ -192,7 +192,9 @@ ggbrain_layer <- R6::R6Class(
 
         raster_args$data <- df
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
-        raster_args$show.legend <- private$pvt_show_legend
+        # Based on weird ggplot2 + ggnewscale bug, only set show.legend when it is FALSE to avoid legend collisions
+        # https://github.com/eliocamp/ggnewscale/issues/32
+        if (isFALSE(private$pvt_show_legend)) raster_args$show.legend <- private$pvt_show_legend
       } else {
         # fixed fill layer -- always need to drop NAs from data because when fill is *set* (not mapped), any row in the
         # data.frame will be filled with the specified color.

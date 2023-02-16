@@ -6,6 +6,7 @@
 #' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg erode_square isoblur boundary
+#' @importFrom dplyr group_by group_keys group_split
 #' @return a `ggbrain_layer_outline` R6 class with fields related to a brain visual layer (relates to `geom_outline`)
 #' @export
 ggbrain_layer_outline <- R6::R6Class(
@@ -29,7 +30,7 @@ ggbrain_layer_outline <- R6::R6Class(
     },
 
     # function that traces the outline of the slice, grouped by image
-    slice_to_outline = function(df, group_col = NULL, blur_sigma = 0.9) {
+    slice_to_outline = function(df, group_cols = NULL, blur_sigma = 0.9) {
       if (is.null(df)) return(NULL) # don't attempt to outline an empty object
 
       # always drop NAs before proceeding with outline since only non-NA points can contribute
@@ -41,17 +42,20 @@ ggbrain_layer_outline <- R6::R6Class(
 
       if (nrow(df) == 0L) return(df) # skip out if no valid rows
 
-      # if we have a factor, split on this and get outlines for each component
-      if (!is.null(group_col)) {
-        stopifnot(group_col %in% names(df))
-        df_split <- df %>% group_split(across(all_of(group_col)), .keep = TRUE)
+      # if we have grouping factors, split on these and get outlines for each component
+      if (!is.null(group_cols)) {
+        stopifnot(all(group_cols %in% names(df)))
+        dfg <- df %>% dplyr::group_by(across(all_of(group_cols)))
+        df_split <- dfg %>% dplyr::group_split(.keep = TRUE)
+        df_keys <- dfg %>% dplyr::group_keys()
         by_roi <- TRUE
       } else {
         df_split <- list(df)
         by_roi <- FALSE
       }
 
-      df_melt <- dplyr::bind_rows(lapply(df_split, function(dd) {
+      df_melt <- dplyr::bind_rows(lapply(seq_along(df_split), function(ii) {
+        dd <- df_split[[ii]]
         # convert to a 0/1 matrix where 1s denote present voxels
         slc_mat <- as.matrix(Matrix::sparseMatrix(i = dd$dim1, j = dd$dim2, x = 1, dims = c(max_dim1, max_dim2)))
         slc_img <- imager::as.cimg(slc_mat) # convert to cimg object
@@ -86,14 +90,12 @@ ggbrain_layer_outline <- R6::R6Class(
             alpha = I(value)
           )
 
-        if (isTRUE(by_roi)) {
-          ret[[group_col]] <- dd[[group_col]][1L] # simplest way to preserve factor levels is straight copy
-          ret[[group_col]][ret$value < 1e-6] <- NA # set value==0 pixels to NA
-        } else {
-          ret <- ret %>%
-            mutate(value = if_else(value < 1e-6, NA_integer_, 1L))
-        }
-
+        # copy across factor levels for categorical data
+        if (isTRUE(by_roi)) ret <- ret %>% dplyr::bind_cols(df_keys[ii,,drop=FALSE])
+        
+        zvals <- ret$value < 1e-6
+        ret[zvals, c("value", group_cols)] <- NA # set value==0 pixels to NA
+        
         return(ret)
       }))
 
@@ -138,8 +140,10 @@ ggbrain_layer_outline <- R6::R6Class(
           if (is.null(private$pvt_size)) private$pvt_size <- 1L
         }
 
+        # allow for additional outline splits by another discrete variable
+        # useful for when outlines should be colored by one variable (e.g., network), but drawn more finely by another (e.g., region)
         if (!is.null(value$group)) {
-          private$pvt_group_column <- rlang::as_name(value$group)
+          private$pvt_group_column <- c(private$pvt_group_column, rlang::as_name(value$group))
         }
       }
     },
@@ -220,6 +224,12 @@ ggbrain_layer_outline <- R6::R6Class(
 
       if (!is.null(mapping)) self$mapping <- mapping # aesthetic mapping
       if (!is.null(size)) self$size <- size
+      
+      # set default color of fixed outline if none provided
+      if (isFALSE(private$pvt_has_fill) && is.null(self$mapping$outline)) {
+        message("No outline color or mapping set for geom_outline. Defaulting to cyan outline color.")
+        self$outline <- "cyan"
+      }
     }
   )
 

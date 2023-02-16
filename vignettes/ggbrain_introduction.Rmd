@@ -40,8 +40,6 @@ pe_overlay_3mm <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = 
 # thresholded to be whole-brain significant at FWE p < .05 using pTFCE
 abspe_overlay_3mm <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
 
-# Schaefer 200-parcel atlas of cortex
-schaefer200_atlas_3mm <- system.file("extdata", "Schaefer_200_7networks_2009c_3mm.nii.gz", package = "ggbrain")
 ```
 
 This vignette provides an overview of basic usage of the `ggbrain` package. The package seeks to generate 2D volumetric plots of brain data stored in the NIfTI format. Additional details about the structure of NIfTI data are here: https://neuroconductor.org/tutorials/nifti_basics. The `ggbrain` package uses `ggplot2` to generate its plots, allowing users to access the wide array of popular features in `ggplot2`, including annotations and fine control over coloration and themes.
@@ -53,7 +51,7 @@ Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github
 The package includes a few images that can be used for demonstrating its capabilities. The locations of the images on your machine are listed below.
 
 ```{r}
-print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, pe_overlay_3mm, abspe_overlay_3mm, schaefer200_atlas_3mm))
+print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, pe_overlay_3mm, abspe_overlay_3mm))
 ```
 
 # Installing the package
@@ -121,7 +119,7 @@ gg_obj <- ggbrain() +
   images(c(echange = echange_overlay_3mm))
 ```
 
-## Adding slices
+## Add slices
 
 After adding images to the ggbrain object, the next step is to specify which slices should be displayed on the plot. This is achieved using the `slices()` function. Following standard neuroimaging terminology, we can add axial, sagittal, and coronal slices. 
 
@@ -191,7 +189,7 @@ This code adds 5 sagittal slices between the x = -10 and x = 10 (millimeters, in
 gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10))
 ```
 
-## Adding brain overlay layers to a plot
+## Add brain overlay layers
 
 Now that we have defined the images to read and the slices to render, we need to map the numeric values in the slices to the points on the plot. This is achieved by `geom_brain()`, which is essentially an extension of `geom_raster()` from `ggplot2`. The numeric values in the slices fill squares on the plot, essentially forming 'pixels'.
 
@@ -315,7 +313,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-## Adding outlines 
+## Add outlines 
 
 In addition to filling in regions with colors, brain plots often benefit from being able to outline, rather than fill, regions. This is accomplished using `geom_outline()`. This geometry finds the boundaries of distinct clusters in the image/contrast and traces the boundaries with a line of some thickness (controlled by `size`).
 
@@ -402,7 +400,7 @@ plot(gg_obj)
 dev.off()
 ```
 
-Note that at present, the overall size of the plot may be different from the size of the graphical output device. For example, if you specify a size such as 9 x 6 inches, but the plot has an aspect ratio closer to 1:1, you'll have a lot of 'white space' around the plot. Intuitively, the `bg_color` argument to the overall `ggbrain` call should capture this, but for boring technical reasons that are not directly related to `ggbrain`, it is not so simple. At present, to ensure that the entire background of your plot uses the same color as the `ggplot` object, add the `bg` argument to your output device, or use the `ggsave` command (as above), which automatically uses the background color of the plot to extend to the output device/file.
+At present, the overall size of the plot may be different from the size of the graphical output device. For example, if you specify a size such as 9 x 6 inches, but the plot has an aspect ratio closer to 1:1, you'll have a lot of 'white space' around the plot. Intuitively, the `bg_color` argument to the overall `ggbrain` call should capture this, but for boring technical reasons that are not directly related to `ggbrain`, it is not so simple. At present, to ensure that the entire background of your plot uses the same color as the `ggplot` object, add the `bg` argument to your output device, or use the `ggsave` command (as above), which automatically uses the background color of the plot to extend to the output device/file.
 
 ```{r warning=FALSE, message=FALSE}
 pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10, bg="gray80")
