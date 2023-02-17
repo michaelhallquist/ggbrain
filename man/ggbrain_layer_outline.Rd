@@ -28,6 +28,8 @@ in typical use of the package. Instead, look at \code{geom_outline()}.
 \item{\code{outline_scale}}{a scale_fill_* object containing the ggplot2 outline color scale for this layer}
 
 \item{\code{size}}{controls size of outline drawn around non-NA (valid) voxels}
+
+\item{\code{dil_ero}}{controls the number of pixels to dilate (> 0) or erode (< 0) the outline}
 }
 \if{html}{\out{</div>}}
 }
@@ -77,6 +79,7 @@ create a new ggbrain_layer object
   fill_holes = NULL,
   remove_specks = NULL,
   trim_threads = NULL,
+  dil_ero = NULL,
   data = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -121,6 +124,8 @@ smooth it. This makes the layer less jagged in appearance and is akin to antiali
 \item{\code{remove_specks}}{the size of specks (in pixels) to be removed from each slice prior to display}
 
 \item{\code{trim_threads}}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel}
+
+\item{\code{dil_ero}}{the number of pixels to dilate (> 0) or erode (<0) the outline.}
 
 \item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
 and "value" as columns}

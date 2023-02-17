@@ -335,32 +335,48 @@ plot.ggb <- function(x, ...) {
 #'   rather than modifying it in place
 #' @export
 `+.ggb` <- function(o1, o2) {
+  actions <- c()
   if (is.null(o2$action)) {
     # nothing to do
-    return(o1)
+    # actually, combine o2 with o1 to the extent possible
+    if (!is.null(o2$ggb_slices)) actions <- c(actions, "add_slices")
+    if (!is.null(o2$ggb_contrasts)) actions <- c(actions, "add_contrasts")
+    if (!is.null(o2$ggb_images$get_image_names())) actions <- c(actions, "add_images")
+    if (!is.null(o2$ggb_layers)) actions <- c(actions, "add_layers")
+    if (!is.null(o2$ggb_image_labels)) actions <- c(actions, "add_image_labels")
+    if (!is.null(o2$ggb_annotations)) actions <- c(actions, "add_annotations")
+    if (!is.null(o2$ggb_region_labels)) actions <- c(actions, "add_region_labels")
   } else {
-    oc <- o1$clone(deep = TRUE)
-    oc$action <- NULL # always make sure no action is needed in combined object
-    if (o2$action == "add_slices") {
+    # single action in an add step
+    actions <- o2$action
+  }
+  
+  if (is.null(actions)) return(o1) #nothing to do
+  
+  oc <- o1$clone(deep = TRUE)
+  oc$action <- NULL # always make sure no action is needed in combined object
+  
+  for (aa in actions) {
+    if (aa == "add_slices") {
       oc$add_slices(o2$ggb_slices)
-    } else if (o2$action == "add_contrasts") {
+    } else if (aa == "add_contrasts") {
       oc$add_contrasts(o2$ggb_contrasts)
-    } else if (o2$action == "add_images") {
+    } else if (aa == "add_images") {
       # use direct addition approach (by reference) -- yields single ggbrain_images object
       oc$ggb_images$add(o2$ggb_images)
-    } else if (o2$action == "add_layers") {
+    } else if (aa == "add_layers") {
       oc$add_layers(o2$ggb_layers)
-    } else if (o2$action == "add_image_labels") {
+    } else if (aa == "add_image_labels") {
       do.call(oc$add_image_labels, o2$ggb_image_labels)
-    } else if (o2$action == "add_annotations") {
+    } else if (aa == "add_annotations") {
       oc$add_annotations(o2$ggb_annotations)
-    } else if (o2$action == "add_region_labels") {
+    } else if (aa == "add_region_labels") {
       oc$add_region_labels(o2$ggb_region_labels)
-    } else if (o2$action == "render") {
+    } else if (aa == "render") {
       # transform in to patchwork object
       oc <- oc$render()
     }
   }
-
+  
   return(oc)
 }

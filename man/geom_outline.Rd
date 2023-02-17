@@ -20,7 +20,8 @@ geom_outline(
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL
+  trim_threads = NULL,
+  dil_ero = 0L
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ to be filled by nearest neighbor imputation. Default: 0.}
 to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.}
 
 \item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
+
+\item{dil_ero}{the number of pixels to dilate (> 0) or erode (< 0) the outline for display purposes. Default: 0L}
 }
 \value{
 a ggb object populated with the geom_outline layer and the action of 'add_layers'

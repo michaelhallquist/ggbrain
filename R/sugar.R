@@ -292,6 +292,7 @@ geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale =
 #' @param remove_specks An optional positive integer specifying the size of specks (in pixels) to be removed from each slice prior
 #'   to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.
 #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.
+#' @param dil_ero the number of pixels to dilate (> 0) or erode (< 0) the outline for display purposes. Default: 0L
 #'
 #' @details Note that the fill_scale and limits must be specified at the time of the geom_brain creation
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
@@ -314,10 +315,10 @@ geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale =
 geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline_scale = NULL, 
       mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(), 
       show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
-      blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
+      blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, dil_ero = 0L) {
   
   arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
-                        alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads)
+                        alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads, dil_ero)
   
   # only pass through non-NULLs so that default arguments of layer are used when no input is provided
   arglist <- arglist[!sapply(arglist, is.null)]

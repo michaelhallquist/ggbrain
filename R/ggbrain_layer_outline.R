@@ -5,7 +5,7 @@
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
 #' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes
 #' @importFrom Matrix sparseMatrix
-#' @importFrom imager as.cimg erode_square isoblur boundary
+#' @importFrom imager as.cimg erode_square isoblur boundary px.circle
 #' @importFrom dplyr group_by group_keys group_split
 #' @return a `ggbrain_layer_outline` R6 class with fields related to a brain visual layer (relates to `geom_outline`)
 #' @export
@@ -15,6 +15,7 @@ ggbrain_layer_outline <- R6::R6Class(
   private = list(
     pvt_size = NULL,
     pvt_group_column = NULL, # handles case where we want to control how outlines are defined/grouped (e.g., by region versus by label)
+    pvt_dil_ero = 0L, # number of pixels to dilate or erode outline
 
     get_plot_data = function() {
       if (is.null(self$size)) return(NULL) # if size is NULL, there is nothing to plot
@@ -23,14 +24,14 @@ ggbrain_layer_outline <- R6::R6Class(
 
       # convert all relevant data.frames to outlines
       data_list[c("df", "df_pos", "df_neg")] <- lapply(
-        data_list[c("df", "df_pos", "df_neg")], private$slice_to_outline, private$pvt_group_column, private$pvt_blur_edge
+        data_list[c("df", "df_pos", "df_neg")], private$slice_to_outline, private$pvt_group_column, private$pvt_blur_edge, private$pvt_dil_ero
       )
 
       return(data_list)
     },
 
     # function that traces the outline of the slice, grouped by image
-    slice_to_outline = function(df, group_cols = NULL, blur_sigma = 0.9) {
+    slice_to_outline = function(df, group_cols = NULL, blur_sigma = 0.9, dil_ero=0) {
       if (is.null(df)) return(NULL) # don't attempt to outline an empty object
 
       # always drop NAs before proceeding with outline since only non-NA points can contribute
@@ -64,6 +65,15 @@ ggbrain_layer_outline <- R6::R6Class(
         # er <- imager::erode_square(slc_img, 3) # erode by very small square
         # res1 <- abs(er - slc_img) # retained images become -1 -- not sure why this is needed...
         # res <- slc_img - er # retained images become -1
+        
+        # handle dilation and erosion
+        if (dil_ero > 0L) {
+          ker <- imager::px.circle(dil_ero) # circular kernel
+          slc_img <- imager::dilate(slc_img, ker)
+        } else if (dil_ero < 0L) {
+          ker <- imager::px.circle(abs(dil_ero)) # circular kernel
+          slc_img <- imager::erode(slc_img, ker)
+        }
 
         # simpler approach of using imager boundary function
         b <- imager::boundary(slc_img, depth = private$pvt_size)
@@ -177,6 +187,16 @@ ggbrain_layer_outline <- R6::R6Class(
         checkmate::assert_integerish(value, len=1L, lower=1)
         private$pvt_size <- value
       }
+    },
+    
+    #' @field dil_ero controls the number of pixels to dilate (> 0) or erode (< 0) the outline
+    dil_ero = function(value) {
+      if (missing(value)) {
+        private$pvt_dil_ero
+      } else {
+        checkmate::assert_integerish(value, len=1L, lower = -1e3, upper = 1e3)
+        private$pvt_dil_ero <- as.integer(value)
+      }
     }
   ),
   public = list(
@@ -203,13 +223,14 @@ ggbrain_layer_outline <- R6::R6Class(
     #' @param fill_holes the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display
     #' @param remove_specks the size of specks (in pixels) to be removed from each slice prior to display
     #' @param trim_threads the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel
+    #' @param dil_ero the number of pixels to dilate (> 0) or erode (<0) the outline.
     #' @param data the data.frame containing image data for this layer. Must contain "dim1", "dim2",
     #'   and "value" as columns
 
     initialize = function(name = NULL, definition = NULL, limits = NULL, breaks = integer_breaks(),
       show_legend = TRUE, interpolate = NULL, unify_scales = TRUE, alpha = NULL, mapping = ggplot2::aes(outline = NULL, fill=NULL),
       outline = NULL, outline_scale = NULL, size = NULL, blur_edge=NULL, fill_holes = NULL, remove_specks = NULL,
-      trim_threads = NULL, data = NULL) {
+      trim_threads = NULL, dil_ero = NULL, data = NULL) {
 
       # common initialization steps
       super$initialize(
@@ -223,6 +244,8 @@ ggbrain_layer_outline <- R6::R6Class(
 
       if (!is.null(mapping)) self$mapping <- mapping # aesthetic mapping
       if (!is.null(size)) self$size <- size
+      
+      if (!is.null(dil_ero)) self$dil_ero <- dil_ero
       
       # set default color of fixed outline if none provided
       if (isFALSE(private$pvt_has_fill) && is.null(self$mapping$outline)) {
