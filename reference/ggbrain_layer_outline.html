@@ -93,6 +93,10 @@ in typical use of the package. Instead, look at <code><a href="geom_outline.html
 <dd><p>controls size of outline drawn around non-NA (valid) voxels</p></dd>
 
 
+<dt><code>dil_ero</code></dt>
+<dd><p>controls the number of pixels to dilate (&gt; 0) or erode (&lt; 0) the outline</p></dd>
+
+
 </dl><p></p></div>
     </div>
     <div class="section level2">
@@ -134,6 +138,7 @@ in typical use of the package. Instead, look at <code><a href="geom_outline.html
 <span>  fill_holes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_specks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dil_ero <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -208,6 +213,10 @@ smooth it. This makes the layer less jagged in appearance and is akin to antiali
 
 <dt><code>trim_threads</code></dt>
 <dd><p>the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel</p></dd>
+
+
+<dt><code>dil_ero</code></dt>
+<dd><p>the number of pixels to dilate (&gt; 0) or erode (&lt;0) the outline.</p></dd>
 
 
 <dt><code>data</code></dt>

@@ -74,7 +74,8 @@
 <span>  blur_edge <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_holes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_specks <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dil_ero <span class="op">=</span> <span class="fl">0L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -148,6 +149,10 @@ to display. Specks are small clusters that may be distracting and contribute to 
 
 <dt>trim_threads</dt>
 <dd><p>the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.</p></dd>
+
+
+<dt>dil_ero</dt>
+<dd><p>the number of pixels to dilate (&gt; 0) or erode (&lt; 0) the outline for display purposes. Default: 0L</p></dd>
 
 </dl></div>
     <div class="section level2">
