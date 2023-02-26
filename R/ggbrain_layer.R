@@ -60,7 +60,8 @@ ggbrain_layer <- R6::R6Class(
 
           # fill NAs by nearest neighbor imputation
           rr <- max(6, ceiling(sqrt(size))) # approximation of radius within which to interpolate
-          img <- nn_impute(img, neighbors = neighbors, radius = rr, aggfun = "mode", ignore_zeros = TRUE)
+          aggfun <- ifelse(isTRUE(private$pvt_categorical_fill), "mode", "mean")
+          img <- nn_impute(img, neighbors = neighbors, radius = rr, aggfun = aggfun, ignore_zeros = TRUE)
         }
       }
       return(img)
@@ -116,6 +117,7 @@ ggbrain_layer <- R6::R6Class(
     # modify layer data to remove specks, fill holes, and trim threads
     refine_image = function() {
       d <- private$pvt_data
+      lab_cols <- attr(d, "label_cols")
       dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
       na_rows <- rep(FALSE, nrow(d))
       vcols <- grep("dim1|dim2", names(d), value = TRUE, invert = TRUE)
@@ -123,16 +125,16 @@ ggbrain_layer <- R6::R6Class(
       # always fill in holes first so that neighbor counts are more sensible
       if (private$pvt_fill_holes > 0L) {
         dmat <- private$fill_img_holes(dmat, size = private$pvt_fill_holes, neighbors = 10)
+        d <- mat2df(dmat, na_zeros = TRUE) # convert back to modified data frame
+        attr(d, "label_cols") <- lab_cols
 
         # need to fill any ancillary columns with imputed values, too!
-        lab_cols <- attr(d, "label_cols")
         if (!is.null(lab_cols)) {
-          lab_df <- d %>%
+          lab_df <- private$pvt_data %>%
             dplyr::group_by(value) %>%
             dplyr::filter(dplyr::row_number() == 1L & !is.na(value)) %>%
             dplyr::select(value, !!lab_cols)
 
-          d <- mat2df(dmat, na_zeros = TRUE)
           d <- d %>% left_join(lab_df, by="value")
         }
       }
@@ -153,7 +155,21 @@ ggbrain_layer <- R6::R6Class(
 
       # remove any clusters with fewer than this number of pixels
       if (private$pvt_remove_specks > 0L) {
-        specks <- private$find_specks(dmat, size = private$pvt_remove_specks, by_roi = private$pvt_categorical_fill)
+        # when we have a categorical fill mapping, we need to use the right column/label for finding specks. Otherwise,
+        # "value" is used, which may be a lower-level variable (e.g., ROI) compared to the fill column (e.g., network),
+        # leading to unintended removal of 'specks' from the lower-level variable.
+        if (isTRUE(private$pvt_categorical_fill) && private$pvt_fill_column != "value") {
+          # create a data.frame where the value column contains the integer values of the correct fill variable
+          d_tmp <- d %>% 
+            dplyr::select(-value) %>%
+            dplyr::rename(value=!!private$pvt_fill_column) %>%
+            dplyr::mutate(value=as.integer(as.factor(value)))
+          to_process <- df2mat(d_tmp, replace_na = 0)
+        } else {
+          to_process <- dmat
+        }
+        
+        specks <- private$find_specks(to_process, size = private$pvt_remove_specks, by_roi = private$pvt_categorical_fill)
         if (any(specks)) {
           dmat[specks] <- 0 # probably a waste of CPU time -- dmat isn't used again
           # convert to single row.col match string

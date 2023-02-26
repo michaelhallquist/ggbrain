@@ -1,18 +1,21 @@
 # ggbrain 0.8.1 (DEVELOPMENT)
 
-* feature: `ggbrain` objects can be added together, allowing common parts across plots to be reused.
-* feature: `geom_outline` now supports dilation and erosion using the `dil_ero` argument.
+* feature: `ggbrain` objects can be added together, allowing common parts across plots to be reused
+* feature: `geom_outline` now supports dilation and erosion using the `dil_ero` argument
 * feature: `geom_region_label*` and `geom_region_text*` now support a `min_px` argument that controls
-   the minimum number of pixels on a slice that will result in a label. Helps reduce labeling of small regions.
+   the minimum number of pixels on a slice that will result in a label. Helps reduce labeling of small regions
 * feature: support aes(outline=<x>, group=<y>) for geom_outline, allowing for subdivision of outlines
 * bugfix: add workaround for show.legend bug when there are multiple fill layers: https://github.com/eliocamp/ggnewscale/issues/32
 * bugfix: switch to linewidth instead of size for borders in ggbrain_panel object
 * bugfix: default to cyan color (with message) if geom_outline is added without any color information
+* bugfix: correction to pass forward data.frame after `fill_holes` algorithm is applied
+* bugfix: nn interpolation for `fill_holes` now takes the mean of neighbors for continuous-valued data
+* bugfix: use the correct fill column when using `remove_specks` for a categorical image
 
 # ggbrain 0.8 (21Oct2022)
 
 * first public release of the package to CRAN (hooray!)
-* feature: add `define()` function to support contrast definition in ggbrain pipeline outside of a given layer.
+* feature: add `define()` function to support contrast definition in ggbrain pipeline outside of a given layer
 * feature: fixed fill colors are now supported in `geom_brain` using `geom_brain(fill='color_here')`
 * feature: `images()` supports a `volumes` argument so that volumes from 4-D images can be visualized
 * feature: `plot()` on a ggbrain object supports `guides` argument that passes to `plot_layout()` in `patchwork`.
