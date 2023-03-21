@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 .lintr
 local
+pkg_build
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$

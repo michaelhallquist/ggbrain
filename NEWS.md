@@ -1,4 +1,4 @@
-# ggbrain 0.8.1 (DEVELOPMENT)
+# ggbrain 0.8.1 (21Mar2023)
 
 * feature: `ggbrain` objects can be added together, allowing common parts across plots to be reused
 * feature: `geom_outline` now supports dilation and erosion using the `dil_ero` argument
