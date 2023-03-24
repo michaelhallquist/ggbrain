@@ -147,6 +147,7 @@ ggbrain_panel <- R6::R6Class(
             }
           } else if (grepl("^q[-\\d\\.]+$", pos, perl=TRUE)) {
             qnum <- as.numeric(sub("^q", "", pos))
+            if (qnum > 1 || qnum < -1) qnum <- qnum/100 # percentile -> quantile
             if (is.na(qnum)) stop("Could not parse quantile specification: ", pos)
             if (grepl("^x", aes_name)) {
               pos <- quant(df$dim1, qnum, na.rm = TRUE)

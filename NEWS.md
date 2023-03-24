@@ -1,3 +1,7 @@
+# ggbrain 0.8.2 (DEVELOPMENT)
+
+* bugfix: Allow for quantile "q" specifications for label position that can be 1-100 (percentile) or 0-1 (quantile)
+
 # ggbrain 0.8.1 (21Mar2023)
 
 * feature: `ggbrain` objects can be added together, allowing common parts across plots to be reused
