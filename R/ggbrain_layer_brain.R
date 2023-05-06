@@ -44,7 +44,7 @@ ggbrain_layer_brain <- R6::R6Class(
           private$pvt_fill_column <- NULL
           private$pvt_has_fill <- FALSE
         } else {
-          private$pvt_fill_column <- rlang::as_name(value$fill) # pull out the fill column from aes
+          private$pvt_fill_column <- all.vars(value$fill) # pull out the fill column from aes
           private$pvt_has_fill <- TRUE
         }
         if (!is.null(value$outline)) {

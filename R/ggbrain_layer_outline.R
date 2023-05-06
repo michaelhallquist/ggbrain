@@ -142,7 +142,7 @@ ggbrain_layer_outline <- R6::R6Class(
         if (is.null(value$outline)) {
           private$pvt_fill_column <- NULL
         } else {
-          private$pvt_fill_column <- rlang::as_name(value$outline) # pull out the outline column from aes
+          private$pvt_fill_column <- all.vars(value$outline) # pull out the outline column from aes
           # always pass through the group as the fill column so that the outline conversion gets the grouping right
           private$pvt_group_column <- private$pvt_fill_column
           private$pvt_has_fill <- TRUE
