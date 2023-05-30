@@ -132,7 +132,7 @@ ggb <- R6::R6Class(
       # for testing
       #contrasts <- c(x="a - b", "diff := a*b", c="x := y + z", "t + j")
       #contrasts <- c(x="a - b", "diff := a*b") #, c="x := y + z")
-      has_names <- sapply(seq_along(contrasts), function(i) { checkmate::test_named(contrasts[i]) })
+      has_names <- sapply(seq_along(contrasts), function(i) checkmate::test_named(contrasts[i]) )
       if (any(has_names)) {
         # verify that the named arguments don't use := operator
         nm <- contrasts[has_names]
@@ -150,16 +150,14 @@ ggb <- R6::R6Class(
       if (any(!has_names)) {
         un <- contrasts[!has_names]
         un <- lapply(seq_along(un), function(i) {
-          if (!grepl("^\\s*\\w+\\s*:=.*$", un[i], perl = TRUE)) {
+          if (!grepl("^\\s*[\\w.]+\\s*:=.*$", un[i], perl = TRUE)) {
             stop(glue::glue(
               "Contrasts must either use the named form c(nm='con def')",
               "or the := operator: 'nm := con def'.",
               " Problem with '{un[i]}'"
             ))
           } else {
-            con_name <- sub("^\\s*(\\w+)\\s*:=.*$", "\\1", un[i], perl = TRUE) # parse name
-            con_val <- trimws(sub("^\\s*\\w+\\s*:=\\s*(.*)$", "\\1", un[i], perl = TRUE)) # parse contrast
-            return(c(con_name, con_val))
+            return(contrast_split(un[i]))
           }
         })
 
@@ -266,18 +264,8 @@ ggb <- R6::R6Class(
 
       # compute any contrasts requested
       if (any(is_contrast)) {
-        # allow for definitions of the form "con1 := overlay*2"
-        inline_contrasts <- lapply(layer_defs[is_contrast], function(x) {
-          if (grepl("^\\s*\\w+\\s*:=.*$", x, perl = TRUE)) {
-            con_name <- sub("^\\s*(\\w+)\\s*:=.*$", "\\1", x, perl = TRUE) # parse name
-            con_val <- trimws(sub("^\\s*\\w+\\s*:=\\s*(.*)$", "\\1", x, perl = TRUE)) # parse contrast
-          } else {
-            con_name <- ""
-            con_val <- x
-          }
-
-          return(c(name = con_name, value = con_val))
-        })
+        # allow for definitions of the form "con1 := overlay*2" -- split at the :=
+        inline_contrasts <- lapply(layer_defs[is_contrast], contrast_split)
 
         con_names <- sapply(inline_contrasts, "[[", "name")
         con_names[con_names == ""] <- make.unique(rep("con", sum(con_names == "")))
@@ -350,12 +338,12 @@ plot.ggb <- function(x, ...) {
     # single action in an add step
     actions <- o2$action
   }
-  
+
   if (is.null(actions)) return(o1) #nothing to do
-  
+
   oc <- o1$clone(deep = TRUE)
   oc$action <- NULL # always make sure no action is needed in combined object
-  
+
   for (aa in actions) {
     if (aa == "add_slices") {
       oc$add_slices(o2$ggb_slices)

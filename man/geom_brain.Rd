@@ -61,7 +61,7 @@ to display. Specks are small clusters that may be distracting and contribute to 
 \item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
 }
 \value{
-a ggb object populated with the relevant geom_brainand the action of 'add_layers'
+a ggb object populated with the relevant geom_brain and the action of 'add_layers'
 }
 \description{
 Adds a raster layer to the ggbrain plot, displaying pixels from the specified layer definition
@@ -78,7 +78,7 @@ created using the typical + scale_fill_* syntax, and similarly for scale limits.
 
   # signed reward prediction error map
   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
-  
+
   gg_obj <- ggbrain() +
     images(c(underlay = t1, overlay = signed_pe)) +
     slices(c("x = 25\%", "x = 75\%")) +

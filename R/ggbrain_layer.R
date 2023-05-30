@@ -633,7 +633,11 @@ ggbrain_layer <- R6::R6Class(
       show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL, blur_edge = NULL,
       fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, data = NULL) {
 
-      if (is.null(name)) name <- "layer"
+      # if name is NULL, see if layer is named through the definition field using <name> := <value>
+      if (is.null(name)) {
+        # look at definition and use the name before := as layer name if available. Otherwise, use "layer".
+        name <- contrast_split(definition, no_name = "layer")$name
+      }
       checkmate::assert_numeric(limits, len = 2L, null.ok = TRUE)
       checkmate::assert_logical(interpolate, len=1L, null.ok = TRUE)
 

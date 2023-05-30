@@ -190,7 +190,7 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL
 #'     slices(c("x = 25%", "x = 75%")) +
 #'     define(c(signed_gt_abs = "signed_pe - abspe")) +
 #'     geom_brain(
-#'       "signed_gt_abs[signed_gt_abs > 0]", 
+#'       "signed_gt_abs[signed_gt_abs > 0]",
 #'       fill_scale=ggplot2::scale_fill_distiller("Pos diff", palette = "Reds")
 #'     )
 #' @return a `ggb` object with the relevant contrasts and an action of 'add_contrasts'
@@ -232,14 +232,14 @@ define <- function(contrasts = NULL) {
 #'   in order for them to be mapped properly within ggplot. Because we overlay many raster layers in a ggplot
 #'   object that all use the fill aesthetic mapping, it becomes hard to map the color scales after the layer is
 #'   created using the typical + scale_fill_* syntax, and similarly for scale limits.
-#' @return a ggb object populated with the relevant geom_brainand the action of 'add_layers'
+#' @return a ggb object populated with the relevant geom_brain and the action of 'add_layers'
 #' @examples
 #'   # T1-weighted template
 #'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
-#' 
+#'
 #'   # signed reward prediction error map
 #'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
-#'   
+#'
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1, overlay = signed_pe)) +
 #'     slices(c("x = 25%", "x = 75%")) +
@@ -316,19 +316,19 @@ geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline
       mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(), 
       show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, dil_ero = 0L) {
-  
+
   arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
                         alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads, dil_ero)
-  
+
   # only pass through non-NULLs so that default arguments of layer are used when no input is provided
   arglist <- arglist[!sapply(arglist, is.null)]
-  
+
   # this generates problems because it overrides default arguments of layer class
   # l_obj <- ggbrain_layer_outline$new(
   #   name, definition, limits, breaks, show_legend, interpolate, unify_scales,
   #   alpha, mapping, outline, outline_scale, size, blur_edge, fill_holes, remove_specks, trim_threads
   # )
-  
+
   l_obj <- do.call(ggbrain_layer_outline$new, arglist)
 
   ggb$new(layers = l_obj, action = "add_layers")
@@ -470,4 +470,17 @@ scale_fill_bisided <- function(
   # hack package into tolerating made up scale object
   class(ret) <- c("list", "ScaleContinuous", "ScaleBisided", "Scale") # ggproto and gg classes lead to errors in print method
   return(ret)
+}
+
+# internal function to split <name> := <value> contrast syntax into list
+contrast_split <- function(x, no_name="") {
+  if (grepl("^\\s*[\\w.]+\\s*:=.*$", x, perl = TRUE)) {
+    con_name <- sub("^\\s*([\\w.]+)\\s*:=.*$", "\\1", x, perl = TRUE) # parse name
+    con_val <- trimws(sub("^\\s*[\\w.]+\\s*:=\\s*(.*)$", "\\1", x, perl = TRUE)) # parse contrast
+  } else {
+    con_name <- no_name
+    con_val <- x
+  }
+
+  return(list(name = con_name, value=con_val))
 }

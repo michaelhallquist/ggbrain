@@ -299,8 +299,8 @@ ggbrain_plot <- R6::R6Class(
               f_col <- l_obj$fill_column
               # unify factor levels across slices
               f_levels <- img_uvals %>%
-                filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
-                pull(uvals)
+                dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
+                dplyr::pull(uvals)
               l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
               l_obj$fill_scale$na.translate <- FALSE

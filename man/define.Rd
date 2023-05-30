@@ -49,20 +49,20 @@ downstream layers to further modify the contrast, such as when we compute a
     slices(c("x = 25\%", "x = 75\%")) +
     define(c(signed_gt_abs = "signed_pe - abspe")) +
     geom_brain("signed_gt_abs")
-    
+
   # contrast definitions can also occur inline, yielding equivalent plots
   gg_obj <- ggbrain() +
     images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
     slices(c("x = 25\%", "x = 75\%")) +
     geom_brain("signed_pe - abspe")
-    
+
   # The use of contrasts() is helpful when layers modify the contrast (e.g., subsetting)
   gg_obj <- ggbrain() +
     images(c(underlay = t1, signed_pe = signed_pe, abspe = abspe)) +
     slices(c("x = 25\%", "x = 75\%")) +
     define(c(signed_gt_abs = "signed_pe - abspe")) +
     geom_brain(
-      "signed_gt_abs[signed_gt_abs > 0]", 
+      "signed_gt_abs[signed_gt_abs > 0]",
       fill_scale=ggplot2::scale_fill_distiller("Pos diff", palette = "Reds")
     )
 }
