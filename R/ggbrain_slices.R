@@ -58,10 +58,10 @@ ggbrain_slices <- R6::R6Class(
           ll_df <- data.table::melt(ll_df, measure.vars=label_cols, variable.name=".label_col", value.name=".label_val")
         }
 
-        ll_df[,layer := layer_names[ll]]
+        ll_df[, layer := layer_names[ll]]
         return(ll_df)
       }) %>%
-      data.table::rbindlist(fill=TRUE) %>% 
+      data.table::rbindlist(fill=TRUE) %>%
       data.table::setDF()
 
       return(img_data)

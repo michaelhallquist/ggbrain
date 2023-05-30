@@ -124,11 +124,11 @@ ggb <- R6::R6Class(
     #' @description add contrast definitions to the plot object
     #' @param contrasts a character vector of contrasts to compute as part of the plot generation
     add_contrasts = function(contrasts) {
-      
+
       if (checkmate::test_character(contrasts)) {
         contrasts <- as.list(contrasts) # convert to list for type consistency
       }
-      
+
       # for testing
       #contrasts <- c(x="a - b", "diff := a*b", c="x := y + z", "t + j")
       #contrasts <- c(x="a - b", "diff := a*b") #, c="x := y + z")
@@ -146,7 +146,7 @@ ggb <- R6::R6Class(
           }
         })
       }
-        
+
       if (any(!has_names)) {
         un <- contrasts[!has_names]
         un <- lapply(seq_along(un), function(i) {
@@ -162,11 +162,11 @@ ggb <- R6::R6Class(
             return(c(con_name, con_val))
           }
         })
-        
+
         contrasts[!has_names] <- lapply(un, "[[", 2) # retain contrast definitions as value (named list)
         names(contrasts)[!has_names] <- sapply(un, "[[", 1) # use first element (contrast name) as list names
       }
-      
+
       self$ggb_contrasts <- c(self$ggb_contrasts, contrasts)
       return(self)
     },

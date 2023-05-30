@@ -28,13 +28,14 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
 
     c_list <- lapply(seq_along(expr_list), function(e) {
       this_exp <- expr_list[e]
-      if (!grepl("^\\s*[\\w+_\\.]+\\s*:=\\s*[^=]+", this_exp, perl = TRUE)) {
-        stop(glue::glue("Compound expression {this_exp} does not follow the <value> := <expr> syntax"))
+      # compound expressions should have the syntax: value = expression; value = expression
+      if (!grepl("^\\s*[\\w.]+\\s*(?<!=)=(?!=)\\s*.+", this_exp, perl = TRUE)) {
+        stop(glue::glue("Compound expression {this_exp} does not follow the <value> = <expr> syntax"))
       }
 
-      eq_pos <- regexpr(":=", this_exp, fixed = TRUE)
+      eq_pos <- regexpr("(?<!=)=(?!=)", this_exp, perl = TRUE)
       val <- trimws(substr(this_exp, 1, eq_pos - 1)) # just value to be used (left-hand side)
-      this_exp <- trimws(substr(this_exp, eq_pos + 2, nchar(this_exp))) # just expression after equals
+      this_exp <- trimws(substr(this_exp, eq_pos + 1, nchar(this_exp))) # just expression after equals
 
       df <- contrast_parser(this_exp, data = data, default_val = default_val)
       ret <- list(num = e, val = val, df = df)

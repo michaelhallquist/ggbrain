@@ -168,7 +168,7 @@ ggbrain_layer <- R6::R6Class(
         } else {
           to_process <- dmat
         }
-        
+
         specks <- private$find_specks(to_process, size = private$pvt_remove_specks, by_roi = private$pvt_categorical_fill)
         if (any(specks)) {
           dmat[specks] <- 0 # probably a waste of CPU time -- dmat isn't used again
