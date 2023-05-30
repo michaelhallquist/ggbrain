@@ -5,6 +5,7 @@
 * bugfix: Do not throw error when contrast specification includes equals sign (logical tests)
 * bugfix: Only use := syntax for naming contrasts. For compound contrast expressions, use <value> = <expr>; <value2> = <expr2>
 * bugfix: Pass through label_cols as attribute from inline contrast definitions of the form <value> = <expr>
+* bugfix: Handle fixed fill in ggbrain_layers when alpha < 1
 
 # ggbrain 0.8.1 (21Mar2023)
 

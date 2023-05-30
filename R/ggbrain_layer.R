@@ -783,8 +783,8 @@ ggbrain_layer <- R6::R6Class(
           }
         }
       } else {
-        # fixed fill color
-        ret <- private$add_raster(ret, df, value_col = NULL, n_layers, raster_args, fill_scale = NULL)
+        # fixed fill color (drop scale)
+        ret <- private$add_raster(ret, df, pdata$vcol, n_layers, raster_args, fill_scale = NULL)
       }
 
       return(ret)
