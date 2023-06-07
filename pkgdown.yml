@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   ggbrain_aesthetics: ggbrain_aesthetics.html
   ggbrain_introduction: ggbrain_introduction.html
-last_built: 2023-05-30T20:21Z
+last_built: 2023-06-07T22:16Z
 urls:
   reference: https://michaelhallquist.github.io/ggbrain/reference
   article: https://michaelhallquist.github.io/ggbrain/articles
