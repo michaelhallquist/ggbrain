@@ -21,6 +21,7 @@ ggbrain_layer <- R6::R6Class(
     pvt_data = NULL, # the data.frame containing values for this layer
     pvt_mapping = NULL, # how to map the data columns to the display
 
+    pvt_fill_glue = "{new_val}", # expression for aes(fill=) that modifies pvt_fill_column, such as aes(fill=factor(value))
     pvt_fill_column = NULL, # the column within pvt_data containing the values to be mapped to the fill aesthetic in geom_raster
     pvt_fill_scale = NULL, # a ggplot2 scale_fill* object for the layer fill
     pvt_fill = NULL, # the fixed color (string) of the color to use on the fill layer -- setting, not mapping
@@ -160,7 +161,7 @@ ggbrain_layer <- R6::R6Class(
         # leading to unintended removal of 'specks' from the lower-level variable.
         if (isTRUE(private$pvt_categorical_fill) && private$pvt_fill_column != "value") {
           # create a data.frame where the value column contains the integer values of the correct fill variable
-          d_tmp <- d %>% 
+          d_tmp <- d %>%
             dplyr::select(-value) %>%
             dplyr::rename(value=!!private$pvt_fill_column) %>%
             dplyr::mutate(value=as.integer(as.factor(value)))
@@ -198,7 +199,7 @@ ggbrain_layer <- R6::R6Class(
       }
 
       if (!is.null(fill_scale)) {
-        # mapped fill layer
+        # mapped fill layer -- for the multiple fill scale approach to work, column names need to be unique across layers (value1, value2, etc.)
         new_val <- paste0("value", n_layers + 1L)
         df <- df %>% dplyr::rename(!!new_val := !!value_col)
         if (n_layers > 0L) {
@@ -206,8 +207,11 @@ ggbrain_layer <- R6::R6Class(
           gg <- gg + ggnewscale::new_scale_fill()
         }
 
+        # evaluate fill expression and pass forward to aes as character
+        fill_expr <- as.character(glue::glue(private$pvt_fill_glue))
+
         raster_args$data <- df
-        raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = new_val, alpha = private$pvt_alpha_column)
+        raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = fill_expr, alpha = private$pvt_alpha_column)
         # Based on weird ggplot2 + ggnewscale bug, only set show.legend when it is FALSE to avoid legend collisions
         # https://github.com/eliocamp/ggnewscale/issues/32
         if (isFALSE(private$pvt_show_legend)) raster_args$show.legend <- private$pvt_show_legend
