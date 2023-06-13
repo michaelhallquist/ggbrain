@@ -186,7 +186,7 @@ constituent slices. This is useful for setting scale limits that are shared acro
 <p>returns a data.frame with the unique values for each label layer, across all
 constituent slices</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_uvals</span><span class="op">(</span>slice_indices <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_uvals</span><span class="op">(</span>slice_indices <span class="op">=</span> <span class="cn">NULL</span>, add_labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -195,8 +195,22 @@ constituent slices</p><div class="section">
 <dd><p>an optional integer vector of slice indices to be used as a subset in the calculation</p></dd>
 
 
+<dt><code>add_labels</code></dt>
+<dd><p>an optional named list indicating the label columns to add to a given layer. The names
+of the list specify the layer to which labels are added and the values should be character vectors
+specifying the names of columns that serve as labels for the layer. These are always <em>added</em> to any
+existing label columns for the layer.</p></dd>
+
+
 </dl><p></p></div>
 </div>
+<div class="section">
+<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
+<p><code>add_labels</code> is provided here for any categorical columns that were specified inline in the
+layer definition using factor or as.factor, such as aes(fill=factor(value)). Otherwise, it's best
+to input data with labels in the first place so that labels are described in the data structure itself.</p>
+</div>
+
 
 </div><p></p><hr><a id="method-ggbrain_slices-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
