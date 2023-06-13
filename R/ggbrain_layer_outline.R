@@ -151,7 +151,14 @@ ggbrain_layer_outline <- R6::R6Class(
           # that will be evaluated at the time of the add_raster.
           fill_expr <- rlang::as_label(value$outline)
           if (fill_expr != private$pvt_fill_column) {
-            private$pvt_fill_glue <- sub(private$pvt_fill_column, "{new_val}", fill_expr, fixed = TRUE)
+            private$pvt_fill_expr <- sub(private$pvt_fill_column, "{new_val}", fill_expr, fixed = TRUE)
+            # if user is wrapping column name in factor or as.factor, treat as factor internally
+            # also strip factor conversion from fill expression so that ggplot doesn't relevel the factor inline, undermining unify_scales
+            if (private$pvt_fill_expr == "factor({new_val})" ||
+              private$pvt_fill_expr == "as.factor({new_val})") {
+              private$pvt_categorical_fill <- TRUE
+              private$pvt_fill_expr <- sub("(as.)*factor\\({new_val}\\)", "{new_val}", private$pvt_fill_expr, perl = TRUE)
+            }
           }
 
           # always pass through the group as the fill column so that the outline conversion gets the grouping right

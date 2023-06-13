@@ -53,7 +53,14 @@ ggbrain_layer_brain <- R6::R6Class(
           # that will be evaluated at the time of the add_raster.
           fill_expr <- rlang::as_label(value$fill)
           if (fill_expr != private$pvt_fill_column) {
-            private$pvt_fill_glue <- sub(private$pvt_fill_column, "{new_val}", fill_expr, fixed=TRUE)
+            private$pvt_fill_expr <- sub(private$pvt_fill_column, "{new_val}", fill_expr, fixed = TRUE)
+            # if user is wrapping column name in factor or as.factor, treat as factor internally
+            # also strip factor conversion from fill expression so that ggplot doesn't relevel the factor inline, undermining unify_scales
+            if (private$pvt_fill_expr == "factor({new_val})" ||
+              private$pvt_fill_expr == "as.factor({new_val})") {
+              private$pvt_categorical_fill <- TRUE
+              private$pvt_fill_expr <- sub("(as.)*factor\\({new_val}\\)", "{new_val}", private$pvt_fill_expr, perl=TRUE)
+            }
           }
           private$pvt_has_fill <- TRUE
         }

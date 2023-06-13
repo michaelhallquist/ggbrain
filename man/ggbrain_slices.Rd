@@ -123,16 +123,27 @@ a tibble keyed by 'layer' with overall low and high values, as well as split by 
 returns a data.frame with the unique values for each label layer, across all
 constituent slices
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_uvals(slice_indices = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_uvals(slice_indices = NULL, add_labels = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{slice_indices}}{an optional integer vector of slice indices to be used as a subset in the calculation}
+
+\item{\code{add_labels}}{an optional named list indicating the label columns to add to a given layer. The names
+of the list specify the layer to which labels are added and the values should be character vectors
+specifying the names of columns that serve as labels for the layer. These are always \emph{added} to any
+existing label columns for the layer.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+\code{add_labels} is provided here for any categorical columns that were specified inline in the
+layer definition using factor or as.factor, such as aes(fill=factor(value)). Otherwise, it's best
+to input data with labels in the first place so that labels are described in the data structure itself.
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_slices-clone"></a>}}

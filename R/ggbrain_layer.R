@@ -21,7 +21,7 @@ ggbrain_layer <- R6::R6Class(
     pvt_data = NULL, # the data.frame containing values for this layer
     pvt_mapping = NULL, # how to map the data columns to the display
 
-    pvt_fill_glue = "{new_val}", # expression for aes(fill=) that modifies pvt_fill_column, such as aes(fill=factor(value))
+    pvt_fill_expr = "{new_val}", # expression for aes(fill=) that modifies pvt_fill_column, such as aes(fill=factor(value))
     pvt_fill_column = NULL, # the column within pvt_data containing the values to be mapped to the fill aesthetic in geom_raster
     pvt_fill_scale = NULL, # a ggplot2 scale_fill* object for the layer fill
     pvt_fill = NULL, # the fixed color (string) of the color to use on the fill layer -- setting, not mapping
@@ -118,7 +118,7 @@ ggbrain_layer <- R6::R6Class(
     # modify layer data to remove specks, fill holes, and trim threads
     refine_image = function() {
       d <- private$pvt_data
-      lab_cols <- attr(d, "label_cols")
+      label_columns <- attr(d, "label_columns")
       dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
       na_rows <- rep(FALSE, nrow(d))
       vcols <- grep("dim1|dim2", names(d), value = TRUE, invert = TRUE)
@@ -127,14 +127,14 @@ ggbrain_layer <- R6::R6Class(
       if (private$pvt_fill_holes > 0L) {
         dmat <- private$fill_img_holes(dmat, size = private$pvt_fill_holes, neighbors = 10)
         d <- mat2df(dmat, na_zeros = TRUE) # convert back to modified data frame
-        attr(d, "label_cols") <- lab_cols
+        attr(d, "label_columns") <- label_columns
 
         # need to fill any ancillary columns with imputed values, too!
-        if (!is.null(lab_cols)) {
+        if (!is.null(label_columns)) {
           lab_df <- private$pvt_data %>%
             dplyr::group_by(value) %>%
             dplyr::filter(dplyr::row_number() == 1L & !is.na(value)) %>%
-            dplyr::select(value, !!lab_cols)
+            dplyr::select(value, !!label_columns)
 
           d <- d %>% left_join(lab_df, by="value")
         }
@@ -208,7 +208,7 @@ ggbrain_layer <- R6::R6Class(
         }
 
         # evaluate fill expression and pass forward to aes as character
-        fill_expr <- as.character(glue::glue(private$pvt_fill_glue))
+        fill_expr <- sub("{new_val}", new_val, private$pvt_fill_expr, fixed=TRUE)
 
         raster_args$data <- df
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = fill_expr, alpha = private$pvt_alpha_column)
@@ -339,8 +339,16 @@ ggbrain_layer <- R6::R6Class(
           private$pvt_has_fill <- TRUE # we have a fill geom
           private$pvt_map_fill <- TRUE # map fill color to data
 
-          # if fill column is character or factor, then fill is categorical
-          private$pvt_categorical_fill <- ifelse(checkmate::test_multi_class(private$pvt_data[[private$pvt_fill_column]], c("character", "factor")), TRUE, FALSE)
+          fcol_cat <- inherits(private$pvt_data[[private$pvt_fill_column]], c("character", "factor", "ordered"))
+
+          # if layer does not already believe that fill is categorical column, but the fill column in the data is categorical, set to TRUE
+          if (!isTRUE(private$pvt_categorical_fill)) {
+            # if fill column is character or factor, then fill is categorical
+            private$pvt_categorical_fill <- fcol_cat
+          } else if (!fcol_cat) {
+            # Fill is supposed to be categorical, but column is not a categorical data type. Convert to factor
+            private$pvt_data[[private$pvt_fill_column]] <- factor(private$pvt_data[[private$pvt_fill_column]])
+          }
         }
       }
 

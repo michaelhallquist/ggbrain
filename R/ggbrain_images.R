@@ -1,5 +1,5 @@
 #' @title R6 class for compiling images to render in ggplot
-#' @details 
+#' @details
 #'   Note that this class is exported only for power users and rarely needs to be called directly
 #'     in typical use of the package. Instead, look at images().
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
@@ -206,8 +206,8 @@ ggbrain_images <- R6::R6Class(
         }
 
         # encode label columns for each input data.frame -- only character and factor/ordered allowed
-        col_classes <- sapply(label_args[[x]], function(v) inherits(v, c("character", "ordered", "factor")))
-        attr(label_args[[x]], "label_columns") <- names(label_args[[x]][col_classes])
+        cat_cols <- sapply(label_args[[x]], function(v) inherits(v, c("character", "ordered", "factor")))
+        attr(label_args[[x]], "label_columns") <- names(label_args[[x]][cat_cols])
 
         private$pvt_img_labels[[ label_names[x] ]] <- label_args[[x]]
       }
@@ -601,7 +601,7 @@ ggbrain_images <- R6::R6Class(
             lb <- private$pvt_img_labels[[label_name]]
 
             # which columns in the data.frame are labels
-            l_cols <- attr(lb, "label_columns")
+            label_columns <- attr(lb, "label_columns")
 
             # in the fill_labels == TRUE case, fill in labels that are present in the label data.frame, but
             # add a default label (the value) for any values in the image that lack a label
@@ -612,7 +612,7 @@ ggbrain_images <- R6::R6Class(
               all_df <- data.frame(value = all_vals, label = all_labs)
 
               # replace numeric value column with labeled character column
-              for (ll in l_cols) {
+              for (ll in label_columns) {
                 # keep the non-matching rows from all_df as defaults, then bind the hand-labeled areas
                 lb_ll <- lb %>%
                   select(all_of(c("value", ll))) %>%
@@ -636,7 +636,7 @@ ggbrain_images <- R6::R6Class(
             # also label CoM data.frame
             if (!is.null(this_com)) this_com <- this_com %>% left_join(lb, by="value")
 
-            attr(this_img, "label_cols") <- l_cols
+            attr(this_img, "label_columns") <- label_columns
 
             slc_nestlist[[ii]][[label_name]] <- this_img
             com_stats[[ii]][[label_name]] <- this_com # update com stats

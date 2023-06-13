@@ -1,5 +1,5 @@
 #' R6 class for managing slice data for ggbrain plots
-#' @importFrom dplyr bind_rows full_join group_by across mutate summarize filter
+#' @importFrom dplyr bind_rows full_join group_by across mutate summarize filter reframe
 #' @importFrom tidyr pivot_wider pivot_longer unnest
 #' @importFrom tibble tibble
 #' @importFrom tidyselect matches
@@ -34,7 +34,7 @@ ggbrain_slices <- R6::R6Class(
       img_slice <- private$pvt_slice_data[slice_indices]
       if (isTRUE(only_labeled)) {
         # which layers are labeled
-        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_cols")))
+        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_columns")))
         stopifnot(sum(has_labels) > 0L) # would be a problem
 
         # subset img_slice to only labeled layers
@@ -49,13 +49,13 @@ ggbrain_slices <- R6::R6Class(
       layer_names <- names(img_slice[[1L]])
 
       img_data <- lapply(seq_len(nlayers), function(ll) {
-        label_cols <- attr(img_slice[[1L]][[ll]], "label_cols")
+        label_columns <- attr(img_slice[[1L]][[ll]], "label_columns")
         ll_df <- lapply(img_slice, "[[", ll) %>%
           data.table::rbindlist(idcol="slice_index")
 
         # if label columns are present, gather them into a single key-value pair
-        if (!is.null(label_cols)) {
-          ll_df <- data.table::melt(ll_df, measure.vars=label_cols, variable.name=".label_col", value.name=".label_val")
+        if (!is.null(label_columns)) {
+          ll_df <- data.table::melt(ll_df, measure.vars=label_columns, variable.name=".label_col", value.name=".label_val")
         }
 
         ll_df[, layer := layer_names[ll]]
@@ -289,16 +289,40 @@ ggbrain_slices <- R6::R6Class(
     #' @description returns a data.frame with the unique values for each label layer, across all
     #'   constituent slices
     #' @param slice_indices an optional integer vector of slice indices to be used as a subset in the calculation
-    get_uvals = function(slice_indices = NULL) {
+    #' @param add_labels an optional named list indicating the label columns to add to a given layer. The names
+    #'   of the list specify the layer to which labels are added and the values should be character vectors
+    #'   specifying the names of columns that serve as labels for the layer. These are always *added* to any
+    #'   existing label columns for the layer.
+    #' @details
+    #'   \code{add_labels} is provided here for any categorical columns that were specified inline in the
+    #'   layer definition using factor or as.factor, such as aes(fill=factor(value)). Otherwise, it's best
+    #'   to input data with labels in the first place so that labels are described in the data structure itself.
+    get_uvals = function(slice_indices = NULL, add_labels = NULL) {
+      # handle late-breaking labels (coming through geom_ layer aes specification)
+      if (!is.null(add_labels)) {
+        checkmate::assert_list(add_labels, names = "unique")
+        checkmate::assert_subset(names(add_labels), private$pvt_layer_names)
+        for (ii in seq_along(private$pvt_slice_data)) {
+          for (jj in seq_along(add_labels)) {
+            lname <- names(add_labels)[jj]
+            # verify that label columns exist
+            stopifnot(all(add_labels[[jj]] %in% names(private$pvt_slice_data[[ii]][[lname]])))
+
+            attr(private$pvt_slice_data[[ii]][[lname]], "label_columns") <- 
+              union(attr(private$pvt_slice_data[[ii]][[lname]], "label_columns"), add_labels[[jj]])
+          }
+        }
+      }
+
       # examine first slice to see if any layers have labels (reasonably assumes all slices have same layers)
-      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_cols")))
+      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_columns")))
       if (!any(has_labels)) {
         return(data.frame()) # return empty data.frame
       } else {
         img_data <- private$get_combined_data(slice_indices, only_labeled = TRUE)
         img_uvals <- img_data %>%
-          group_by(layer, .label_col) %>%
-          dplyr::summarize(uvals = unique(.label_val), .groups = "drop") %>%
+          dplyr::group_by(layer, .label_col) %>%
+          dplyr::reframe(uvals = sort(unique(.label_val))) %>%
           na.omit()
       }
 

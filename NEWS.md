@@ -1,11 +1,13 @@
 # ggbrain 0.8.2 (DEVELOPMENT)
 
+* feature: Support use of inline factor() specification in aes() for a `geom_outline` or `geom_brain` layer
 * feature: If layer definition uses := syntax, use the lefthand side as the layer name when no name is provided
 * bugfix: Allow for quantile "q" specifications for label position that can be 1-100 (percentile) or 0-1 (quantile)
 * bugfix: Do not throw error when contrast specification includes equals sign (logical tests)
 * bugfix: Only use := syntax for naming contrasts. For compound contrast expressions, use <value> = <expr>; <value2> = <expr2>
 * bugfix: Pass through label_cols as attribute from inline contrast definitions of the form <value> = <expr>
 * bugfix: Handle fixed fill in ggbrain_layers when alpha < 1
+* bugfix: retain the order of ordered factors in labels when `unify_scales = TRUE`
 
 # ggbrain 0.8.1 (21Mar2023)
 

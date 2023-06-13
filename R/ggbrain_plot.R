@@ -278,10 +278,21 @@ ggbrain_plot <- R6::R6Class(
       # get a list of the same length as the slice data that contains annotations for each slice
       all_annotations <- private$compiled_annotations()
 
+      # handle inline specification of categorical fill layers by passing through additional labels columns to get_uvals
+      f_cat <- sapply(layers, "[[", "categorical_fill")
+      if (any(f_cat)) {
+        ll <- list()
+        f_cols <- sapply(layers, "[[", "fill_column")
+        f_src <- sapply(layers, "[[", "source")
+        for (pos in which(f_cat)) ll[[f_src[pos]]] <- unname(f_cols[pos])
+      } else {
+        ll <- NULL
+      }
+
       # lookup ranges of each layer and unique values of labels
       img_ranges <- private$pvt_slices$get_ranges(slice_indices)
-      img_uvals <- private$pvt_slices$get_uvals(slice_indices)
-
+      img_uvals <- private$pvt_slices$get_uvals(slice_indices, add_labels = ll)
+      
       # generate a list of panel objects that combine layers and slice data
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
         # match slice data with layers
@@ -291,19 +302,27 @@ ggbrain_plot <- R6::R6Class(
         # list of layers
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
-          df <- comb_data[[j]]
-          l_obj$data <- df # set slice-specific data (this will also set properties such as whether fill layer is categorical)
+          l_obj$data <- comb_data[[j]] # set slice-specific data (this will also set properties such as whether fill layer is categorical)
+          if (isTRUE(l_obj$categorical_fill)) l_obj$fill_scale$na.translate <- FALSE # don't park "NA" in legend for empty tiles
 
           if (isTRUE(l_obj$unify_scales)) {
             if (isTRUE(l_obj$categorical_fill)) {
               f_col <- l_obj$fill_column
+
               # unify factor levels across slices
               f_levels <- img_uvals %>%
                 dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
                 dplyr::pull(uvals)
-              l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)
+
+              # For now, don't attempt to unify ordered types since this will mangle the order. 
+              # This should work as expected because levels are preserved for labeled data.
+              # I think this may only be essential for inline factor coding in aes and that it may only be a problem because we factor() the
+              # label column in $validate_layer(), rather than setting the factor at the overall image level prior to slicing.
+              if (!is.ordered(l_obj$data[[f_col]])) {
+                l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)                
+              }
+
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
-              l_obj$fill_scale$na.translate <- FALSE
             } else {
               if (isTRUE(l_obj$bisided)) {
                 pos_lims <- img_ranges %>%
@@ -329,7 +348,7 @@ ggbrain_plot <- R6::R6Class(
 
           return(l_obj)
         })
-        
+
         if (!is.null(private$pvt_region_labels)) {
           slc_labels <- lapply(private$pvt_region_labels, function(ll) {
             ll$data <- slice_df$slice_labels[[i]][[ll$image]]

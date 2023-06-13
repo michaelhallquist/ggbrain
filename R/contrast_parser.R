@@ -50,9 +50,9 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
       comb_df$value[cc$df$value == TRUE] <- cc$num
       comb_df$label[cc$df$value == TRUE] <- as.character(cc$val)
     }
-    
+
     # need to tag label columns for this to be picked up downstream in ggbrain_slices$get_uvals (get unique values)
-    attr(comb_df, "label_cols") <- "label"
+    attr(comb_df, "label_columns") <- "label"
 
     return(comb_df)
 
