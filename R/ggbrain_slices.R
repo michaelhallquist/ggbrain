@@ -220,10 +220,12 @@ ggbrain_slices <- R6::R6Class(
 
           # if user passes a simple subset operation, keep all other columns from original image in contrast
           # this helps preserve labels when we use a subsetting operation
+          # merge on value as well so that we only add labels for subset values retained in the contrast
           if (!is.null(attr(df, "img_source"))) {
             src_df <- private$pvt_slice_data[[ww]][[attr(df, "img_source")]] %>% dplyr::select(-image)
             df <- df %>%
               dplyr::left_join(src_df, by = c("dim1", "dim2", "value"))
+            attr(df, "label_columns") <- attr(src_df, "label_columns") # copy through label columns for subset contrast
           }
 
           return(df)

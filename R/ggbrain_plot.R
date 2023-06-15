@@ -314,12 +314,12 @@ ggbrain_plot <- R6::R6Class(
                 dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
                 dplyr::pull(uvals)
 
-              # For now, don't attempt to unify ordered types since this will mangle the order. 
+              # For now, don't attempt to unify ordered types since this will mangle the order.
               # This should work as expected because levels are preserved for labeled data.
               # I think this may only be essential for inline factor coding in aes and that it may only be a problem because we factor() the
               # label column in $validate_layer(), rather than setting the factor at the overall image level prior to slicing.
               if (!is.ordered(l_obj$data[[f_col]])) {
-                l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)                
+                l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)
               }
 
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
