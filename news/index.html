@@ -58,10 +58,11 @@
 <li>bugfix: Allow for quantile “q” specifications for label position that can be 1-100 (percentile) or 0-1 (quantile)</li>
 <li>bugfix: Do not throw error when contrast specification includes equals sign (logical tests)</li>
 <li>bugfix: Only use := syntax for naming contrasts. For compound contrast expressions, use <value> = <expr>; <value2> = <expr2></expr2></value2></expr></value></li>
-<li>bugfix: Pass through label_cols as attribute from inline contrast definitions of the form <value> = <expr></expr></value></li>
+<li>bugfix: Pass through label_columns as attribute from inline contrast definitions of the form <value> = <expr></expr></value></li>
 <li>bugfix: Handle fixed fill in ggbrain_layers when alpha &lt; 1</li>
 <li>bugfix: retain the order of ordered factors in labels when <code>unify_scales = TRUE</code>
 </li>
+<li>bugfix: copy through label columns for simple subset contrasts</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8.1" id="ggbrain-081-21mar2023">ggbrain 0.8.1 (21Mar2023)<a class="anchor" aria-label="anchor" href="#ggbrain-081-21mar2023"></a></h2><p class="text-muted">CRAN release: 2023-03-21</p>
