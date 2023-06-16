@@ -60,6 +60,38 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
     #c_df <- Reduce(function(x, y) inner_join(x, y, by = c("dim1", "dim2")), c_list)
   }
 
+  # Disambiguate image names from columns/attributes
+  # The user is allowed to omit .value from any image name in a contrast. We add that here.
+  # If, however, the attribute names and image names collide, the contrast is ambiguous.
+  # For example, if we have underlay.atlas as a label column for underlay and atlas as an image, too,
+  # then we would have a contrast underlay[atlas == "hello"] is ambiguous. Is it underlay.atlas or atlas.value?
+  # Here, I add .value to any ambiguous name as a predictable fill-in behavior.
+
+  img_names <- attr(data, "image")
+  attribute_expr <- paste0("^(", paste(img_names, collapse="|"), ").*$")
+  attribute_cols <- grep(attribute_expr, names(data), value=TRUE)
+  # attribute_names <- unique(sapply(strsplit(attribute_cols, ".", fixed=TRUE), "[[", 2))
+
+  expr_vars <- all.vars(as.formula(paste("~", expr)))
+  nodot <- grep("\\w+\\.\\w+", expr_vars, invert = TRUE)
+  # touch up any columns that don't use a <image>.<attribute> with .value
+  if (length(nodot) > 0L) {
+    for (ee in nodot) {
+      # use word boundaries to avoid partial replacement, use negative lookahead/lookbehind to avoid word boundaries defined by .
+      expr <- gsub(paste0("\\b(?<!\\.)", expr_vars[ee], "\\b(?!\\.)"), paste(expr_vars[ee], "value", sep="."), expr, perl = TRUE)
+      expr_vars[ee] <- paste(expr_vars[ee], "value", sep=".")
+    }
+  }
+
+  # now check that we have everything expected
+  has_var <- expr_vars %in% names(data)
+  if (any(!has_var)) {
+    bad_cols <- expr_vars[!has_var]
+    stop(paste0("Contrast contains variable(s) that cannot be found in the data: ", paste(bad_cols, collapse=", "),
+                ". Options are: ", paste(attribute_cols, collapse=", ")
+    ))
+  }
+
   open_brack <- gregexpr("[", expr, fixed=TRUE)[[1]]
   close_brack <- gregexpr("]", expr, fixed=TRUE)[[1]]
   if (open_brack[1] == -1L) open_brack <- numeric(0) # necessary since no match returns -1
@@ -76,7 +108,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   if (nrow(brack_df) == 0L) {
     # no usage of brackets -- life is easy
     nobrack_expr <- expr
-    img_vars <- all.vars(as.formula(paste("~", expr)))
+    img_vars <- expr_vars
     brack_vars <- NULL
     subset_vars <- NULL
     simple_subset <- FALSE
@@ -175,7 +207,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
 
   out_df <- data.frame(data[, c("dim1", "dim2")], value = out_var)
   if (isTRUE(simple_subset)) {
-    attr(out_df, "img_source") <- img_vars
+    attr(out_df, "img_source") <- strsplit(img_vars, ".", fixed = TRUE)[[1L]][1L] # image name is pre-dot
   }
 
   return(out_df)

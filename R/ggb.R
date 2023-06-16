@@ -216,7 +216,11 @@ ggb <- R6::R6Class(
       }
 
       sapply(label_args, function(x) checkmate::assert_data_frame(x) )
-      sapply(label_args, function(x) checkmate::assert_subset(c("value"), names(x)))
+      sapply(label_args, function(x) {
+        if (!checkmate::test_subset(c("value"), names(x))) {
+          stop("Labels data.frame must contain a 'value' column corresponding to the numeric image values to be labeled")
+        }
+      })
 
       self$ggb_image_labels <- c(self$ggb_image_labels, label_args)
       return(self)

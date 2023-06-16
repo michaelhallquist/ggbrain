@@ -1,5 +1,6 @@
 # ggbrain 0.8.2 (DEVELOPMENT)
 
+* feature: Support use of label columns in contrast specification
 * feature: Support use of inline factor() specification in aes() for a `geom_outline` or `geom_brain` layer
 * feature: If layer definition uses := syntax, use the lefthand side as the layer name when no name is provided
 * bugfix: Allow for quantile "q" specifications for label position that can be 1-100 (percentile) or 0-1 (quantile)

@@ -474,9 +474,10 @@ scale_fill_bisided <- function(
 
 # internal function to split <name> := <value> contrast syntax into list
 contrast_split <- function(x, no_name="") {
-  if (grepl("^\\s*[\\w.]+\\s*:=.*$", x, perl = TRUE)) {
-    con_name <- sub("^\\s*([\\w.]+)\\s*:=.*$", "\\1", x, perl = TRUE) # parse name
-    con_val <- trimws(sub("^\\s*[\\w.]+\\s*:=\\s*(.*)$", "\\1", x, perl = TRUE)) # parse contrast
+  xsplit <- strsplit(x, ":=", fixed = TRUE)[[1L]]
+  if (length(xsplit) == 2L) {
+    con_name <- trimws(xsplit[1L])
+    con_val <- trimws(xsplit[2L])
   } else {
     con_name <- no_name
     con_val <- x

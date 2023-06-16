@@ -190,25 +190,32 @@ ggbrain_slices <- R6::R6Class(
 
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
-        ss <- slc_xx %>% dplyr::bind_rows()
+        # add image name as prefix to value and labeled columns to allow for cbind
+        slc_xx <- lapply(slc_xx, function(img_ii) {
+          img_name <- img_ii$image[1L]
+          nmr <- match(c("value", attr(img_ii, "label_columns")), names(img_ii))
+          new_names <- paste(img_name, names(img_ii)[nmr], sep=".")
+          names(img_ii)[nmr] <- new_names
+          img_ii <- img_ii[,c("dim1", "dim2", new_names)] # subset to only key columns
+          attr(img_ii, "image") <- img_name
+          return(img_ii)
+        })
 
-        # TODO: taking out support for contrasts that index on label columns to avoid complexity of multiple labels
-        # if ("label" %in% names(ss)) { # only pivot label if it is present
-        #   vcols <- c("value", "label")
-        # } else {
-        #   vcols <- c("value")
-        # }
+        # recursively column bind result, omitting redundant dim columnns from second data.frame
+        cbind_attr <- function(x1, x2) {
+          # x1 %>% dplyr::bind_cols(subset(x2, select=c(-dim1, -dim2))) # pretty, but slower
+          # x1 %>% dplyr::bind_cols(x2[, c(-1,-2)]) # faster, but riskier
+          y <- x1 %>% dplyr::bind_cols(x2[,-match(c("dim1", "dim2"), names(x2))])
+          attr(y, "image") <- c(attr(x1, "image"), attr(x2, "image")) # pass through image names for disambiguating columns
+          return(y)
+        }
 
-        vcols <- c("value")
-        ss <- ss %>%
-          tidyr::pivot_wider(
-            id_cols = c(dim1, dim2),
-            names_from = "image",
-            names_glue = "{image}_{.value}",
-            values_from = all_of(vcols)
-          )
+        ss <- Reduce(cbind_attr, slc_xx)
 
-        names(ss) <- sub("_value$", "", names(ss)) # remove _value suffix to make evaluation of contrasts easier
+        # safer to inner join instead of cbind, but this is unnecessary compute given that they all pass through mat2df
+        # about 8x slower than bind_cols
+        # c_df <- Reduce(function(x, y) inner_join(x, y, by = c("dim1", "dim2")), ff)
+
         return(ss)
       })
 
@@ -310,7 +317,7 @@ ggbrain_slices <- R6::R6Class(
             # verify that label columns exist
             stopifnot(all(add_labels[[jj]] %in% names(private$pvt_slice_data[[ii]][[lname]])))
 
-            attr(private$pvt_slice_data[[ii]][[lname]], "label_columns") <- 
+            attr(private$pvt_slice_data[[ii]][[lname]], "label_columns") <-
               union(attr(private$pvt_slice_data[[ii]][[lname]], "label_columns"), add_labels[[jj]])
           }
         }
