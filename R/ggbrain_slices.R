@@ -205,7 +205,7 @@ ggbrain_slices <- R6::R6Class(
         cbind_attr <- function(x1, x2) {
           # x1 %>% dplyr::bind_cols(subset(x2, select=c(-dim1, -dim2))) # pretty, but slower
           # x1 %>% dplyr::bind_cols(x2[, c(-1,-2)]) # faster, but riskier
-          y <- x1 %>% dplyr::bind_cols(x2[,-match(c("dim1", "dim2"), names(x2))])
+          y <- x1 %>% dplyr::bind_cols(x2[,-match(c("dim1", "dim2"), names(x2)), drop=FALSE])
           attr(y, "image") <- c(attr(x1, "image"), attr(x2, "image")) # pass through image names for disambiguating columns
           return(y)
         }

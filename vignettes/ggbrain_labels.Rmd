@@ -196,3 +196,5 @@ gg_obj <- gg_base +
 
 plot(gg_obj)
 ```
+
+This admittedly a busy figure!
