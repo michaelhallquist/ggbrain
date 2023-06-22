@@ -302,18 +302,18 @@ geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale =
 #' @examples
 #'   # T1-weighted template
 #'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
-#' 
+#'
 #'   # signed reward prediction error map
 #'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
-#'   
+#'
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1, overlay = signed_pe)) +
 #'     slices(c("x = 25%", "x = 75%")) +
 #'     geom_brain("underlay") +
 #'     geom_outline(definition="overlay[overlay > 2]", outline="cyan")
 #' @export
-geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline_scale = NULL, 
-      mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(), 
+geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline_scale = NULL,
+      mapping = ggplot2::aes(outline = NULL, fill=NULL), size = NULL, limits = NULL, breaks = integer_breaks(),
       show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = 1.0,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, dil_ero = 0L) {
 

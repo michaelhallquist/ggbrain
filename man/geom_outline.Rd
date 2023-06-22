@@ -83,7 +83,7 @@ created using the typical + scale_fill_* syntax, and similarly for scale limits.
 
   # signed reward prediction error map
   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
-  
+
   gg_obj <- ggbrain() +
     images(c(underlay = t1, overlay = signed_pe)) +
     slices(c("x = 25\%", "x = 75\%")) +

@@ -1,5 +1,5 @@
 #' R6 class for a single layer of a ggbrain panel
-#' @details 
+#' @details
 #'   Note that this class is exported only for power users and rarely needs to be called directly
 #'     in typical use of the package. Instead, look at geom_brain() and geom_outline().
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical

@@ -150,14 +150,14 @@ ggb <- R6::R6Class(
       if (any(!has_names)) {
         un <- contrasts[!has_names]
         un <- lapply(seq_along(un), function(i) {
-          if (!grepl("^\\s*[\\w.]+\\s*:=.*$", un[i], perl = TRUE)) {
+          if (!grepl("^\\s*[\\w.]+\\s*:=.*$", un[[i]], perl = TRUE)) {
             stop(glue::glue(
               "Contrasts must either use the named form c(nm='con def')",
               "or the := operator: 'nm := con def'.",
-              " Problem with '{un[i]}'"
+              " Problem with '{un[[i]]}'"
             ))
           } else {
-            return(contrast_split(un[i]))
+            return(contrast_split(un[[i]]))
           }
         })
 
