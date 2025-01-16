@@ -212,9 +212,7 @@ ggbrain_layer <- R6::R6Class(
 
         raster_args$data <- df
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = fill_expr, alpha = private$pvt_alpha_column)
-        # Based on weird ggplot2 + ggnewscale bug, only set show.legend when it is FALSE to avoid legend collisions
-        # https://github.com/eliocamp/ggnewscale/issues/32
-        if (isFALSE(private$pvt_show_legend)) raster_args$show.legend <- private$pvt_show_legend
+        raster_args$show.legend <- private$pvt_show_legend
       } else {
         # fixed fill layer -- always need to drop NAs from data because when fill is *set* (not mapped), any row in the
         # data.frame will be filled with the specified color.
@@ -226,8 +224,25 @@ ggbrain_layer <- R6::R6Class(
 
       robj <- do.call(geom_raster, raster_args)
       # robj <- do.call(geom_tile, raster_args) # for comparison re: warnings about uneven intervals
+      
       gg <- gg + robj + fill_scale
-
+      
+      # cleanup psychotic collision of 2 bugs: show.legend = TRUE is needed to show all levels of a factor
+      # and show.legend should be left unset for TRUE layers and set only for FALSE layers to eliminate some guides in ggnewscale
+      # Based on weird ggplot2 + ggnewscale bug, only set show.legend when it is FALSE to avoid legend collisions:
+      # https://github.com/eliocamp/ggnewscale/issues/32
+      # This conflicts with a different bug, where if we don't set show.legend to TRUE, then we get swiss cheese legends depending on
+      # what levels are present for a given slice/plot: https://github.com/tidyverse/ggplot2/issues/5996
+      
+      # use the show.legend property of the guides to decide which guides to suppress
+      # then use guides(<x>="none") to suppress any guides that have been inadvertently reintroduced by upstream bugs
+      show <- sapply(gg$layers, function(layer) layer$show.legend)
+      if (any(show==FALSE)) {
+        scale_names <- sapply(gg$scales$scales, function(x) x$aesthetics)
+        noshow <- scale_names[!show]
+        gg <- gg + do.call(guides, sapply(noshow, function(i) "none", USE.NAMES=TRUE, simplify = FALSE))
+      }
+      
       return(gg)
     },
 
@@ -402,7 +417,6 @@ ggbrain_layer <- R6::R6Class(
       # detect appropriate default scale
       if (private$pvt_definition == "underlay") {
         self$fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
-        self$show_legend <- FALSE # default to hiding underlay scale
       } else {
         has_pos <- any(private$pvt_data$value > 0, na.rm = TRUE)
         has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)

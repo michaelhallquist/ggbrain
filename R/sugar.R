@@ -216,7 +216,7 @@ define <- function(contrasts = NULL) {
 #'   to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.
 #' @param limits if provided, sets the upper and lower bounds on the scale
 #' @param breaks if provided, a function to draw the breaks on the fill scale
-#' @param show_legend if TRUE, show the fill scale in the plot legend
+#' @param show_legend if TRUE, show the fill scale in the plot legend. Default is TRUE, except when `name="underlay"``
 #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
 #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
 #' @param alpha a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1
@@ -249,6 +249,9 @@ define <- function(contrasts = NULL) {
 geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale = NULL, mapping = NULL,
       limits = NULL, breaks = NULL, show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = NULL,
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
+
+  # if this is the underlay layer and the user did not specify whether they want to show the legend, default to FALSE
+  if (!is.null(name) && is.character(name) && name == "underlay" && missing(show_legend)) show_legend <- FALSE
 
   arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
                   alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads)
