@@ -805,9 +805,10 @@ ggbrain_images <- R6::R6Class(
 
 )
 
-summary.ggbrain_images <- function(gg, args) {
-  gg$summary()
-}
+#' summary S3 method for ggbrain_images objects
+# summary.ggbrain_images <- function(gg, args) {
+#   gg$summary()
+# }
 
 
 #'addition operator for combining ggbrain_images objects

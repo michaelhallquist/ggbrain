@@ -156,9 +156,13 @@ ggbrain_panel <- R6::R6Class(
             }
           } else if (is.numeric(pos)) {
             if (grepl("^x", aes_name)) {
-              checkmate::assert_number(pos, lower = min(df$dim1, na.rm=TRUE), upper=max(df$dim1, na.rm=TRUE))
+              if (!checkmate::test_number(pos, lower = min(df$dim1, na.rm=TRUE), upper=max(df$dim1, na.rm=TRUE))) {
+                stop("If using a number, x coordinate must be between: ", min(df$dim1, na.rm = TRUE), " and ", max(df$dim1, na.rm = TRUE))
+              }
             } else {
-              checkmate::assert_number(pos, lower = min(df$dim2, na.rm = TRUE), upper = max(df$dim2, na.rm = TRUE))
+              if (!checkmate::test_number(pos, lower = min(df$dim2, na.rm=TRUE), upper=max(df$dim2, na.rm=TRUE))) {
+                stop("If using a number, y coordinate must be between: ", min(df$dim2, na.rm = TRUE), " and ", max(df$dim2, na.rm = TRUE))
+              }
             }
           } else {
             stop(glue::glue("Cannot figure out how to map position {pos}"))
@@ -168,7 +172,7 @@ ggbrain_panel <- R6::R6Class(
         })
       }
 
-      # pvt_annotations is a list. Each element should be a tibble reflecting an annotate_panels operation.
+      # pvt_annotations is a list. Each element should be a tibble reflecting an annotate_slices operation.
       # Each row of the tibble is an annotation to add to the plot
 
       # use do.call c to combine lower-level annotations (rows of annotation within a given type/operation)
@@ -277,10 +281,12 @@ ggbrain_panel <- R6::R6Class(
 
         # fill in defaults
         annotations <- lapply(annotations, function(aa) {
-          if (!rlang::has_name(aa, "x")) aa$x <- 0.5 # default center (annotation positions should really be setup by user)
-          if (!rlang::has_name(aa, "y")) aa$y <- 0.5
           if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text labels
-          if (!rlang::has_name(aa, "size")) aa$size <- (private$pvt_base_size * .7) / ggplot2::.pt # default size of annotations
+          if (aa$geom == "text") { # only add x, y, and size defaults for geom_text
+            if (!rlang::has_name(aa, "x")) aa$x <- 0.5 # default center (annotation positions should really be setup by user)
+            if (!rlang::has_name(aa, "y")) aa$y <- 0.5
+            if (!rlang::has_name(aa, "size")) aa$size <- (private$pvt_base_size * .7) / ggplot2::.pt # default size of annotations
+          }
           return(aa)
         })
 

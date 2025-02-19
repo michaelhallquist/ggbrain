@@ -2,7 +2,8 @@
 % Please edit documentation in R/ggbrain_images.R
 \name{+.ggbrain_images}
 \alias{+.ggbrain_images}
-\title{addition operator for combining ggbrain_images objects}
+\title{summary S3 method for ggbrain_images objects
+addition operator for combining ggbrain_images objects}
 \usage{
 \method{+}{ggbrain_images}(o1, o2)
 }
@@ -15,6 +16,7 @@
 combined ggbrain_images object
 }
 \description{
+summary S3 method for ggbrain_images objects
 addition operator for combining ggbrain_images objects
 }
 \details{

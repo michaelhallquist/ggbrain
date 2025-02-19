@@ -48,7 +48,7 @@ This version of the atlas contains 200 cortical parcels (in the paper, they show
 
 ```{r}
 schaefer_img <- readNifti(schaefer200_atlas_file)
-sort(unique(as.vector(schaefer_img)))
+length(unique(as.vector(schaefer_img)))
 ```
 
 At a basic level, we can visualize this image in the same way as continuous images, as described in the [ggbrain introduction](ggbrain_introduction.html) document.
@@ -226,7 +226,6 @@ dan_labels <- schaefer200_atlas_labels %>%
     )
   )
 
-## attempt recreation of old plot
 abspe_gg <- ggbrain(bg_color = "gray90", text_color = "black", 
                     base_size = 16, title = "Absolute reward prediction error\n(feedback phase)") +
   images(c(underlay = underlay_file, overlay=abspe_overlay_3mm)) +
@@ -235,13 +234,60 @@ abspe_gg <- ggbrain(bg_color = "gray90", text_color = "black",
   geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay", fill_scale = scale_fill_gradient("z", low="#006837", high="#d9f0a3"), 
              breaks = range_breaks()) +
-  geom_outline(definition = "atlas", mapping = aes(outline = dan_group), outline_scale = scale_fill_brewer("DAN", palette = "Dark2"), show_legend = TRUE, size=1) +
+  geom_outline(definition = "atlas", mapping = aes(outline = dan_group), 
+               outline_scale = scale_fill_brewer("DAN", palette = "Dark2"), show_legend = TRUE, size=2) +
+  annotate_coordinates(hjust = 1, color = "black", x = "right", y = "bottom")
   
-  annotate_coordinates(hjust = 1, color = "black", x = "right", y = "bottom") +
-  render() + plot_layout(guides = "collect", nrow = 1, ncol = 2)
-
-plot(abspe_gg)
+plot(abspe_gg) + plot_layout(nrow = 1, ncol = 2)
 
 ```
 
-# Adding labels
+# Adding annotations
+
+In addition to plotting categorical images, we often wish to annotate our plots with custom text in the margin or labels overlaid on certain areas. ggbrain provides the `annotate_slice` function, which allows you to add a custom annotation to one panel. This function attaches to `ggplot2::annotate` such that any of its settings apply to `annotate_slice` as well. Relative to typical annotations in ggplot2, with `ggbrain`, we must also provide x and y positions on the panel, as well the slice to which the annotation should be added.
+
+```{r}
+
+ann <- abspe_gg +
+  annotate_slice(x=20, y=20, slice_index=1, geom="text", label="slice1", color="gray40", size=11, hjust=0) +
+  annotate_slice(x=20, y=40, slice_index=2, geom="text", label="slice2", color="gray40", size=11, hjust=0)
+
+plot(ann)
+```
+
+If numbers are provided for the x and y positions, these specify that the annotation should be placed at those coordinates in the pixel/voxel matrix. This may not be especially intuitive since we often don't think about things in the matrix (aka "ijk" space) of the NIfTI. Here, our NIfTIs have dimensions: `r paste(dim(schaefer_img), collapse=", ")`.
+
+Alternatively, we can use the shorthand of "left" and "right" for x coordinates and "top" and "bottom" for y coordinates. The shorthand of "middle" also works in x and y.
+
+```{r}
+
+ann <- abspe_gg +
+  annotate_slice(x="left", y="top", slice_index=1, geom="text", label="slice1", color="gray40", size=11, hjust=0, vjust=1) +
+  annotate_slice(x="right", y="bottom", slice_index=2, geom="text", label="slice2", color="gray40", size=11, hjust=1, vjust=0)
+
+plot(ann)
+```
+
+Finally, we can use quantiles/percentiles along each axis to position things in relative space.
+
+```{r}
+ann <- abspe_gg +
+  annotate_slice(x="q30", y="q60", slice_index=1, geom="text", label="slice1", color="gray40", size=11, hjust=0, vjust=1) +
+  annotate_slice(x="q35", y="q70", slice_index=2, geom="text", label="slice2", color="gray40", size=11, hjust=0.5, vjust=0)
+
+plot(ann)
+
+```
+
+As with `annotate` in ggplot2, the `annotate_slice` function can also be used to add other geometric shapes such as rectangles or points. For example, we could highlight the occipital region here.
+
+```{r}
+ann <- abspe_gg +
+  annotate_slice(xmin="q0", xmax="q38", ymin="q25", ymax="q59", slice_index=1, geom="rect", 
+                 color="blue", fill="transparent", linewidth=1.5)
+plot(ann)
+
+```
+
+# Adding labels systematically
+

@@ -41,7 +41,7 @@ to the fill color of the squares at each spatial position. For labeled data, you
 
 \item{breaks}{if provided, a function to draw the breaks on the fill scale}
 
-\item{show_legend}{if TRUE, show the fill scale in the plot legend}
+\item{show_legend}{if TRUE, show the fill scale in the plot legend. Default is TRUE, except when `name="underlay"``}
 
 \item{interpolate}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
 
