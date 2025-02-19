@@ -75,12 +75,13 @@ Hallquist</h4>
 </h2>
 <p>Many visualizations of brain data rely on continuous-valued images
 containing intensities or statistics. For example, we might wish to
-visualize the <em>z</em>-statistics of a general linear model.</p>
+visualize the <em>z</em>-statistics of a general linear model. These are
+classic “statistical parametric maps.”</p>
 <p>Yet, many images contain integers whose values represent a priori
 regions of interest or clusters identified using familywise error
 correction methods. Brain atlases are a common example of integer-valued
-images. Here, we demonstrate the cortical parcellation developed by
-Schaefer and colleagues (2018).</p>
+images. Here, we demonstrate the visualization of a cortical
+parcellation developed by Schaefer and colleagues (2018).</p>
 <p>Schaefer, A., Kong, R., Gordon, E. M., Laumann, T. O., Zuo, X.-N.,
 Holmes, A. J., Eickhoff, S. B., &amp; Yeo, B. T. T. (2018). Local-global
 parcellation of the human cerebral cortex from intrinsic functional
@@ -108,7 +109,7 @@ continuous images, as described in ![ggbrain_introduction.html].</p>
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_file</span>, atlas <span class="op">=</span> <span class="va">schaefer200_atlas_file</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 30"</span>, <span class="st">"z=40"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span>, name<span class="op">=</span><span class="st">"Anatomical"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"atlas"</span>, name <span class="op">=</span> <span class="st">"Parcel number"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
@@ -458,9 +459,9 @@ are nested within networks, we might want to outline the networks with a
 certain color while having separate colors for regions.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"atlas"</span>, name <span class="op">=</span> <span class="st">"Yeo 7 Assignment"</span>, </span>
-<span>             mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>outline <span class="op">=</span> <span class="va">network</span><span class="op">)</span>, outline_scale <span class="op">=</span> <span class="fu">scale_fill_manual</span><span class="op">(</span>values<span class="op">=</span><span class="va">yeo7</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"DAN Region := atlas[atlas.network == 'DorsAttn']"</span>, mapping<span class="op">=</span><span class="fu">aes</span><span class="op">(</span>fill<span class="op">=</span><span class="va">CA_ML_18_MNI</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"atlas"</span>, name <span class="op">=</span> <span class="st">"Yeo 7 Assignment"</span>,</span>
+<span>               mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>outline <span class="op">=</span> <span class="va">network</span><span class="op">)</span>, outline_scale <span class="op">=</span> <span class="fu">scale_fill_manual</span><span class="op">(</span>values<span class="op">=</span><span class="va">yeo7</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"DAN Region := atlas[atlas.network == 'DorsAttn']"</span>, mapping<span class="op">=</span><span class="fu">aes</span><span class="op">(</span>fill<span class="op">=</span><span class="va">CA_ML_18_MNI</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: Removed 29398 rows containing missing values or values outside the scale range</span></span>
@@ -473,6 +474,10 @@ certain color while having separate colors for regions.</p>
 <span><span class="co">## (`geom_raster()`).</span></span></code></pre>
 <p><img src="ggbrain_labels_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>This admittedly a busy figure!</p>
+</div>
+<div class="section level2">
+<h2 id="adding-labels">Adding labels<a class="anchor" aria-label="anchor" href="#adding-labels"></a>
+</h2>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
