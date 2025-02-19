@@ -251,7 +251,7 @@ geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale =
       blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL) {
 
   # if this is the underlay layer and the user did not specify whether they want to show the legend, default to FALSE
-  if (!is.null(name) && is.character(name) && name == "underlay" && missing(show_legend)) show_legend <- FALSE
+  if (!is.null(definition) && is.character(definition) && definition == "underlay" && missing(show_legend)) show_legend <- FALSE
 
   arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
                   alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads)

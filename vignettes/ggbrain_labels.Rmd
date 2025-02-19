@@ -33,9 +33,9 @@ schaefer200_atlas_labels <- read.csv(system.file("extdata", "Schaefer_200_7netwo
 
 # Categorical images in ggbrain
 
-Many visualizations of brain data rely on continuous-valued images containing intensities or statistics. For example, we might wish to visualize the *z*-statistics of a general linear model.
+Many visualizations of brain data rely on continuous-valued images containing intensities or statistics. For example, we might wish to visualize the *z*-statistics of a general linear model. These are classic "statistical parametric maps."
 
-Yet, many images contain integers whose values represent a priori regions of interest or clusters identified using familywise error correction methods. Brain atlases are a common example of integer-valued images. Here, we demonstrate the cortical parcellation developed by Schaefer and colleagues (2018).
+Yet, many images contain integers whose values represent a priori regions of interest or clusters identified using familywise error correction methods. Brain atlases are a common example of integer-valued images. Here, we demonstrate the visualization of a cortical parcellation developed by Schaefer and colleagues (2018).
 
 Schaefer, A., Kong, R., Gordon, E. M., Laumann, T. O., Zuo, X.-N., Holmes, A. J., Eickhoff, S. B., & Yeo, B. T. T. (2018). Local-global parcellation of the human cerebral cortex from intrinsic functional connectivity MRI. *Cerebral Cortex, 28*, 3095-3114.
 
@@ -52,7 +52,7 @@ At a basic level, we can visualize this image in the same way as continuous imag
 gg_obj <- ggbrain() +
   images(c(underlay = underlay_file, atlas = schaefer200_atlas_file)) +
   slices(c("z = 30", "z=40")) +
-  geom_brain(definition = "underlay") +
+  geom_brain(definition = "underlay", show_legend = TRUE, name="Anatomical") +
   geom_brain(definition = "atlas", name = "Parcel number")
 
 plot(gg_obj)
@@ -190,11 +190,14 @@ It may be useful to map some labels to the fill of an area and to draw outlines 
 ```{r}
 
 gg_obj <- gg_base +
-  geom_outline(definition = "atlas", name = "Yeo 7 Assignment", 
-             mapping = aes(outline = network), outline_scale = scale_fill_manual(values=yeo7)) +
-  geom_brain(definition = "DAN Region := atlas[atlas.network == 'DorsAttn']", mapping=aes(fill=CA_ML_18_MNI))
+  geom_outline(definition = "atlas", name = "Yeo 7 Assignment",
+               mapping = aes(outline = network), outline_scale = scale_fill_manual(values=yeo7), show_legend = TRUE) +
+  geom_brain(definition = "DAN Region := atlas[atlas.network == 'DorsAttn']", mapping=aes(fill=CA_ML_18_MNI), show_legend = TRUE)
 
 plot(gg_obj)
+
 ```
 
 This admittedly a busy figure!
+
+# Adding labels

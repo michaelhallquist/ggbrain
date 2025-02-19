@@ -212,14 +212,14 @@ ggbrain_layer <- R6::R6Class(
 
         raster_args$data <- df
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = fill_expr, alpha = private$pvt_alpha_column)
-        raster_args$show.legend <- private$pvt_show_legend
+        raster_args$show.legend <- c(fill = private$pvt_show_legend, suppress_garbage = NA) # random fix to not blacken lower layers
       } else {
         # fixed fill layer -- always need to drop NAs from data because when fill is *set* (not mapped), any row in the
         # data.frame will be filled with the specified color.
         raster_args$data <- subset(df, !is.na(value))
         raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
         raster_args$fill <- private$pvt_fill
-        raster_args$show.legend <- FALSE
+        raster_args$show.legend <- c(fill=FALSE)
       }
 
       robj <- do.call(geom_raster, raster_args)
@@ -233,10 +233,14 @@ ggbrain_layer <- R6::R6Class(
       # https://github.com/eliocamp/ggnewscale/issues/32
       # This conflicts with a different bug, where if we don't set show.legend to TRUE, then we get swiss cheese legends depending on
       # what levels are present for a given slice/plot: https://github.com/tidyverse/ggplot2/issues/5996
-      
+      #
+      # Feb 2025: This is even wilder than anticipated: https://stackoverflow.com/questions/79410493/getting-multiple-fill-with-categorical-data-to-display-using-ggplot2-3-5-0
+      # The predictable solution (for now) is to use guides(<x>="none"), as below, mixed with a named show.legend argument to geom_*, including
+      # an irrelevant fill_made_up=NA.
+
       # use the show.legend property of the guides to decide which guides to suppress
       # then use guides(<x>="none") to suppress any guides that have been inadvertently reintroduced by upstream bugs
-      show <- sapply(gg$layers, function(layer) layer$show.legend)
+      show <- sapply(gg$layers, function(layer) layer$show.legend["fill"])
       if (any(show==FALSE)) {
         scale_names <- sapply(gg$scales$scales, function(x) x$aesthetics)
         noshow <- scale_names[!show]
