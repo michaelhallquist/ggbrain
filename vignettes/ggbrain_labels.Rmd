@@ -22,13 +22,18 @@ library(RNifti)
 library(dplyr)
 
 # MNI 2009c anatomical underlay
-underlay_file <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+underlay_file <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
 # Schaefer 200-parcel atlas of cortex
-schaefer200_atlas_file <- system.file("extdata", "Schaefer_200_7networks_2009c_3mm.nii.gz", package = "ggbrain")
+schaefer200_atlas_file <- system.file("extdata", "Schaefer_200_7networks_2009c_2mm.nii.gz", package = "ggbrain")
 
 # Automated labels of 200 parcels
 schaefer200_atlas_labels <- read.csv(system.file("extdata", "Schaefer_200_7networks_labels.csv", package = "ggbrain"))
+
+# Parametric modulator: absolute reward prediction error following feedback in learning task
+# thresholded to be whole-brain significant at FWE p < .05 using pTFCE
+abspe_overlay_3mm <- system.file("extdata", "abspe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
+
 ```
 
 # Categorical images in ggbrain
@@ -46,7 +51,7 @@ schaefer_img <- readNifti(schaefer200_atlas_file)
 sort(unique(as.vector(schaefer_img)))
 ```
 
-At a basic level, we can visualize this image in the same way as continuous images, as described in ![ggbrain_introduction.html].
+At a basic level, we can visualize this image in the same way as continuous images, as described in the [ggbrain introduction](ggbrain_introduction.html) document.
 
 ```{r}
 gg_obj <- ggbrain() +
@@ -185,19 +190,58 @@ plot(gg_obj)
 
 # Combining filled areas with outlines
 
-It may be useful to map some labels to the fill of an area and to draw outlines around areas using another label. For example, if regions are nested within networks, we might want to outline the networks with a certain color while having separate colors for regions.
+It may be useful to map some labels to the fill of an area and to draw outlines around areas using another label. For example, if regions are nested within networks, we might want to outline the networks with a certain color while having separate colors for regions. This can be achieved by adding a `geom_outline` layer for networks alongside a `geom_brain` layer for regions.
 
 ```{r}
 
 gg_obj <- gg_base +
+  geom_brain(definition = "DAN Region := atlas[atlas.network == 'DorsAttn']", 
+             mapping=aes(fill=CA_ML_18_MNI), show_legend = TRUE) +
+
   geom_outline(definition = "atlas", name = "Yeo 7 Assignment",
-               mapping = aes(outline = network), outline_scale = scale_fill_manual(values=yeo7), show_legend = TRUE) +
-  geom_brain(definition = "DAN Region := atlas[atlas.network == 'DorsAttn']", mapping=aes(fill=CA_ML_18_MNI), show_legend = TRUE)
+               mapping = aes(outline = network), 
+               outline_scale = scale_fill_manual(values=yeo7), show_legend = TRUE)
+  
 
 plot(gg_obj)
 
 ```
 
-This admittedly a busy figure!
+This admittedly a busy figure! But you get the idea of how to combine outlines and fills for these categorical images.
+
+# Combining quantitative layers with labels
+
+Another common use of atlases (and other categorical images) is to contextualize a pattern of activity from a voxelwise analysis in terms of its overlap with atlas parcels/regions. This can be achieved by combining a quantitative layer in ggbrain with a categorical one. Here, we plot the pattern of activity associated with absolute prediction errors from a study of reinforcement learning and overlay major regions of the Dorsal Attention Network, namely posterior parietal cortex (PPC), premotor (including frontal eye fields), and middle temporal visual area (MT+).
+
+```{r dan_overlay}
+
+# first, divide relevant DAN parcels into groups
+dan_labels <- schaefer200_atlas_labels %>%
+  filter(network=="DorsAttn") %>%
+  mutate(
+    dan_group=case_when(
+      value %in% c(31, 32, 135, 136) ~ "MT+",
+      value %in% c(33:40, 137:144) ~ "PPC",
+      value %in% c(41:43, 145:147) ~ "Premotor"
+    )
+  )
+
+## attempt recreation of old plot
+abspe_gg <- ggbrain(bg_color = "gray90", text_color = "black", 
+                    base_size = 16, title = "Absolute reward prediction error\n(feedback phase)") +
+  images(c(underlay = underlay_file, overlay=abspe_overlay_3mm)) +
+  images(c(atlas = schaefer200_atlas_file), labels=dan_labels) +
+  slices(c("x = -42", "z = 49")) +
+  geom_brain(definition = "underlay") +
+  geom_brain(definition = "overlay", fill_scale = scale_fill_gradient("z", low="#006837", high="#d9f0a3"), 
+             breaks = range_breaks()) +
+  geom_outline(definition = "atlas", mapping = aes(outline = dan_group), outline_scale = scale_fill_brewer("DAN", palette = "Dark2"), show_legend = TRUE, size=1) +
+  
+  annotate_coordinates(hjust = 1, color = "black", x = "right", y = "bottom") +
+  render() + plot_layout(guides = "collect", nrow = 1, ncol = 2)
+
+plot(abspe_gg)
+
+```
 
 # Adding labels

@@ -13,8 +13,10 @@ output:
   rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Introduction to ggbrain}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -24,25 +26,25 @@ library(ggplot2)
 library(patchwork)
 
 # MNI 2009c anatomical underlay
-underlay_3mm <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+underlay_2mm <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
 # onset of decision phase for learning task
-decision_onset_3mm <- system.file("extdata", "decision_onset_zstat_3mm.nii.gz", package = "ggbrain")
+decision_onset_2mm <- system.file("extdata", "clock_onset_2mm.nii.gz", package = "ggbrain")
 
 # Parametric modulator: entropy change following feedback in learning task
-echange_overlay_3mm <- system.file("extdata", "echange_overall_zstat_3mm.nii.gz", package = "ggbrain")
+echange_overlay_2mm <- system.file("extdata", "echange_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
 # Parametric modulator: signed reward prediction error following feedback in learning task
 # thresholded to be whole-brain significant at FWE p < .05 using pTFCE
-pe_overlay_3mm <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+pe_overlay_2mm <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
 # Parametric modulator: absolute reward prediction error following feedback in learning task
 # thresholded to be whole-brain significant at FWE p < .05 using pTFCE
-abspe_overlay_3mm <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+abspe_overlay_2mm <- system.file("extdata", "abspe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
 ```
 
-This vignette provides an overview of basic usage of the `ggbrain` package. The package seeks to generate 2D volumetric plots of brain data stored in the NIfTI format. Additional details about the structure of NIfTI data are here: https://neuroconductor.org/tutorials/nifti_basics. The `ggbrain` package uses `ggplot2` to generate its plots, allowing users to access the wide array of popular features in `ggplot2`, including annotations and fine control over coloration and themes.
+This vignette provides an overview of basic usage of the `ggbrain` package. The package seeks to generate 2D volumetric plots of brain data stored in the NIfTI format. Additional details about the structure of NIfTI data are here: <https://neuroconductor.org/tutorials/nifti_basics>. The `ggbrain` package uses `ggplot2` to generate its plots, allowing users to access the wide array of popular features in `ggplot2`, including annotations and fine control over coloration and themes.
 
 Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github.io/ggBrain-debut.html) package developed by Aaron Fisher in 2014. I had developed most of the current `ggbrain` package and had named it prior to discovering Aaron's work. The earlier `ggBrain` package was also not released publicly to CRAN and has not been updated much over the years, whereas `ggbrain` is hosted on CRAN and also offers a wider array of functionality.
 
@@ -51,7 +53,7 @@ Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github
 The package includes a few images that can be used for demonstrating its capabilities. The locations of the images on your machine are listed below.
 
 ```{r}
-print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, pe_overlay_3mm, abspe_overlay_3mm))
+print(c(underlay_2mm, decision_onset_2mm, echange_overlay_2mm, pe_overlay_2mm, abspe_overlay_2mm))
 ```
 
 # Installing the package
@@ -84,7 +86,7 @@ plot(gg_obj)
 
 Consistent with the `ggplot2` approach, additional elements can be added using the `+` operator, as we elaborate below. The main thing to know at this point is that **you need to add all ggbrain-specific elements before adding typical ggplot components such as `theme()`**.
 
-Also note that the order of the addition operations for images and slices (`images` and `slices`, respectively) is not important. The example order below -- adding images, slices, layers, and labels -- is conceptually intuitive, but could be reordered without altering the plut. As in `ggplot2`, the order of all geom_* layers *does* matter, such that geom_* layers that are added later are rendered on top of layers added earlier. For example, the `geom_brain()` layer for an underlay image should be added before an overlay.
+Also note that the order of the addition operations for images and slices (`images` and `slices`, respectively) is not important. The example order below -- adding images, slices, layers, and labels -- is conceptually intuitive, but could be reordered without altering the plut. As in `ggplot2`, the order of all geom\_\* layers *does* matter, such that geom\_\* layers that are added later are rendered on top of layers added earlier. For example, the `geom_brain()` layer for an underlay image should be added before an overlay.
 
 ## Add images
 
@@ -92,14 +94,14 @@ A ggbrain plot must have at least one 3D image stored in NIfTI format. These ima
 
 The file names containing relevant images can be passed in as arguments to `ggbrain` or they can be appended using `images()` In either, it is important to provide a name for the image that is used internally to refer to the image in contrasts, labels, or other operations. If you do not provide a name, you will see a warning:
 
-```
+```         
 Warning message:
 In private$set_images(images, fill_holes, clean_specks) :
   The images vector does not contain any names. This may lead to weird behaviors downstream if 'underlay' and 'overlay' are requested.
 ```
 
 ```{r}
-gg_obj <- gg_obj + images(c(underlay = underlay_3mm))
+gg_obj <- gg_obj + images(c(underlay = underlay_2mm))
 ```
 
 Note that the image name of 'underlay' has a special meaning in the package. Specifically, using this name will set a default color scale that is grayscale and will not show the legend of this scale in the plot. You don't have to use 'underlay' but it can make things a bit simpler if you have a conventional plot that shows an anatomical scan underneath functional activations.
@@ -108,20 +110,20 @@ You can add many images at once by providing a named vector:
 
 ```{r}
 gg_obj <- ggbrain() + 
-  images(c(underlay = underlay_3mm, echange = echange_overlay_3mm))
+  images(c(underlay = underlay_2mm, echange = echange_overlay_2mm))
 ```
 
 Or you can add many images in independent `images` steps. Note that the order of addition is not important.
 
 ```{r}
 gg_obj <- ggbrain() +
-  images(c(underlay = underlay_3mm)) +
-  images(c(echange = echange_overlay_3mm))
+  images(c(underlay = underlay_2mm)) +
+  images(c(echange = echange_overlay_2mm))
 ```
 
 ## Add slices
 
-After adding images to the ggbrain object, the next step is to specify which slices should be displayed on the plot. This is achieved using the `slices()` function. Following standard neuroimaging terminology, we can add axial, sagittal, and coronal slices. 
+After adding images to the ggbrain object, the next step is to specify which slices should be displayed on the plot. This is achieved using the `slices()` function. Following standard neuroimaging terminology, we can add axial, sagittal, and coronal slices.
 
 The order of the addition operations, whether within a single `slices()` call or in a sequence of calls like `slices("x=12") + slices(c("y=15", "z=10"))`, determines the order of panels on the rendered plot from upper left to lower right (following the standard `facet_wrap()` conventions in ggplot2). Thus, consider the order in which you wish the panels to appear so that the slice additions follow this order.
 
@@ -132,10 +134,10 @@ The most conventional approach is add slices based on their spatial position alo
 You can add one or more slices using `slices()` by passing a character vector of positions.
 
 ```{r}
-gg_obj <- gg_obj + slices(c("x = 10", "y = 70", "z = 15"))
+gg_obj <- gg_obj + slices(c("x = 10", "y = 50", "z = 15"))
 ```
 
-This will add one sagittal slice (x=10), one coronal (y=70), and one axis (z=15).
+This will add one sagittal slice (x=10), one coronal (y=50), and one axis (z=15).
 
 ### Adding slices by quantile
 
@@ -149,14 +151,14 @@ gg_obj <- gg_obj + slices(c("x = 25%", "y = 50%", "z = 90%"))
 
 If you would like to alter specific aesthetic elements of the slices such as the panel title, border, or axis labels, these can be added as arguments to `slices()`. Aesthetic arguments that will alter the appearance of the relevant slices include:
 
-- `title`: The panel title
-- `bg_color`: The background color of the panel
-- `text_color`: The color of text on the panel
-- `border_color`: The color of a border around the panel
-- `border_size`: The size (thickness) of the border around the panel. Default is NULL (none).
-- `xlab`: The x axis label of the panel
-- `ylab`: The y axis label of the panel
-- `theme_custom`: A ggplot2 `theme()` (or list of theme calls) added to this panel that customizes its appearance.
+-   `title`: The panel title
+-   `bg_color`: The background color of the panel
+-   `text_color`: The color of text on the panel
+-   `border_color`: The color of a border around the panel
+-   `border_size`: The size (thickness) of the border around the panel. Default is NULL (none).
+-   `xlab`: The x axis label of the panel
+-   `ylab`: The y axis label of the panel
+-   `theme_custom`: A ggplot2 `theme()` (or list of theme calls) added to this panel that customizes its appearance.
 
 ```{r}
 gg_obj <- gg_obj +
@@ -168,14 +170,14 @@ gg_obj <- gg_obj +
 
 ### Adding montages
 
-If you would like a set of slices along one of the image planes to form a montage, you can use the `montage()` convenience function to specify the inputs to `slices()`. The arguments are 
+If you would like a set of slices along one of the image planes to form a montage, you can use the `montage()` convenience function to specify the inputs to `slices()`. The arguments are
 
-- `plane`: "sagittal", "coronal", or "axial" ("x", "y", and "z" also work)
-- `n`: the number of slices to render along this plane
-- `min`: the lowest quantile to be included (between 0 and 1). Default: 0.1
-- `max`: the highest quantile to be included (between 0 and 1). Default: 0.9
-- `min_coord`: the lowest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
-- `max_coord`: the highest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
+-   `plane`: "sagittal", "coronal", or "axial" ("x", "y", and "z" also work)
+-   `n`: the number of slices to render along this plane
+-   `min`: the lowest quantile to be included (between 0 and 1). Default: 0.1
+-   `max`: the highest quantile to be included (between 0 and 1). Default: 0.9
+-   `min_coord`: the lowest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
+-   `max_coord`: the highest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
 
 The code below adds 10 axial slices between the 10th and 90th percentiles.
 
@@ -197,20 +199,20 @@ As with standard `ggplot2` objects, the fill color of these pixels is determined
 
 Extending `geom_raster()`, the `geom_brain()` layer supports the following standards:
 
-- `interpolate`: if TRUE, `geom_raster` smooths the layer, rather than rendering discrete squares.
-- `alpha`: A number between 0 and 1 controlling the alpha transparency of the layer
-- `show_legend`: If TRUE (default), a legend mapping the numeric values to a color scale is included in the panel
-- `fill`: A color to be used to fill all non-NA pixels. In ggplot2 terms, this is 'setting' the color of all pixels, as opposed to 'mapping' the color to the numeric value via a scale.
-- `mapping`: The aesthetic mapping between the data and the raster layer. In general, the default of `aes(fill=value)` should be retained for parametric layers (i.e., where the color of pixels should map to a continuous scale). But as detailed in a subsequent section, the fill can mapped to label columns in a categorical image (e.g., atlas).
+-   `interpolate`: if TRUE, `geom_raster` smooths the layer, rather than rendering discrete squares.
+-   `alpha`: A number between 0 and 1 controlling the alpha transparency of the layer
+-   `show_legend`: If TRUE (default), a legend mapping the numeric values to a color scale is included in the panel
+-   `fill`: A color to be used to fill all non-NA pixels. In ggplot2 terms, this is 'setting' the color of all pixels, as opposed to 'mapping' the color to the numeric value via a scale.
+-   `mapping`: The aesthetic mapping between the data and the raster layer. In general, the default of `aes(fill=value)` should be retained for parametric layers (i.e., where the color of pixels should map to a continuous scale). But as detailed in a subsequent section, the fill can mapped to label columns in a categorical image (e.g., atlas).
 
 Relative to standard ggplot2 conventions, the use of `geom_brain()` requires that you specify details about the fill color scale when the layer is added. This results from the fact that `ggbrain` objects re-use the 'fill' geometry when layers are overlaid. For example, if you have an anatomical underlay with a grayscale fill and a statistical overlay with a color fill, each layer needs to have its own fill scale (with a `scale_fill_*` object). This is achieved internally using the `ggnewscale` package.
 
 The 'take-home message' is that you need to specify fill scale information as part of the `geom_brain()` call. Here are the key arguments:
 
-- `limits`: a two-element vector that if provided, sets the upper and lower bounds on the scale
-- `breaks`: a function to draw the breaks on the scale. The default is `integer_breaks()`, which draws a few integer-valued breaks (usually, 5) between the min and max of the scale.
-- `unify_scale`: if TRUE (default), the color scale across panels (slices) will be equated. If FALSE, each panel will apply the color scale independently such that the min and max are slice-dependent.
-- `fill_scale`: a `scale_fill_*` object use for mapping the numeric values in the data to the fill channel on the plot. Standard scales such as `scale_fill_viridis_c()` can be used for continuous layers. Note that the package also provides a `scale_fill_bisided()` option that, if added, creates separate color scales for the positive and negative pixels on the plot. This is a conventional approach in displays of fMRI activation maps where, for example, positive modulation is mapped to warm colors (reds) while negative modulation is mapped to cool colors (blues). Note that `scale_fill_bisided()` has arguments of `neg_scale` and `pos_scale` that allow the scales used for negative and positive values, respectively, to be specified directly.
+-   `limits`: a two-element vector that if provided, sets the upper and lower bounds on the scale
+-   `breaks`: a function to draw the breaks on the scale. The default is `integer_breaks()`, which draws a few integer-valued breaks (usually, 5) between the min and max of the scale.
+-   `unify_scale`: if TRUE (default), the color scale across panels (slices) will be equated. If FALSE, each panel will apply the color scale independently such that the min and max are slice-dependent.
+-   `fill_scale`: a `scale_fill_*` object use for mapping the numeric values in the data to the fill channel on the plot. Standard scales such as `scale_fill_viridis_c()` can be used for continuous layers. Note that the package also provides a `scale_fill_bisided()` option that, if added, creates separate color scales for the positive and negative pixels on the plot. This is a conventional approach in displays of fMRI activation maps where, for example, positive modulation is mapped to warm colors (reds) while negative modulation is mapped to cool colors (blues). Note that `scale_fill_bisided()` has arguments of `neg_scale` and `pos_scale` that allow the scales used for negative and positive values, respectively, to be specified directly.
 
 ### Defining an image layer
 
@@ -221,8 +223,8 @@ For example, here I want to render the underlay and overlay layers with their nu
 ```{r}
 # define a reusable object that has the same images and slices
 gg_base <- ggbrain(bg_color = "gray80", text_color = "black") +
-  images(c(underlay = underlay_3mm, overlay = echange_overlay_3mm)) +
-  slices(c("x = 10", "y = 70", "z = 15"))
+  images(c(underlay = underlay_2mm, overlay = echange_overlay_2mm)) +
+  slices(c("x = 10", "y = 50", "z = 15"))
 
 ```
 
@@ -282,7 +284,7 @@ These contrasts can either be defined inline within the `definition` field of `g
 
 ```{r, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
-  images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
+  images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
   define("diff := pe - abspe") +
   geom_brain(definition = "underlay") +
@@ -295,16 +297,16 @@ An equivalent plot would be achieved by including the definition inline:
 
 ```{r}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
-  images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
+  images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
   geom_brain(definition = "diff := pe - abspe", fill_scale = scale_fill_bisided(symmetric = FALSE), show_legend = TRUE)
 ```
 
-The advantage of `define()` is that you can re-use and modify contrasts in multiple layers. Here, we subset the difference to only voxels where the PE - abs(PE) contrast is strongly in favor of signed PEs (i.e., positive difference in the z-statistic > 3).
+The advantage of `define()` is that you can re-use and modify contrasts in multiple layers. Here, we subset the difference to only voxels where the PE - abs(PE) contrast is strongly in favor of signed PEs (i.e., positive difference in the z-statistic \> 3).
 
 ```{r, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
-  images(c(underlay = underlay_3mm, pe = pe_overlay_3mm, abspe = abspe_overlay_3mm)) +
+  images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
   define("diff := pe - abspe") +
   geom_brain(definition = "underlay") +
@@ -313,7 +315,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-## Add outlines 
+## Add outlines
 
 In addition to filling in regions with colors, brain plots often benefit from being able to outline, rather than fill, regions. This is accomplished using `geom_outline()`. This geometry finds the boundaries of distinct clusters in the image/contrast and traces the boundaries with a line of some thickness (controlled by `size`).
 
@@ -324,7 +326,7 @@ Here, we might wish to outline voxels whose z-statistics exceed $|z| > 3$ for th
 ```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
   geom_brain(definition = "underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size = 1, outline = "cyan")
 
@@ -333,7 +335,7 @@ plot(gg_obj)
 
 ## Converting to a ggplot object and displaying the plot
 
-For reasons that are somewhat boring (having to do with how R handles S3 operators like `+`), the brain-related addition steps for `ggbrain` object must come before generic `ggplot2` modifications of the plot. For your `ggbrain` object to be a `ggplot` object, it must be *rendered* using the `render()` function. This function compiles the images, layers, and slices into the requested plot and returns it as a `patchwork` object. The patchwork package is extremely useful for combining ggplot objects in different layouts. More details can be found here: https://patchwork.data-imaginist.com.
+For reasons that are somewhat boring (having to do with how R handles S3 operators like `+`), the brain-related addition steps for `ggbrain` object must come before generic `ggplot2` modifications of the plot. For your `ggbrain` object to be a `ggplot` object, it must be *rendered* using the `render()` function. This function compiles the images, layers, and slices into the requested plot and returns it as a `patchwork` object. The patchwork package is extremely useful for combining ggplot objects in different layouts. More details can be found here: <https://patchwork.data-imaginist.com>.
 
 In `ggbrain`, each panel is `ggplot` object and the panels are composited using `wrap_plots` in patchwork.
 
@@ -343,7 +345,7 @@ The key message here is: place ggbrain-specific additions *before* `render()` an
 # without a render step
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
@@ -352,7 +354,7 @@ class(gg_obj)
 # note the different class after render
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan") +
   render()
@@ -374,7 +376,7 @@ Note that you don't necessarily need to use `render()` at all. When you call `pl
 ```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_3mm, onset = decision_onset_3mm)) +
+  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
@@ -385,7 +387,7 @@ Another point is that by keeping your plots as `ggbrain` objects -- that is not 
 
 # Saving ggbrain plots to file
 
-After you see your brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use `ggsave()`  or the usual graphics device (e.g., `pdf`) and `dev.off()` approach from base R.
+After you see your brain plot on the screen, you may soon wish to have it as an image file for publications or presentation. As with standard ggplot objects, you can use `ggsave()` or the usual graphics device (e.g., `pdf`) and `dev.off()` approach from base R.
 
 Note that if you pass a `ggbrain` object directly to `ggsave`, it will complain that the plot is not a ggplot object. We can just pass a rendered version like so:
 
@@ -397,7 +399,7 @@ ggsave(filename=file.path(td, "my_brain_plot.pdf"), gg_obj$render(), width=15, h
 ```{r, warning=FALSE, message=FALSE}
 pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10)
 plot(gg_obj)
-dev.off()
+invisible(dev.off())
 ```
 
 At present, the overall size of the plot may be different from the size of the graphical output device. For example, if you specify a size such as 9 x 6 inches, but the plot has an aspect ratio closer to 1:1, you'll have a lot of 'white space' around the plot. Intuitively, the `bg_color` argument to the overall `ggbrain` call should capture this, but for boring technical reasons that are not directly related to `ggbrain`, it is not so simple. At present, to ensure that the entire background of your plot uses the same color as the `ggplot` object, add the `bg` argument to your output device, or use the `ggsave` command (as above), which automatically uses the background color of the plot to extend to the output device/file.
@@ -405,7 +407,7 @@ At present, the overall size of the plot may be different from the size of the g
 ```{r warning=FALSE, message=FALSE}
 pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10, bg="gray80")
 plot(gg_obj)
-dev.off()
+invisible(dev.off())
 ```
 
 Like with standard `ggplot`, one of the beautiful aspects of saving files in vector formats such as PDF is that you can open and edit the elements of the plot using vector editors like Adobe Illustrator or Inkscape!

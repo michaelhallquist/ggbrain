@@ -808,8 +808,8 @@ ggbrain_layer <- R6::R6Class(
           # if bisided has both positive and negative layers/data, we need to control color bar order
           if (isTRUE(private$pvt_show_legend) && has_df && has_pos_df) {
             # force color bar order: +1 is negative, +2 is positive. Lower orders are positioned lower on legend
-            ret$scales$scales[[n_scales + 1]]$guide <- guide_colorbar(order = n_scales + 2, available_aes = c("fill", "fill_new"))
-            ret$scales$scales[[n_scales + 2]]$guide <- guide_colorbar(order = n_scales + 1, available_aes = c("fill", "fill_new"))
+            ret$scales$scales[[n_scales + 1]]$guide <- guide_colorbar(order = n_scales + 2, available_aes = c("any")) #available_aes = c("fill", "fill_new"))
+            ret$scales$scales[[n_scales + 2]]$guide <- guide_colorbar(order = n_scales + 1, available_aes = c("any")) #available_aes = c("fill", "fill_new"))
           }
         }
       } else {
