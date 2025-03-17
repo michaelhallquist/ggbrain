@@ -112,10 +112,14 @@ ggbrain_label <- R6::R6Class(
         df <- df %>% dplyr::filter(n >= !!self$min_px)
       }
       
+      # for now, always na.rm=TRUE to remove warnings about missing labels
+      self$addl_args$na.rm <- TRUE
+      
       # return the modified ggplot object with the labels added
       base_gg +
         do.call(paste0("geom_", private$pvt_geom),
-                args = c(list(data = df, mapping = ggplot2::aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), self$addl_args)
+                args = c(list(data = df, mapping = ggplot2::aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), 
+                         self$addl_args)
         )
     }
   )

@@ -221,6 +221,8 @@ ggbrain_layer <- R6::R6Class(
         raster_args$fill <- private$pvt_fill
         raster_args$show.legend <- c(fill=FALSE)
       }
+      
+      raster_args$na.rm <- TRUE # suppress warnings about missing data
 
       robj <- do.call(geom_raster, raster_args)
       # robj <- do.call(geom_tile, raster_args) # for comparison re: warnings about uneven intervals
