@@ -31,10 +31,10 @@ downstream layers to further modify the contrast, such as when we compute a
   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
   # signed reward prediction error map
-  signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+  signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
   # unsigned (absolute value) prediction error map
-  abspe <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+  abspe <- system.file("extdata", "abspe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
   # simple example of a difference contrast, separating definition from usage in geom_brain
   gg_obj <- ggbrain() +

@@ -1,7 +1,7 @@
 ---
 title: "Introduction to ggbrain"
 author: "Michael Hallquist"
-date: "19 Oct 2022"
+date: "18 Mar 2025"
 output:
   html_document:
     code_folding: show
@@ -97,7 +97,8 @@ The file names containing relevant images can be passed in as arguments to `ggbr
 ```         
 Warning message:
 In private$set_images(images, fill_holes, clean_specks) :
-  The images vector does not contain any names. This may lead to weird behaviors downstream if 'underlay' and 'overlay' are requested.
+  The images vector does not contain any names. This may lead to weird behaviors downstream
+  if 'underlay' and 'overlay' are requested.
 ```
 
 ```{r}
@@ -237,7 +238,7 @@ gg_obj <- gg_base +
 Now that we have `geom_*` layers in our `ggbrain` object, we can finally plot our figure to see the result.
 
 ```{r, fig.width=8, fig.height=3.5}
-gg_obj$render()
+plot(gg_obj)
 ```
 
 ### Defining subset layers
@@ -371,19 +372,23 @@ gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 
 ```
 
-Note that you don't necessarily need to use `render()` at all. When you call `plot()` on a ggbrain object, the render happens automatically behind the scenes, allowing calls like:
+Note that you don't necessarily need to use `render()` at all. When you call `plot()` on a ggbrain object, the render happens automatically behind the scenes, as you've seen above. But if you want to modify the plot using ggplot or patchwork functions such as `plot_annotation` or `theme`, you need to first `render()` the plot so that the object is converted to a `patchwork`.
 
 ```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
-gg_obj <- ggbrain() +
+brain_plot <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
-plot(gg_obj) + plot_annotation(title = "Overall")
+# display the rendered plot with an overall title
+render(brain_plot) + plot_annotation(title = "Overall")
+
+# or you can also simply store the rendered plot into a separate object
+rendered_gg <- render(brain_plot) + plot_annotation(title = "Overall")
 ```
 
-Another point is that by keeping your plots as `ggbrain` objects -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them. Thus, you may wish to use the `plot(gg_obj) + [ggplot2 stuff here]` approach above so that the `ggbrain` object remains in its original form and can be modified prior to display.
+Another point is that by keeping your plots as `ggbrain` objects -- that is not adding `render()` -- you can continue to add brain-related calls like `geom_brain()` or `annotate_coordinates()` to them. Thus, you may wish to use the `render(brain_plot) + [ggplot2 stuff here]` approach above so that the `ggbrain` object remains in its original form and can be modified prior to display.
 
 # Saving ggbrain plots to file
 
@@ -393,12 +398,12 @@ Note that if you pass a `ggbrain` object directly to `ggsave`, it will complain 
 
 ```{r, warning=FALSE, message=FALSE}
 td <- tempdir()
-ggsave(filename=file.path(td, "my_brain_plot.pdf"), gg_obj$render(), width=15, height=10)
+ggsave(filename=file.path(td, "my_brain_plot.pdf"), render(brain_plot), width=15, height=10)
 ```
 
 ```{r, warning=FALSE, message=FALSE}
 pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10)
-plot(gg_obj)
+plot(brain_plot)
 invisible(dev.off())
 ```
 

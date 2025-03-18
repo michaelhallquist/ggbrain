@@ -314,16 +314,30 @@ ggb <- R6::R6Class(
   )
 )
 
-#' S3 method to allow for plot() syntax with ggbrain (ggb) objects
+#' S3 method to allow for plot(x) syntax with ggbrain (ggb) objects
 #' 
 #' @param x the \code{ggb} object to be plotted
 #' @param ... additional arguments passed to the plot method
+#' @details
+#'   This will plot the ggbrain object to the current graphics device
 #' @return NULL, invisibly
 #' @export
 plot.ggb <- function(x, ...) {
   p <- x$plot(...) # convert to ggbrain_patchwork object
   if (!is.null(p)) plot(p, ...) # pass through to ggbrain_patchwork plotting function (that handles background color)
   invisible(p) # return the ggbrain_patchwork object, for further modification -- matches ggplot2 approach
+}
+
+#' S3 method to allow for render(x) syntax with ggbrain (ggb) objects
+#' 
+#' @param x the \code{ggb} object to be rendered to a \code{ggbrain_patchwork} object
+#' @param ... additional arguments passed to the render method
+#' @return the ggbrain_patchwork object that can be handed off to patchwork and ggplot2
+#'   functions.
+#' @export
+render.ggb <- function(x, ...) {
+  p <- x$render(...)
+  invisible(p)
 }
 
 #' S3 method to allow for plot() syntax with rendered ggbrain patchwork objects

@@ -3,7 +3,7 @@
 #'   Note that this class is exported only for power users and rarely needs to be called directly
 #'     in typical use of the package. Instead, look at geom_brain() and geom_outline().
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
-#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string geom_raster
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string geom_raster guides
 #'   guide_colorbar
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
@@ -246,7 +246,7 @@ ggbrain_layer <- R6::R6Class(
       if (any(show==FALSE)) {
         scale_names <- sapply(gg$scales$scales, function(x) x$aesthetics)
         noshow <- scale_names[!show]
-        gg <- gg + do.call(guides, sapply(noshow, function(i) "none", USE.NAMES=TRUE, simplify = FALSE))
+        gg <- gg + do.call(ggplot2::guides, sapply(noshow, function(i) "none", USE.NAMES=TRUE, simplify = FALSE))
       }
       
       return(gg)

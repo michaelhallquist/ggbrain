@@ -159,10 +159,10 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL
 #'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # signed reward prediction error map
-#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # unsigned (absolute value) prediction error map
-#'   abspe <- system.file("extdata", "abspe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#'   abspe <- system.file("extdata", "abspe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # simple example of a difference contrast, separating definition from usage in geom_brain
 #'   gg_obj <- ggbrain() +
@@ -238,7 +238,7 @@ define <- function(contrasts = NULL) {
 #'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # signed reward prediction error map
-#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 #'
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1, overlay = signed_pe)) +
@@ -307,7 +307,7 @@ geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale =
 #'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # signed reward prediction error map
-#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
+#'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 #'
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1, overlay = signed_pe)) +
@@ -420,10 +420,43 @@ annotate_coordinates <- function(x="right", y="bottom", ...) {
 }
 
 #' Function to convert `ggb` object to ggplot/patchwork object
-#' @return a `ggb` object with the action 'render', used in a `ggbrain` addition chain
+#' @param x optional. A `ggb` object to be rendered into a `ggbrain_patchwork object`.
+#' @param ... additional arguments passed to the $render method of `x`.
+#' @return a `ggbrain_patchwork` object of the rendered ggbrain plot
+#' @details
+#'   If no `x` argument is passed in, this function can be used in a ggbrain addition chain to render a plot
+#'   to a ggplot-friendly object before additional ggplot or patchwork calls are added such as `theme()`.
+#'   
+#'   Or if `x` is passed in as an argument, return the rendered plot as a `ggbrain_patchwork` object.
+#' 
+#' @examples
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+#'   
+#'   # version where render is added to the object in a ggplot-style chain
+#'   gg_obj <- ggbrain() +
+#'     images(c(underlay = t1)) + 
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     geom_brain("underlay") + 
+#'     render() + # convert to ggplot-friendly object
+#'     ggplot2::theme(text=ggplot2::element_text(family="Serif"))
+#'     
+#'  # version where a ggbrain object is created in one step, then rendered in another
+#'  brain_obj <- ggbrain() +
+#'     images(c(underlay = t1)) + 
+#'     slices(c("x = 25%", "x = 75%")) +
+#'     geom_brain("underlay")
+#'     
+#'  gg_obj <- render(brain_obj) + patchwork::plot_annotation(title="Overall title")
+#'  
 #' @export
-render <- function() {
-  ggb$new(action = "render")
+render <- function(x, ...) {
+  if (missing(x)) {
+    ggb$new(action = "render")
+  } else {
+    if (!inherits(x, "ggb")) stop("Must pass a ggbrain object to render")
+    UseMethod("render") # pass to S3
+  }
+  
 }
 
 #' little helper function to create named list from objects

@@ -4,11 +4,42 @@
 \alias{render}
 \title{Function to convert \code{ggb} object to ggplot/patchwork object}
 \usage{
-render()
+render(x, ...)
+}
+\arguments{
+\item{x}{optional. A \code{ggb} object to be rendered into a \verb{ggbrain_patchwork object}.}
+
+\item{...}{additional arguments passed to the $render method of \code{x}.}
 }
 \value{
-a \code{ggb} object with the action 'render', used in a \code{ggbrain} addition chain
+a \code{ggbrain_patchwork} object of the rendered ggbrain plot
 }
 \description{
 Function to convert \code{ggb} object to ggplot/patchwork object
+}
+\details{
+If no \code{x} argument is passed in, this function can be used in a ggbrain addition chain to render a plot
+to a ggplot-friendly object before additional ggplot or patchwork calls are added such as \code{theme()}.
+
+Or if \code{x} is passed in as an argument, return the rendered plot as a \code{ggbrain_patchwork} object.
+}
+\examples{
+  t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+  
+  # version where render is added to the object in a ggplot-style chain
+  gg_obj <- ggbrain() +
+    images(c(underlay = t1)) + 
+    slices(c("x = 25\%", "x = 75\%")) +
+    geom_brain("underlay") + 
+    render() + # convert to ggplot-friendly object
+    ggplot2::theme(text=ggplot2::element_text(family="Serif"))
+    
+ # version where a ggbrain object is created in one step, then rendered in another
+ brain_obj <- ggbrain() +
+    images(c(underlay = t1)) + 
+    slices(c("x = 25\%", "x = 75\%")) +
+    geom_brain("underlay")
+    
+ gg_obj <- render(brain_obj) + patchwork::plot_annotation(title="Overall title")
+ 
 }
