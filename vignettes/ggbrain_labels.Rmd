@@ -308,7 +308,7 @@ For example, we may want to add region labels to several regions on the plot. To
 
 The `text` versus `label` distinction matches ggplot2, such that "label" annotations have a rectangle behind them while "text" annotations do not.
 
-The `repel` versions of these functions rely on [`ggrepel`](https://cran.r-project.org/web/packages/ggrepel/index.html), a useful package for pushing labels away from their specified coordinates to avoid overplotting of labels and covering of relevant data points.
+The `repel` versions of these functions rely on [`ggrepel`](https://CRAN.R-project.org/package=ggrepel), a useful package for pushing labels away from their specified coordinates to avoid overplotting of labels and covering of relevant data points.
 
 Extending our plot above, perhaps we might like to label the Schaefer parcellation regions comprising the three DAN areas of MT+, PPC, and Premotor. These labels already exist in our `schaefer200_atlas_labels` data.frame. Let's use the MNI_Glasser_HCP_v1.0 labels.
 
