@@ -147,7 +147,7 @@ In addition to \code{name}, the elements of a layer can include
 \subsection{Method \code{plot()}}{
 return a plot of all panels as a patchwork object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$plot(guides = "collect")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$plot(guides = "collect", ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -155,6 +155,8 @@ return a plot of all panels as a patchwork object
 \describe{
 \item{\code{guides}}{Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
 is "collect", which collects legends within a given nesting level (removes duplicates).}
+
+\item{\code{...}}{additional arguments. Not used currently}
 }
 \if{html}{\out{</div>}}
 }

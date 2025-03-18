@@ -49,7 +49,7 @@ add_labels <- function(...) {
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a `ggb` object with the relevant images and an action of 'add_images'
 #' @examples
-#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1))
 #' @export
@@ -83,7 +83,7 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
 #'   multiple addition operations, as in `slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')`.
 #' @return a `ggb` object with the relevant slices and an action of 'add_slices'
 #' @examples
-#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1)) +
 #'     slices(c("x = 25%", "x = 75%"), border_color = "blue")
@@ -115,7 +115,7 @@ slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color
 #'   with the the image coordinate specifications `min_coord` and `max_coord.`
 #' @return a character string containing the slice positions along the requested axis
 #' @examples
-#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'   gg_obj <- ggbrain() +
 #'     images(c(underlay = t1)) +
 #'     slices(montage("sagittal", 15))
@@ -156,7 +156,7 @@ montage <- function(plane = NULL, n = 12, min = 0.1, max = 0.9, min_coord = NULL
 #'
 #' @examples
 #'   # T1-weighted template
-#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # signed reward prediction error map
 #'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
@@ -235,7 +235,7 @@ define <- function(contrasts = NULL) {
 #' @return a ggb object populated with the relevant geom_brain and the action of 'add_layers'
 #' @examples
 #'   # T1-weighted template
-#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # signed reward prediction error map
 #'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")
@@ -304,7 +304,7 @@ geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale =
 #' @return a ggb object populated with the geom_outline layer and the action of 'add_layers'
 #' @examples
 #'   # T1-weighted template
-#'   t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+#'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'
 #'   # signed reward prediction error map
 #'   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")

@@ -39,7 +39,7 @@ Also note that use of standardized coordinates (in quantiles, using \code{min} a
 with the the image coordinate specifications \code{min_coord} and \code{max_coord.}
 }
 \examples{
-  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
   gg_obj <- ggbrain() +
     images(c(underlay = t1)) +
     slices(montage("sagittal", 15))

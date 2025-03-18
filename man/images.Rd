@@ -27,7 +27,7 @@ a \code{ggb} object with the relevant images and an action of 'add_images'
 Add images to a ggbrain object
 }
 \examples{
-  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
   gg_obj <- ggbrain() +
     images(c(underlay = t1))
 }

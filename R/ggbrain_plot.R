@@ -388,12 +388,13 @@ ggbrain_plot <- R6::R6Class(
     #' @description return a plot of all panels as a patchwork object
     #' @param guides Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
     #'   is "collect", which collects legends within a given nesting level (removes duplicates).
-    plot = function(guides = "collect") {
+    #' @param ... additional arguments. Not used currently   
+    plot = function(guides = "collect", ...) {
       checkmate::assert_string(guides)
       checkmate::assert_subset(guides, c("collect", "keep", "auto"))
 
       # extract ggplot objects from panels and plot with patchwork wrap_plots
-      patchwork::wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg)) +
+      pp <- patchwork::wrap_plots(lapply(private$pvt_ggbrain_panels, function(x) x$gg)) +
         patchwork::plot_layout(guides=guides) +
         patchwork::plot_annotation(
           title = private$pvt_title,
@@ -402,17 +403,9 @@ ggbrain_plot <- R6::R6Class(
             plot.title = ggplot2::element_text(hjust = 0.5, vjust = 0, size = 1.4*private$pvt_base_size, color = private$pvt_text_color)
           )
         )
-
-      #& theme(plot.background = ggplot2::element_rect(fill = "blue", color = NA))
-
-      # only cowplot::ggdraw produces the expected result here... with the green border that fill the plotting space
-      #png("test.png")
-      #cowplot::ggdraw(a) + theme(plot.background = element_rect(fill = "green", colour = NA)) # plot(a)
-      #plot(a) + theme(plot.background = element_rect(fill = "green", colour = NA)) # plot(a)
-      #cowplot::as_grob(a) + theme(plot.background = element_rect(fill = "green", colour = NA)) # plot(a)
-      #dev.off()
-
-      #bg <- calc_element("plot.background", plot_theme(plot))$fill
+      
+      class(pp) <- c("ggbrain_patchwork", class(pp)) # add ggbrain_patchwork class so that S3 plot method properly captures these objects
+      return(invisible(pp))
     }
   )
 )

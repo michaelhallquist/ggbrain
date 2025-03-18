@@ -28,7 +28,7 @@ underlay_file <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package
 schaefer200_atlas_file <- system.file("extdata", "Schaefer_200_7networks_2009c_2mm.nii.gz", package = "ggbrain")
 
 # Automated labels of 200 parcels
-schaefer200_atlas_labels <- read.csv(system.file("extdata", "Schaefer_200_7networks_labels.csv", package = "ggbrain"))
+schaefer200_atlas_labels <- read.csv(system.file("extdata", "Schaefer_200_7networks_labels.csv", package = "ggbrain"), na.strings=c("", "NA"))
 
 # Parametric modulator: absolute reward prediction error following feedback in learning task
 # thresholded to be whole-brain significant at FWE p < .05 using pTFCE
@@ -53,14 +53,24 @@ length(unique(as.vector(schaefer_img)))
 
 At a basic level, we can visualize this image in the same way as continuous images, as described in the [ggbrain introduction](ggbrain_introduction.html) document.
 
-```{r}
+```{r fig.height=6, fig.width=6}
 gg_obj <- ggbrain() +
   images(c(underlay = underlay_file, atlas = schaefer200_atlas_file)) +
   slices(c("z = 30", "z=40")) +
   geom_brain(definition = "underlay", show_legend = TRUE, name="Anatomical") +
   geom_brain(definition = "atlas", name = "Parcel number")
 
+#f <- plot(gg_obj)
+#f &
+#  theme(plot.background = element_rect(fill = "lightgray", color = NA), legend.background =element_rect(fill="lightgray", color=NA))
+
+plot(gg_obj) & theme_minimal()
+
+x <- gg_obj + render()
+
 plot(gg_obj)
+
+
 ```
 
 As we can see, however, the continuous values represent discrete parcels in the atlas. Thus, we may wish to use a categorical/discrete color scale to visualize things. As with base `ggplot2`, we can wrap the fill column in `factor` to force conversion to a discrete data type.
@@ -73,9 +83,10 @@ gg_obj <- ggbrain() +
   slices(c("z = 30", "z=40")) +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "atlas", name = "Parcel number", 
-             mapping = aes(fill = factor(value)), fill_scale = scale_fill_hue()) +
-  render()
+             mapping = aes(fill = factor(value)), fill_scale = scale_fill_hue())
 
+abc <- gg_obj$render() & plot_annotation(title="hello")
+plot(abc)
 plot(gg_obj)
 ```
 
@@ -122,7 +133,7 @@ Now that we have this, we can add the labels to the corresponding NIfTI image. T
 
 We use the `labels` argument with the `images` function.
 
-```{r}
+```{r, fig.height=9, fig.width=6}
 gg_base <- ggbrain() +
   images(c(underlay = underlay_file)) +
   images(c(atlas = schaefer200_atlas_file), labels=schaefer200_atlas_labels) +
@@ -291,3 +302,41 @@ plot(ann)
 
 # Adding labels systematically
 
+Finally, we may wish to label points more systematically based on a labeling `data.frame`, akin to how `geom_text` can be used to label many points.
+
+For example, we may want to add region labels to several regions on the plot. To do this, `ggbrain` provides `geom_region_text`, `geom_region_text_repel`, `geom_region_label`, and `geom_region_label_repel`.
+
+The `text` versus `label` distinction matches ggplot2, such that "label" annotations have a rectangle behind them while "text" annotations do not.
+
+The `repel` versions of these functions rely on [`ggrepel`](https://cran.r-project.org/web/packages/ggrepel/index.html), a useful package for pushing labels away from their specified coordinates to avoid overplotting of labels and covering of relevant data points.
+
+Extending our plot above, perhaps we might like to label the Schaefer parcellation regions comprising the three DAN areas of MT+, PPC, and Premotor. These labels already exist in our `schaefer200_atlas_labels` data.frame. Let's use the MNI_Glasser_HCP_v1.0 labels.
+
+```{r}
+ann <- abspe_gg +
+  geom_region_label(image="atlas", label_column="MNI_Glasser_HCP_v1.0", size=3, color="black")
+# 
+#   geom_region_label_repel(image = "dan_clust", label_column = "value", min.segment.length = 0, size=3,
+#                           color="black", force_pull=0, force=1.5, max.overlaps=Inf, box.padding = 0.5, label.padding=0.15, min_px = 20) +
+
+plot(ann)
+
+```
+
+That's clearly too busy! And those region labels are pretty long. We might instead use the automated labels alongside domain knowledge to create custom labels that are both potentially more accurate and also easier to read. Here, I've labeled a few of the regions in the DAN by looking at relevant literature and comparing it against anatomical labels. Although these labels are imperfect, they are more useful for visualization than the long labels.
+
+```{r}
+knitr::kable(schaefer200_atlas_labels %>%
+  filter(!is.na(custom_label)) %>% select(c(MNI_Glasser_HCP_v1.0, custom_label)))
+```
+
+```{r}
+ann <- abspe_gg +
+  geom_region_label(image="atlas", label_column="custom_label", size=3, color="black")
+# 
+#   geom_region_label_repel(image = "dan_clust", label_column = "value", min.segment.length = 0, size=3,
+#                           color="black", force_pull=0, force=1.5, max.overlaps=Inf, box.padding = 0.5, label.padding=0.15, min_px = 20) +
+
+plot(ann)
+
+```

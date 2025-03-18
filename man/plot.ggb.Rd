@@ -9,7 +9,10 @@
 \arguments{
 \item{x}{the \code{ggb} object to be plotted}
 
-\item{...}{additional argument passed to the plot method}
+\item{...}{additional arguments passed to the plot method}
+}
+\value{
+NULL, invisibly
 }
 \description{
 S3 method to allow for plot() syntax with ggbrain (ggb) objects

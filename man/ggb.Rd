@@ -235,7 +235,7 @@ is "collect", which collects legends within a given nesting level (removes dupli
 \if{html}{\out{<a id="method-ggb-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-ggb-plot}{}}}
 \subsection{Method \code{plot()}}{
-plot this ggb object
+plot this ggb object -- just an alias for render
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ggb$plot(guides = "collect")}\if{html}{\out{</div>}}
 }

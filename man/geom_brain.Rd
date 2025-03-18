@@ -74,7 +74,7 @@ created using the typical + scale_fill_* syntax, and similarly for scale limits.
 }
 \examples{
   # T1-weighted template
-  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
   # signed reward prediction error map
   signed_pe <- system.file("extdata", "pe_ptfce_fwep_0.05.nii.gz", package = "ggbrain")

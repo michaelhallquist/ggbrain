@@ -295,11 +295,14 @@ ggb <- R6::R6Class(
       self$ggb_plot$annotations <- self$ggb_annotations # pass through annotations
       self$ggb_plot$region_labels <- self$ggb_region_labels # pass through region labels
       self$ggb_plot$generate_plot()
+      
+      # call the ggbrain_plot $plot method to convert to a patchwork object
+      g <- self$ggb_plot$plot(guides)
 
-      return(self$ggb_plot$plot(guides))
+      return(g)
     },
 
-    #' @description plot this ggb object
+    #' @description plot this ggb object -- just an alias for render
     #' @param guides Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
     #'   is "collect", which collects legends within a given nesting level (removes duplicates).
     #' @details requires that required elements are in place already.
@@ -312,12 +315,37 @@ ggb <- R6::R6Class(
 )
 
 #' S3 method to allow for plot() syntax with ggbrain (ggb) objects
+#' 
 #' @param x the \code{ggb} object to be plotted
-#' @param ... additional argument passed to the plot method
+#' @param ... additional arguments passed to the plot method
+#' @return NULL, invisibly
 #' @export
 plot.ggb <- function(x, ...) {
-  x$plot()
+  p <- x$plot(...) # convert to ggbrain_patchwork object
+  if (!is.null(p)) plot(p, ...) # pass through to ggbrain_patchwork plotting function (that handles background color)
+  invisible(p) # return the ggbrain_patchwork object, for further modification -- matches ggplot2 approach
 }
+
+#' S3 method to allow for plot() syntax with rendered ggbrain patchwork objects
+#' 
+#' @param x the \code{ggbrain_patchwork} object to be plotted
+#' @param ... additional arguments. Not currently used
+#' @return \code{patchworkGrob} object, invisibly
+#' @importFrom grid grid.newpage grid.rect grid.draw gpar
+#' @importFrom patchwork patchworkGrob
+#' @export
+plot.ggbrain_patchwork <- function(x, ...) {
+  grid.newpage()
+  grid.rect(gp = gpar(fill = x$theme$plot.background$fill, col = NA))  # use plot background from object
+  grob_obj <- patchworkGrob(x)
+  grid.draw(grob_obj)  # Draws the plot on top of the background rectangle
+  invisible(grob_obj) # return the patchwork grob in case it's of interest
+}
+
+#' default S3 method for ggbrain_patchwork objects (post-render)
+#' @rdname plot.ggbrain_patchwork
+#' @export
+print.ggbrain_patchwork <- plot.ggbrain_patchwork
 
 #' addition operator for ggb object to support ggplot-like syntax
 #' @param o1 the first object inheriting the ggb class

@@ -49,7 +49,7 @@ will be reused for all slices added by this operation. Thus, if you want to cust
 multiple addition operations, as in \code{slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')}.
 }
 \examples{
-  t1 <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+  t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
   gg_obj <- ggbrain() +
     images(c(underlay = t1)) +
     slices(c("x = 25\%", "x = 75\%"), border_color = "blue")
