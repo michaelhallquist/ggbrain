@@ -126,7 +126,6 @@ warning given that no data or geometric layers have been added.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning in self$render(guides): No brain layers added to this object yet. Use +</span></span>
 <span><span class="co">## geom_brain() or + geom_outline() to add.</span></span></code></pre>
-<pre><code><span><span class="co">## NULL</span></span></code></pre>
 <p>Consistent with the <code>ggplot2</code> approach, additional
 elements can be added using the <code>+</code> operator, as we elaborate
 below. The main thing to know at this point is that <strong>you need to
@@ -161,7 +160,7 @@ a warning:</p>
 <pre><code>Warning message:
 In private$set_images(images, fill_holes, clean_specks) :
   The images vector does not contain any names. This may lead to weird behaviors downstream if 'underlay' and 'overlay' are requested.</code></pre>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Note that the image name of ‘underlay’ has a special meaning in the
 package. Specifically, using this name will set a default color scale
@@ -170,12 +169,12 @@ plot. You don’t have to use ‘underlay’ but it can make things a bit
 simpler if you have a conventional plot that shows an anatomical scan
 underneath functional activations.</p>
 <p>You can add many images at once by providing a named vector:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, echange <span class="op">=</span> <span class="va">echange_overlay_2mm</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Or you can add many images in independent <code>images</code> steps.
 Note that the order of addition is not important.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>echange <span class="op">=</span> <span class="va">echange_overlay_2mm</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -207,7 +206,7 @@ the panels, then choose the coordinates of the slices that are most
 relevant.</p>
 <p>You can add one or more slices using <code><a href="../reference/slices.html">slices()</a></code> by passing
 a character vector of positions.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 10"</span>, <span class="st">"y = 50"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>This will add one sagittal slice (x=10), one coronal (y=50), and one
 axis (z=15).</p>
@@ -221,7 +220,7 @@ end of the <code><a href="../reference/slices.html">slices()</a></code> specific
 position of the corresponding slice along the axis between 0% and 100%.
 These percentiles are computed based on the slices that are not entirely
 empty (i.e., not all zero).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 25%"</span>, <span class="st">"y = 50%"</span>, <span class="st">"z = 90%"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
@@ -252,7 +251,7 @@ the panel. Default is NULL (none).</li>
 <code>theme_custom</code>: A ggplot2 <code>theme()</code> (or list
 of theme calls) added to this panel that customizes its appearance.</li>
 </ul>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 25%"</span>, <span class="st">"x = 50%"</span><span class="op">)</span>,</span>
@@ -287,11 +286,11 @@ Mutually exclusive with quantile approach. Default: NULL</li>
 </ul>
 <p>The code below adds 10 axial slices between the 10th and 90th
 percentiles.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="../reference/montage.html">montage</a></span><span class="op">(</span><span class="st">"axial"</span>, <span class="fl">10</span>, min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>This code adds 5 sagittal slices between the x = -10 and x = 10
 (millimeters, in image coordinates).</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="../reference/montage.html">montage</a></span><span class="op">(</span><span class="st">"sagittal"</span>, <span class="fl">5</span>, min_coord <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, max_coord <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -384,19 +383,19 @@ as a reference by <code>ggbrain</code> to interpret your layer
 definitions.</p>
 <p>For example, here I want to render the underlay and overlay layers
 with their numeric values:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># define a reusable object that has the same images and slices</span></span>
 <span><span class="va">gg_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">echange_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 10"</span>, <span class="st">"y = 50"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey8"</span>, high <span class="op">=</span> <span class="st">"grey62"</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Now that we have <code>geom_*</code> layers in our
 <code>ggbrain</code> object, we can finally plot our figure to see the
 result.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-16-1.png" width="768"></p>
 </div>
@@ -409,7 +408,7 @@ of voxelwise statistics so that small/nonsignificant values are omitted.
 To achieve this, <code><a href="../reference/geom_brain.html">geom_brain()</a></code> supports standard subsetting
 syntax used in R. Here is an example of thresholding the overlay layer
 so that the absolute (z) statistic is above 2.5:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
@@ -420,7 +419,7 @@ square brackets. The subsetting expression inside the brackets uses
 standard R syntax and can reference other images currently in the
 ggbrain object. For example, you could display overlay values only where
 the underlay is greater than 10:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[underlay &gt; 10]"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -432,7 +431,7 @@ logical operators <code>&amp;</code> and <code>|</code> , as in standard
 R syntax for vector operations. For example, here’s how you could
 include pixels where <code>abs(overlay) &gt; 2.5</code> and
 <code>underlay &gt; 20</code>:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
@@ -461,7 +460,7 @@ than absolute PEs.</p>
 <code>geom_outline</code>. Or, they can be added to the
 <code>ggbrain</code> object in advance using the <code><a href="../reference/define.html">define()</a></code>
 function.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, pe <span class="op">=</span> <span class="va">pe_overlay_2mm</span>, abspe <span class="op">=</span> <span class="va">abspe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 10"</span>, <span class="st">"y = 50"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -473,7 +472,7 @@ function.</p>
 <p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png" width="768"></p>
 <p>An equivalent plot would be achieved by including the definition
 inline:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, pe <span class="op">=</span> <span class="va">pe_overlay_2mm</span>, abspe <span class="op">=</span> <span class="va">abspe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 10"</span>, <span class="st">"y = 50"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -482,7 +481,7 @@ inline:</p>
 modify contrasts in multiple layers. Here, we subset the difference to
 only voxels where the PE - abs(PE) contrast is strongly in favor of
 signed PEs (i.e., positive difference in the z-statistic &gt; 3).</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, pe <span class="op">=</span> <span class="va">pe_overlay_2mm</span>, abspe <span class="op">=</span> <span class="va">abspe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 10"</span>, <span class="st">"y = 50"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -518,7 +517,7 @@ different colors.</p>
 for the decision onset regressor. These voxels represent areas that are
 sensitive to the onset of the decision phase of the reinforcement
 learning trial.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -2"</span>, <span class="st">"x=2"</span>, <span class="st">"y = 40"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, onset <span class="op">=</span> <span class="va">decision_onset_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -547,7 +546,7 @@ patchwork.</p>
 <p>The key message here is: place ggbrain-specific additions
 <em>before</em> <code><a href="../reference/render.html">render()</a></code> and ggplot-specific additions
 <em>afterwards</em>.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># without a render step</span></span>
 <span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -2"</span>, <span class="st">"x=2"</span>, <span class="st">"y = 40"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -557,7 +556,7 @@ patchwork.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "ggb" "R6"</span></span></code></pre>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># note the different class after render</span></span>
 <span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -2"</span>, <span class="st">"x=2"</span>, <span class="st">"y = 40"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -567,19 +566,20 @@ patchwork.</p>
 <span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "patchwork" "gg"        "ggplot"</span></span></code></pre>
+<pre><code><span><span class="co">## [1] "ggbrain_patchwork" "patchwork"         "gg"               </span></span>
+<span><span class="co">## [4] "ggplot"</span></span></code></pre>
 <p>Using the general approach provided by patchwork, we can add
 annotations and aesthetic modifications to the overall plot using the <a href="https://patchwork.data-imaginist.com/articles/guides/annotation.html" class="external-link"><code>plot_annotation</code></a>.
 Likewise, you can modify the overall theme information using the
 <code>theme()</code> function, as articulated <a href="https://patchwork.data-imaginist.com/articles/guides/assembly.html#modifying-patches" class="external-link">here</a>.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># add a different theme to all panels and add an overall title</span></span>
 <span><span class="va">gg_obj</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title<span class="op">=</span><span class="st">"Overall title"</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-25-1.png" width="768"></p>
 <p>Note that you don’t necessarily need to use <code><a href="../reference/render.html">render()</a></code> at
 all. When you call <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a ggbrain object, the render
 happens automatically behind the scenes, allowing calls like:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -2"</span>, <span class="st">"x=2"</span>, <span class="st">"y = 40"</span>, <span class="st">"z = 15"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, onset <span class="op">=</span> <span class="va">decision_onset_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -587,7 +587,7 @@ happens automatically behind the scenes, allowing calls like:</p>
 <span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"onset[abs(onset) &gt; 3]"</span>, size<span class="op">=</span><span class="fl">1</span>, outline<span class="op">=</span><span class="st">"cyan"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Overall"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-26-1.png" width="768"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-26-1.png" width="768"><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-26-2.png" width="768"></p>
 <p>Another point is that by keeping your plots as <code>ggbrain</code>
 objects – that is not adding <code><a href="../reference/render.html">render()</a></code> – you can continue to
 add brain-related calls like <code><a href="../reference/geom_brain.html">geom_brain()</a></code> or
@@ -608,10 +608,10 @@ approach from base R.</p>
 <p>Note that if you pass a <code>ggbrain</code> object directly to
 <code>ggsave</code>, it will complain that the plot is not a ggplot
 object. We can just pass a rendered version like so:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">td</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">ggsave</span><span class="op">(</span>filename<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">td</span>, <span class="st">"my_brain_plot.pdf"</span><span class="op">)</span>, <span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">15</span>, height<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">td</span>, <span class="st">"my_brain_plot_2.pdf"</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">10</span>, height<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -627,7 +627,7 @@ color as the <code>ggplot</code> object, add the <code>bg</code>
 argument to your output device, or use the <code>ggsave</code> command
 (as above), which automatically uses the background color of the plot to
 extend to the output device/file.</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">td</span>, <span class="st">"my_brain_plot_2.pdf"</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">10</span>, height<span class="op">=</span><span class="fl">10</span>, bg<span class="op">=</span><span class="st">"gray80"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
