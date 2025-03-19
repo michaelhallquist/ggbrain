@@ -1,7 +1,7 @@
 Type: Package
 Package: ggbrain
 Title: Create Images of Volumetric Brain Data in NIfTI Format Using 'ggplot2' Syntax
-Version: 0.9
+Version: 0.9.0
 Date: 2025-03-18
 Authors@R:
     person("Michael", "Hallquist", , "michael.hallquist@gmail.com", role = c("aut", "cre"),

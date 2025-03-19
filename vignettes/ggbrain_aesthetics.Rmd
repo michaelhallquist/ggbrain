@@ -3,10 +3,10 @@ title: "Aesthetic refinements of ggbrain plots"
 author: "Michael Hallquist"
 date: "3 Oct 2022"
 output: 
-  html_document:
   rmarkdown::html_vignette:
+    toc: true
 vignette: >
-  %\VignetteIndexEntry{Aesthetic refinement of ggbrain plots}
+  %\VignetteIndexEntry{Aesthetic refinements of ggbrain plots}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 

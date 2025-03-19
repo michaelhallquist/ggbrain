@@ -3,14 +3,8 @@ title: "Introduction to ggbrain"
 author: "Michael Hallquist"
 date: "18 Mar 2025"
 output:
-  html_document:
-    code_folding: show
-    df_print: kable
-    mathjax: default
-    number_sections: yes
-    theme: spacelab
-    toc: yes
   rmarkdown::html_vignette:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{Introduction to ggbrain}
   %\VignetteEncoding{UTF-8}
@@ -28,8 +22,8 @@ library(patchwork)
 # MNI 2009c anatomical underlay
 underlay_2mm <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
-# onset of decision phase for learning task
-decision_onset_2mm <- system.file("extdata", "clock_onset_2mm.nii.gz", package = "ggbrain")
+# onset of feedback phase for learning task
+feedback_onset_2mm <- system.file("extdata", "feedback_onset_2mm.nii.gz", package = "ggbrain")
 
 # Parametric modulator: entropy change following feedback in learning task
 echange_overlay_2mm <- system.file("extdata", "echange_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
@@ -53,7 +47,7 @@ Note that this package is unrelated to the [ggBrain](https://aaronjfisher.github
 The package includes a few images that can be used for demonstrating its capabilities. The locations of the images on your machine are listed below.
 
 ```{r}
-print(c(underlay_2mm, decision_onset_2mm, echange_overlay_2mm, pe_overlay_2mm, abspe_overlay_2mm))
+print(c(underlay_2mm, feedback_onset_2mm, echange_overlay_2mm, pe_overlay_2mm, abspe_overlay_2mm))
 ```
 
 # Installing the package
@@ -237,7 +231,7 @@ gg_obj <- gg_base +
 
 Now that we have `geom_*` layers in our `ggbrain` object, we can finally plot our figure to see the result.
 
-```{r, fig.width=8, fig.height=3.5}
+```{r, fig.width=7.2, fig.height=3.4}
 plot(gg_obj)
 ```
 
@@ -245,7 +239,7 @@ plot(gg_obj)
 
 Oftentimes, we wish to modify the display by selecting a subset of values to display. One of the most common applications is thresholding of voxelwise statistics so that small/nonsignificant values are omitted. To achieve this, `geom_brain()` supports standard subsetting syntax used in R. Here is an example of thresholding the overlay layer so that the absolute (z) statistic is above 2.5:
 
-```{r, fig.width=8, fig.height=3.5}
+```{r, fig.width=7.2, fig.height=3.4}
 gg_obj <- gg_base +
   geom_brain(definition = "overlay[abs(overlay) > 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 
@@ -254,7 +248,7 @@ plot(gg_obj)
 
 Note how 'overlay' is treated as an R object that is subset using square brackets. The subsetting expression inside the brackets uses standard R syntax and can reference other images currently in the ggbrain object. For example, you could display overlay values only where the underlay is greater than 10:
 
-```{r, fig.width=8, fig.height=3.5}
+```{r, fig.width=7.2, fig.height=3.4}
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay[underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
@@ -264,7 +258,7 @@ plot(gg_obj)
 
 Finally, note that one can combine subsetting expressions using logical operators `&` and `|` , as in standard R syntax for vector operations. For example, here's how you could include pixels where `abs(overlay) > 2.5` and `underlay > 20`:
 
-```{r, fig.width=8, fig.height=3.5}
+```{r, fig.width=7.2, fig.height=3.4}
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(
@@ -283,7 +277,7 @@ For example, what if we have signed and absolute reward prediction error maps fr
 
 These contrasts can either be defined inline within the `definition` field of `geom_brain` or `geom_outline`. Or, they can be added to the `ggbrain` object in advance using the `define()` function.
 
-```{r, fig.width=8, fig.height=3.5}
+```{r, fig.width=7.2, fig.height=3.4}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
@@ -305,7 +299,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 
 The advantage of `define()` is that you can re-use and modify contrasts in multiple layers. Here, we subset the difference to only voxels where the PE - abs(PE) contrast is strongly in favor of signed PEs (i.e., positive difference in the z-statistic \> 3).
 
-```{r, fig.width=8, fig.height=3.5}
+```{r, fig.width=7.2, fig.height=3.4}
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
@@ -322,12 +316,12 @@ In addition to filling in regions with colors, brain plots often benefit from be
 
 For continuous images (e.g., z-statistics), one typically *sets* the outline color using `geom_outline(outline="cyan")` or whatever color is desired. This draws the outlines for non-NA voxels in a single color. For categorical images (e.g., anatomical or functional atlases), it may be useful to map the color of the outlines to a categorical label such as network or region. This is accomplished with `geom_outline(mapping=aes(outline=roi_name))` or whatever column in the data corresponds to the categories one wishes to draw with different colors.
 
-Here, we might wish to outline voxels whose z-statistics exceed $|z| > 3$ for the decision onset regressor. These voxels represent areas that are sensitive to the onset of the decision phase of the reinforcement learning trial.
+Here, we might wish to outline voxels whose z-statistics exceed $|z| > 3$ for the feedback onset regressor. These voxels represent areas that are sensitive to the onset of the feedback phase of the reinforcement learning trial.
 
-```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
+```{r, warning=FALSE, message=FALSE, fig.width=7.2, fig.height=3.4}
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
+  images(c(underlay = underlay_2mm, onset = feedback_onset_2mm)) +
   geom_brain(definition = "underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size = 1, outline = "cyan")
 
@@ -346,7 +340,7 @@ The key message here is: place ggbrain-specific additions *before* `render()` an
 # without a render step
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
+  images(c(underlay = underlay_2mm, onset = feedback_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
@@ -355,7 +349,7 @@ class(gg_obj)
 # note the different class after render
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
+  images(c(underlay = underlay_2mm, onset = feedback_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan") +
   render()
@@ -365,7 +359,7 @@ class(gg_obj)
 
 Using the general approach provided by patchwork, we can add annotations and aesthetic modifications to the overall plot using the [`plot_annotation`](https://patchwork.data-imaginist.com/articles/guides/annotation.html). Likewise, you can modify the overall theme information using the `theme()` function, as articulated [here](https://patchwork.data-imaginist.com/articles/guides/assembly.html#modifying-patches).
 
-```{r,  warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
+```{r,  warning=FALSE, message=FALSE, fig.width=6, fig.height=5}
 
 # add a different theme to all panels and add an overall title
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
@@ -374,10 +368,10 @@ gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 
 Note that you don't necessarily need to use `render()` at all. When you call `plot()` on a ggbrain object, the render happens automatically behind the scenes, as you've seen above. But if you want to modify the plot using ggplot or patchwork functions such as `plot_annotation` or `theme`, you need to first `render()` the plot so that the object is converted to a `patchwork`.
 
-```{r, warning=FALSE, message=FALSE, fig.width=8, fig.height=3.5}
+```{r,  warning=FALSE, message=FALSE, fig.width=6, fig.height=5}
 brain_plot <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
-  images(c(underlay = underlay_2mm, onset = decision_onset_2mm)) +
+  images(c(underlay = underlay_2mm, onset = feedback_onset_2mm)) +
   geom_brain(definition="underlay") +
   geom_outline(definition = "onset[abs(onset) > 3]", size=1, outline="cyan")
 
