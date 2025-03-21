@@ -1,4 +1,4 @@
-# ggbrain 0.8.2 (DEVELOPMENT)
+# ggbrain 0.9.0 (18Mar2025)
 
 * notice: annotate_panel is now called annotate_slice for consistency
 * notice: the plot() method now works with rendered and un-rendered objects, always drawing to the current graphics device

@@ -107,8 +107,8 @@ Our labels could be region names, intrinsic networks, or other features we wish 
 
 First, however, let's see how we tell `ggbrain` to merge labels with an integer-valued NIfTI image. Above, we read in a CSV file containing labels for regions in the Schaefer 200 parcellation. These were generated in part using AFNI's whereami command with the centroids of each region serving as an input. This gives us automated labels that we may wish to display on the plot. The CSV also contains a columns called `network` that refers to the network mapping to the Yeo 2011 7-network parcellation.
 
-```{r}
-knitr::kable(head(schaefer200_atlas_labels, n=10))
+```{r, echo=FALSE}
+knitr::kable(head(schaefer200_atlas_labels, select(roi_num, hemi, x, y, z, network, MNI_Glasser_HCP_v1.0), n=6))
 ```
 
 The structure of this `data.frame` is relatively flexible. The primary requirement is that it contain a column called `value` that maps to the numeric value of the corresponding NIfTI image of interest. Here, we have a column called `roi_num` that maps to the integer values in the mask. So, we need to rename it to `value` for `ggbrain` to accept it as a lookup table for labeling.
@@ -310,9 +310,9 @@ plot(ann)
 
 That's clearly too busy! And those region labels are pretty long. We might instead use the automated labels alongside domain knowledge to create custom labels that are both potentially more accurate and also easier to read. Here, I've labeled a few of the regions in the DAN by looking at relevant literature and comparing it against anatomical labels. Although these labels are imperfect, they are more useful for visualization than the long labels.
 
-```{r fig.height=4, fig.width=7}
+```{r, echo=FALSE}
 knitr::kable(schaefer200_atlas_labels %>%
-  filter(!is.na(custom_label)) %>% select(c(MNI_Glasser_HCP_v1.0, custom_label)))
+  filter(!is.na(custom_label)) %>% select(c(MNI_Glasser_HCP_v1.0, custom_label))) %>% head(n=6)
 ```
 
 ```{r fig.height=4, fig.width=7}
