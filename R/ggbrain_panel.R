@@ -400,9 +400,10 @@ ggbrain_panel <- R6::R6Class(
 #' @param object the ggbrain_layer object to be added to an existing ggplot
 #' @param plot the ggplot object
 #' @param object_name not used, but required by ggplot_add
+#' @param ... additional arguments, not currently used
 #' @importFrom ggplot2 ggplot_add
 #' @export
-ggplot_add.ggbrain_panel <- function(object, plot, object_name) {
+ggplot_add.ggbrain_panel <- function(object, plot, object_name, ...) {
   plot + object$gg
 }
 

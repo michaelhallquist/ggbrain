@@ -1,3 +1,7 @@
+# ggbrain 0.9.1 (22Aug2025)
+
+* updated ggplot_add methods to be compatible with ggplot2 4.0
+
 # ggbrain 0.9.0 (18Mar2025)
 
 * notice: annotate_panel is now called annotate_slice for consistency

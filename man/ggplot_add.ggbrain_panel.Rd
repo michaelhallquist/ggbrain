@@ -4,7 +4,7 @@
 \alias{ggplot_add.ggbrain_panel}
 \title{S3 method to support adding ggbrain_layer objects to an existing ggplot object}
 \usage{
-\method{ggplot_add}{ggbrain_panel}(object, plot, object_name)
+\method{ggplot_add}{ggbrain_panel}(object, plot, object_name, ...)
 }
 \arguments{
 \item{object}{the ggbrain_layer object to be added to an existing ggplot}
@@ -12,6 +12,8 @@
 \item{plot}{the ggplot object}
 
 \item{object_name}{not used, but required by ggplot_add}
+
+\item{...}{additional arguments, not currently used}
 }
 \description{
 S3 method to support adding ggbrain_layer objects to an existing ggplot object
