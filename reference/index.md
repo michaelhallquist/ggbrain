@@ -1,0 +1,144 @@
+# Package index
+
+## All functions
+
+- [`annotate_coordinates()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_coordinates.md)
+  : Adds the coordinate labels to each panel based on the location of
+  the slice along the slicing axis (e.g., z = 15)
+
+- [`annotate_slice()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_slice.md)
+  : Adds custom annotations to a single panel on the ggbrain plot
+
+- [`count_neighbors`](https://michaelhallquist.github.io/ggbrain/reference/count_neighbors.md)
+  : This function counts the number of neighboring/touching pixels in a
+  2D binary image
+
+- [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+  : Adds contrast definitions to the ggbrain plot
+
+- [`fill_from_edge`](https://michaelhallquist.github.io/ggbrain/reference/fill_from_edge.md)
+  : This function finds holes by flood filling TRUE into a 2D binary
+  image, starting from the edge
+
+- [`find_threads`](https://michaelhallquist.github.io/ggbrain/reference/find_threads.md)
+  : This function finds 'threads' hanging off of the edges of blobs in
+  an image, allowing the user to trim them
+
+- [`flood_fill`](https://michaelhallquist.github.io/ggbrain/reference/flood_fill.md)
+  : This function flood fills a binary image with TRUE for any value of
+  FALSE
+
+- [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+  : Adds a raster layer to the ggbrain plot, displaying pixels from the
+  specified layer definition
+
+- [`geom_outline()`](https://michaelhallquist.github.io/ggbrain/reference/geom_outline.md)
+  : Adds an outline layer to the ggbrain plot, displaying outlines from
+  the non-missing pixels in the specified layer definition
+
+- [`geom_region_label()`](https://michaelhallquist.github.io/ggbrain/reference/geom_region_label.md)
+  : Variant of geom_label used for plotting region labels on slices
+
+- [`geom_region_label_repel()`](https://michaelhallquist.github.io/ggbrain/reference/geom_region_label_repel.md)
+  : Variant of geom_label_repel used for plotting region labels on
+  slices with separation from other labels
+
+- [`geom_region_text()`](https://michaelhallquist.github.io/ggbrain/reference/geom_region_text.md)
+  : Variant of geom_text used for plotting region labels on slices
+
+- [`geom_region_text_repel()`](https://michaelhallquist.github.io/ggbrain/reference/geom_region_text_repel.md)
+  : Variant of geom_text_repel used for plotting region labels on slices
+  with separation from other labels
+
+- [`ggbrain()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain.md)
+  : create ggb container object for a given plot
+
+- [`ggbrain_images`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_images.md)
+  : R6 class for compiling images to render in ggplot
+
+- [`ggbrain_label`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_label.md)
+  : R6 class for adding labels to a ggbrain_panel
+
+- [`ggbrain_layer`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer.md)
+  : R6 class for a single layer of a ggbrain panel
+
+- [`ggbrain_layer_brain`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer_brain.md)
+  : R6 class for a single layer of a ggbrain panel using fill geom
+
+- [`ggbrain_layer_outline`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer_outline.md)
+  : R6 class for a single layer of a ggbrain panel using outline geom
+
+- [`ggbrain_panel`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_panel.md)
+  : R6 class for a single panel of a ggbrain image
+
+- [`ggbrain_plot`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_plot.md)
+  : An R6 class for constructing a ggbrain plot from a ggbrain_slices
+  object
+
+- [`ggplot_add(`*`<ggbrain_label>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/ggplot_add.ggbrain_label.md)
+  : S3 method to support adding ggbrain_label objects to an existing
+  ggplot object
+
+- [`ggplot_add(`*`<ggbrain_layer>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/ggplot_add.ggbrain_layer.md)
+  : S3 method to support adding ggbrain_layer objects to an existing
+  ggplot object
+
+- [`ggplot_add(`*`<ggbrain_panel>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/ggplot_add.ggbrain_panel.md)
+  : S3 method to support adding ggbrain_layer objects to an existing
+  ggplot object
+
+- [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md)
+  : Add images to a ggbrain object
+
+- [`integer_breaks()`](https://michaelhallquist.github.io/ggbrain/reference/integer_breaks.md)
+  : breaks function to encourage integer-valued breaks, based on input
+  from pretty
+
+- [`montage()`](https://michaelhallquist.github.io/ggbrain/reference/montage.md)
+  : Convenience function to add many slices in a montage along one of
+  the 3D planes
+
+- [`nn_impute`](https://michaelhallquist.github.io/ggbrain/reference/nn_impute.md)
+  : Imputes missing values in a 2D matrix based on the nearest
+  non-missing neighbors in a given radius
+
+- [`plot(`*`<ggb>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plot.ggb.md)
+  : S3 method to allow for plot(x) syntax with ggbrain (ggb) objects
+
+- [`plot(`*`<ggbrain_panel>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plot.ggbrain_panel.md)
+  : S3 method to allow for plot() syntax with ggbrain_panel objects
+
+- [`plot(`*`<ggbrain_patchwork>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plot.ggbrain_patchwork.md)
+  [`print(`*`<ggbrain_patchwork>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plot.ggbrain_patchwork.md)
+  : S3 method to allow for plot() syntax with rendered ggbrain patchwork
+  objects
+
+- [`plot(`*`<ggbrain_plot>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plot.ggbrain_plot.md)
+  : S3 method to allow for plot() syntax with ggbrain_panel objects
+
+- [`` `+`( ``*`<ggb>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plus-.ggb.md)
+  : addition operator for ggb object to support ggplot-like syntax
+
+- [`` `+`( ``*`<ggbrain_images>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/plus-.ggbrain_images.md)
+  : summary S3 method for ggbrain_images objects addition operator for
+  combining ggbrain_images objects
+
+- [`range_breaks()`](https://michaelhallquist.github.io/ggbrain/reference/range_breaks.md)
+  : breaks function for including min + max with labels, and a few
+  unlabeled ticks in between
+
+- [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
+  :
+
+  Function to convert `ggb` object to ggplot/patchwork object
+
+- [`render(`*`<ggb>`*`)`](https://michaelhallquist.github.io/ggbrain/reference/render.ggb.md)
+  : S3 method to allow for render(x) syntax with ggbrain (ggb) objects
+
+- [`scale_fill_bisided()`](https://michaelhallquist.github.io/ggbrain/reference/scale_fill_bisided.md)
+  : scale for plotting separate color gradients for positive and
+  negative values
+
+- [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
+  : Adds slices to the ggbrain plot, including additional panel
+  aesthetics

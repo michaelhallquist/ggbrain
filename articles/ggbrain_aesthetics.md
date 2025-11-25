@@ -1,0 +1,180 @@
+# Aesthetic refinements of ggbrain plots
+
+## This is still in progress
+
+The sections below are incomplete!
+
+## Images that will be used in the demo
+
+The package includes a few images that can be used for demonstrating its
+capabilities. The locations of the images (and the code to load them)
+are listed below.
+
+``` r
+# MNI 2009c anatomical underlay
+underlay_3mm <- system.file("extdata", "mni_template_2009c_3mm.nii.gz", package = "ggbrain")
+
+# onset of decision phase for learning task
+decision_onset_3mm <- system.file("extdata", "decision_onset_zstat_3mm.nii.gz", package = "ggbrain")
+
+# Parametric modulator: entropy change following feedback in learning task
+echange_overlay_3mm <- system.file("extdata", "echange_overall_zstat_3mm.nii.gz", package = "ggbrain")
+
+# Schaefer 200-parcel atlas of cortex
+schaefer200_atlas_3mm <- system.file("extdata", "Schaefer_200_7networks_2009c_3mm.nii.gz", package = "ggbrain")
+
+print(c(underlay_3mm, decision_onset_3mm, echange_overlay_3mm, schaefer200_atlas_3mm))
+```
+
+    ## [1] "" "" "" ""
+
+### Converting to a ggplot object and displaying the plot
+
+For reasons that are somewhat boring (having to do with how R handles S3
+operators like `+`), the brain-related addition steps for `ggbrain`
+object must come before generic `ggplot2` modifications of the plot.
+More specifically, the use of the `+` operator for ggbrain commands like
+[`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+or
+[`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md)
+create and modify an object that is internal to the
+
+## Adjustments to the appearance of image layers
+
+### blur_edge
+
+### remove_specks
+
+### trim_threads
+
+### fill_holes
+
+      blur_edge = NULL,
+      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL)
+
+#### Cleaning small ‘specks’ from image slices
+
+At times, when slicing a given image (esp. functional activations), it
+is possible that some clusters are very small, yielding small ‘specks’
+on some rendered slices. These are visually unappealing and may merit
+removal, depending on your tastes. Of course, removing these specks can,
+at the extreme, misrepresent the data, which is undesirable. This
+concern notwithstanding, you can use the `clean_specks` argument of
+`images` to specify the voxel threshold used to remove clusters smaller
+than a certain size. For example, `clean_specks = 30` would remove any
+clusters smaller than 30 voxels in size from each slice on the rendered
+image.
+
+``` r
+# TODO: make this in geom_brain
+gg_obj <- gg_obj + images(echange=echange_overlay_3mm)
+```
+
+#### Filling small holes in image slices
+
+Another aesthetic problem is that at times there will be small holes on
+the interior of a cluster. These may reflect voxels that fall below a
+statistical threshold (e.g., voxels that have a z-statistic value of
+3.02 in a cluster defined by z \> 3.1). These can be filled in using the
+`fill_holes` argument of `images`. This specifies the size of holes (in
+voxels) that should be filled on the rendered slices. For example,
+`fill_holes = 30` would fill holes of 30 or fewer voxels on the interior
+of each cluster. The holes are filled by nearest neighbor imputation in
+which the nearest non-missing voxels are used to impute missing voxels.
+In integer-valued/categorical images, the mode of the neighboring voxels
+is used for imputation.
+
+``` r
+# TODO: make this in geom_Brain
+gg_obj <- gg_obj + images(echange=echange_overlay_3mm)
+```
+
+## Labeling regions
+
+``` r
+a <- ggbrain(bg_color = "gray60", text_color = "black") +
+  images(c(underlay = "template_brain.nii.gz")) +
+  images(c(dan_clust = dan_clust), fill_holes = TRUE, clean_specks = 20, labels = dan_labels) +
+  # slices(paste0("x = ", seq(10, 90, 10), "%")) +
+  slices(montage("axial", 10, min = 0.1, max = 0.8)) +
+  # add_slice("y=50%", title = "hello", xlab = "testx", border_size = 1, border_color = "blue") +
+  geom_brain(definition = "underlay", fill_scale = scale_fill_gradient(low = "grey8", high = "grey62"), show_legend = FALSE) +
+  geom_brain(definition = "dan_clust", mapping = aes(fill = label), fill_scale = scale_fill_brewer("DAN 17 label", palette = "Set1"), show_legend = TRUE) +
+  geom_outline(definition = "dan_clust", mapping = aes(group = roi_label), show_legend = TRUE, outline = "black") + # fill_scale = scale_fill_discrete("hello"),
+  # geom_outline(definition = "dan_clust", show_legend = TRUE, mapping=aes(group=label), size=2, outline="cyan") + #fill_scale = scale_fill_discrete("hello"),
+
+  # geom_outline(definition = "dan_clust", show_legend = TRUE, outline = "cyan") + #fill_scale = scale_fill_discrete("hello"),
+
+  geom_region_label_repel(image = "dan_clust", label_column = "roi_label", min.segment.length = 0, size = 1.5, color = "black", force_pull = 0.2, max.overlaps = Inf) +
+  render() + plot_layout(guides = "collect")
+```
+
+## Saving ggbrain plots to file
+
+## Aesthetic mappings for
+
+## Combining ggbrain plots
+
+\[Principles of patchwork\]
+
+## Other considerations
+
+#### Resampling images to have the same resolution
+
+Oftentimes, higher-resolution images (e.g., 1mm) yield better graphics
+since they potentially provide more detail. But fMRI data are often of
+lower resolution than T1-weighted images. If you wish to render your
+fMRI data on a higher-resolution anatomical template in `ggbrain`, you
+can first use AFNI’s `3dresample` command to resample your functional
+data to match the anatomical template (underlay).
+
+Here is an example of resampling a 3mm statistic image to a 1mm underlay
+using nearest neighbor interpolation. Note that the image to be
+resampled should be in the same sterotaxic space as the master/template
+image.
+
+    3dresample -input echange_overall_zstat_3mm.nii.gz \
+      -prefix echange_overall_zstat_1mm.nii.gz \
+      -master mni_template_2009c_1mm.nii.gz \
+      -rmode NN
+
+## Overview of ggbrain
+
+The `ggbrain` package uses the `ggplot2` package to create 2D volume
+renderings of NIfTI files containing MRI data. It seeks to follow the
+principles of a graphical grammar in which plots are built from datasets
+that are mapped onto the visual space via a set of aesthetic mappings.
+Likewise, `ggbrain` follows the approach of creating layers in which
+different geometric marks (e.g., square pixels) are overlaid on the
+plot, such that many images and marks can be combined.
+
+### The hierarchy of a ggbrain plot
+
+Every ggbrain plot is composed of one or more panels that have layers
+representing different images that have been overlaid. Each panel
+contains a slice along one of the three axes of the volume: x
+(Left-Right), y (Anterior-Posterior), or z (Superior-Inferior). Panels
+can also contain annotations that reflect one or more marks to aid in
+the interpretation of the plot, as well as region labels in which text
+is positioned at certain markers within the displayed brain slice.
+
+- Plot
+  - Panels (aka Slices)
+    - Layers: each pixel in the 2D slice contains a value such as a test
+      statistic from a voxelwise analysis. Pixel values can also be
+      categorical, such as levels of a factor (e.g., lobe).
+    - Annotations: custom text or graphical marks overlaid on the panel
+      using the ggplot2 `annotate` function (e.g., coordinate label)
+    - Region Labels: a variant of ggplot2 `geom_text`, region labels
+      represent text that should be overlaid at one or more spatial
+      positions across the panel/slice (e.g., anatomical labels)
+
+## Question of how to get entire background to match in color
+
+Use bg argument
+
+    ggsave("test.png", gg_obj$render(), width=8, height=6, bg="blue")
+
+    pdf("test_dev.pdf", width=8, height=6, bg="blue")
+    plot(gg_obj)
+    dev.off()
