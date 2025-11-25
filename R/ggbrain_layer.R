@@ -3,12 +3,12 @@
 #'   Note that this class is exported only for power users and rarely needs to be called directly
 #'     in typical use of the package. Instead, look at geom_brain() and geom_outline().
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
-#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes aes_string geom_raster guides
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes geom_raster guides
 #'   guide_colorbar
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg as.pixset pixset split_connected
-#' @importFrom rlang sym
+#' @importFrom rlang sym parse_expr
 #' @importFrom dplyr group_by filter row_number select
 #' @return a `ggbrain_layer` R6 class containing fields related to a visual layer on the `ggbrain` plot
 #' @export
@@ -45,7 +45,7 @@ ggbrain_layer <- R6::R6Class(
     # private function to fill holes of a certain size
     # uses a flood fill algorithm from the corners to find pixels that cannot be reached
     # these are then filled by nearest neighbor imputation
-    fill_img_holes = function(img, size = 10, neighbors=10) {
+    fill_img_holes = function(img, size = 10, neighbors=10, categorical = FALSE) {
       filled_img <- fill_from_edge(img, nedges = 4) # flood fills TRUE from four corners to find holes
       holes <- !as.cimg(filled_img) # becomes TRUE where there is a hole
 
@@ -60,8 +60,10 @@ ggbrain_layer <- R6::R6Class(
           img[as.matrix(Reduce("|", objs[hh]))] <- NA
 
           # fill NAs by nearest neighbor imputation
-          rr <- max(6, ceiling(sqrt(size))) # approximation of radius within which to interpolate
-          aggfun <- ifelse(isTRUE(private$pvt_categorical_fill), "mode", "mean")
+          # keep radius within image bounds to avoid imputation errors on tiny slices
+          rr <- max(6, ceiling(sqrt(size)))
+          rr <- min(rr, max(dim(img)))
+          aggfun <- ifelse(isTRUE(categorical), "mode", "mean")
           img <- nn_impute(img, neighbors = neighbors, radius = rr, aggfun = aggfun, ignore_zeros = TRUE)
         }
       }
@@ -122,10 +124,16 @@ ggbrain_layer <- R6::R6Class(
       dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
       na_rows <- rep(FALSE, nrow(d))
       vcols <- grep("dim1|dim2", names(d), value = TRUE, invert = TRUE)
+      is_categorical <- isTRUE(private$pvt_categorical_fill) || !is.null(label_columns)
 
       # always fill in holes first so that neighbor counts are more sensible
       if (private$pvt_fill_holes > 0L) {
-        dmat <- private$fill_img_holes(dmat, size = private$pvt_fill_holes, neighbors = 10)
+        dmat <- private$fill_img_holes(
+          dmat,
+          size = private$pvt_fill_holes,
+          neighbors = 10,
+          categorical = is_categorical
+        )
         d <- mat2df(dmat, na_zeros = TRUE) # convert back to modified data frame
         attr(d, "label_columns") <- label_columns
 
@@ -211,13 +219,27 @@ ggbrain_layer <- R6::R6Class(
         fill_expr <- sub("{new_val}", new_val, private$pvt_fill_expr, fixed=TRUE)
 
         raster_args$data <- df
-        raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = fill_expr, alpha = private$pvt_alpha_column)
+        fill_quo <- rlang::parse_expr(fill_expr)
+        alpha_quo <- if (!is.null(private$pvt_alpha_column)) rlang::sym(private$pvt_alpha_column) else NULL
+        mapping_args <- list(
+          x = rlang::sym("dim1"),
+          y = rlang::sym("dim2"),
+          fill = fill_quo
+        )
+        if (!is.null(alpha_quo)) mapping_args$alpha <- alpha_quo
+        raster_args$mapping <- do.call(ggplot2::aes, mapping_args)
         raster_args$show.legend <- c(fill = private$pvt_show_legend, suppress_garbage = NA) # random fix to not blacken lower layers
       } else {
         # fixed fill layer -- always need to drop NAs from data because when fill is *set* (not mapped), any row in the
         # data.frame will be filled with the specified color.
         raster_args$data <- subset(df, !is.na(value))
-        raster_args$mapping <- ggplot2::aes_string(x = "dim1", y = "dim2", fill = NULL, alpha = private$pvt_alpha_column)
+        alpha_quo <- if (!is.null(private$pvt_alpha_column)) rlang::sym(private$pvt_alpha_column) else NULL
+        mapping_args <- list(
+          x = rlang::sym("dim1"),
+          y = rlang::sym("dim2")
+        )
+        if (!is.null(alpha_quo)) mapping_args$alpha <- alpha_quo
+        raster_args$mapping <- do.call(ggplot2::aes, mapping_args)
         raster_args$fill <- private$pvt_fill
         raster_args$show.legend <- c(fill=FALSE)
       }

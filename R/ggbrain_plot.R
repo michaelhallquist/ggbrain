@@ -6,6 +6,8 @@
 #' @importFrom dplyr if_else %>% bind_rows left_join mutate select
 #' @importFrom patchwork wrap_plots plot_annotation plot_layout
 #' @importFrom checkmate assert_integerish assert_class
+#' @importFrom tidyr nest
+#' @importFrom R6 R6Class
 #' @return a `ggbrain_plot` R6 class containing fields related to a ggbrain plot object
 #' @export
 ggbrain_plot <- R6::R6Class(
@@ -302,14 +304,16 @@ ggbrain_plot <- R6::R6Class(
         # list of layers
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
-          l_obj$data <- comb_data[[j]] # set slice-specific data (this will also set properties such as whether fill layer is categorical)
-          if (isTRUE(l_obj$categorical_fill)) l_obj$fill_scale$na.translate <- FALSE # don't park "NA" in legend for empty tiles
+          layer_data <- comb_data[[j]]
 
+          # unify factor levels before assigning data so refine_image() only runs once per layer
           if (isTRUE(l_obj$unify_scales)) {
-            if (isTRUE(l_obj$categorical_fill)) {
-              f_col <- l_obj$fill_column
+            f_col <- l_obj$fill_column
+            is_cat <- isTRUE(l_obj$categorical_fill) ||
+              (!is.null(f_col) && f_col %in% names(layer_data) &&
+                inherits(layer_data[[f_col]], c("character", "factor", "ordered")))
 
-              # unify factor levels across slices
+            if (isTRUE(is_cat) && !is.null(f_col)) {
               f_levels <- img_uvals %>%
                 dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
                 dplyr::pull(uvals)
@@ -318,10 +322,17 @@ ggbrain_plot <- R6::R6Class(
               # This should work as expected because levels are preserved for labeled data.
               # I think this may only be essential for inline factor coding in aes and that it may only be a problem because we factor() the
               # label column in $validate_layer(), rather than setting the factor at the overall image level prior to slicing.
-              if (!is.ordered(l_obj$data[[f_col]])) {
-                l_obj$data[[f_col]] <- factor(l_obj$data[[f_col]], levels = f_levels)
+              if (length(f_levels) > 0L && !is.ordered(layer_data[[f_col]])) {
+                layer_data[[f_col]] <- factor(layer_data[[f_col]], levels = f_levels)
               }
+            }
+          }
 
+          l_obj$data <- layer_data # set slice-specific data (this will also set properties such as whether fill layer is categorical)
+          if (isTRUE(l_obj$categorical_fill)) l_obj$fill_scale$na.translate <- FALSE # don't park "NA" in legend for empty tiles
+
+          if (isTRUE(l_obj$unify_scales)) {
+            if (isTRUE(l_obj$categorical_fill)) {
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
             } else {
               if (isTRUE(l_obj$bisided)) {

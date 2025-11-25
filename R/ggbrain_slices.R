@@ -4,6 +4,9 @@
 #' @importFrom tibble tibble
 #' @importFrom tidyselect matches
 #' @importFrom data.table melt rbindlist setDF :=
+#' @importFrom checkmate assert_data_frame assert_list assert_integerish assert_subset test_class test_character
+#' @importFrom R6 R6Class
+#' @importFrom dplyr %>%
 #' @author Michael Hallquist
 #' @keywords internal
 ggbrain_slices <- R6::R6Class(

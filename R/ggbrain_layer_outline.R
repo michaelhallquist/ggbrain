@@ -5,7 +5,7 @@
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
 #' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes
 #' @importFrom Matrix sparseMatrix
-#' @importFrom imager as.cimg erode_square isoblur boundary px.circle
+#' @importFrom imager as.cimg erode_square isoblur boundary px.circle dilate
 #' @importFrom dplyr group_by group_keys group_split
 #' @importFrom rlang as_label
 #' @return a `ggbrain_layer_outline` R6 class with fields related to a brain visual layer (relates to `geom_outline`)

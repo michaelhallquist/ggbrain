@@ -1,3 +1,11 @@
+# ggbrain 0.9.2 (28Aug2025)
+
+* bugfix: avoid double calls to `refine_image()` when unifying categorical scales by releveling before data assignment
+* bugfix: ensure `fill_holes` uses mode for categorical/labeled data (even with fixed outlines) and cap imputation radius for small slices
+* bugfix: replace deprecated `aes_string()` with tidy-eval `aes()` mappings for rasters and labels
+* bugfix: replace deprecated `rlang::flatten()` with internal `flatten_list_once()` helper
+* tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
+
 # ggbrain 0.9.1 (22Aug2025)
 
 * updated ggplot_add methods to be compatible with ggplot2 4.0

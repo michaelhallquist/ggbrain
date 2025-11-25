@@ -2,7 +2,9 @@
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
 #' @importFrom ggrepel geom_text_repel geom_label_repel
-#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 aes
+#' @importFrom rlang sym
+#' @importFrom R6 R6Class
 #' @return a `ggbrain_label` R6 class containing fields related to ggbrain plot labels
 #' @export
 ggbrain_label <- R6::R6Class(
@@ -117,9 +119,19 @@ ggbrain_label <- R6::R6Class(
       
       # return the modified ggplot object with the labels added
       base_gg +
-        do.call(paste0("geom_", private$pvt_geom),
-                args = c(list(data = df, mapping = ggplot2::aes_string(x = "dim1", y = "dim2", label = private$pvt_label_column)), 
-                         self$addl_args)
+        do.call(
+          paste0("geom_", private$pvt_geom),
+          args = c(
+            list(
+              data = df,
+              mapping = ggplot2::aes(
+                x = !!rlang::sym("dim1"),
+                y = !!rlang::sym("dim2"),
+                label = !!rlang::sym(private$pvt_label_column)
+              )
+            ),
+            self$addl_args
+          )
         )
     }
   )

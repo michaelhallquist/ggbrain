@@ -2,6 +2,7 @@
 #' @details this object becomes a simple storage class that contains all relevant objects
 #'   (e.g., ggbrain_images) required to generate a brain plot
 #' @importFrom checkmate assert_class test_character
+#' @importFrom R6 R6Class
 #' @keywords internal
 ggb <- R6::R6Class(
   "ggb",

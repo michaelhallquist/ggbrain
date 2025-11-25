@@ -3,7 +3,6 @@
 #'   Note that this class is exported only for power users and rarely needs to be called directly
 #'     in typical use of the package. Instead, look at images().
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
-#' @importFrom rlang flatten
 #' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
 #' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset test_atomic
 #' @importFrom tidyr unnest
@@ -12,6 +11,7 @@
 #' @importFrom imager as.cimg as.pixset split_connected
 #' @importFrom glue glue
 #' @importFrom stats setNames
+#' @importFrom R6 R6Class
 #' @return a `ggbrain_images` R6 class containing fields related to a set of NIfTI images imported into R
 #' @export
 ggbrain_images <- R6::R6Class(
@@ -506,7 +506,7 @@ ggbrain_images <- R6::R6Class(
       if (isTRUE(remove_null_space)) {
         # find voxels in each image that are different from zero
         slc <- lapply(slc, function(ilist) {
-          img_nz <- lapply(rlang::flatten(ilist), function(img) {
+          img_nz <- lapply(flatten_list_once(ilist), function(img) {
             abs(img) > private$pvt_zero_tol
           })
 
@@ -522,7 +522,7 @@ ggbrain_images <- R6::R6Class(
 
       # whether to make all images have the same square dimensions
       if (isTRUE(make_square)) {
-        slc_dims <- sapply(rlang::flatten(slc), dim)
+        slc_dims <- sapply(flatten_list_once(slc), dim)
         square_dims <- apply(slc_dims, 1, max)
         # for each slice and image within slice, center the matrix in the target output dims
         slc <- lapply(slc, function(ilist) {
