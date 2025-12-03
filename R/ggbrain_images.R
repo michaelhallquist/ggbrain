@@ -8,7 +8,7 @@
 #' @importFrom tidyr unnest
 #' @importFrom tibble remove_rownames
 #' @importFrom tidyselect everything
-#' @importFrom imager as.cimg as.pixset split_connected
+#' @importFrom imager as.cimg as.pixset split_connected resize
 #' @importFrom glue glue
 #' @importFrom stats setNames
 #' @importFrom R6 R6Class
@@ -22,6 +22,8 @@ ggbrain_images <- R6::R6Class(
     pvt_img_names = NULL, # names of images
     pvt_img_volumes = list(), # list of volumes to be read for each image (for now, should be scalar)
     pvt_dims = NULL, # x, y, z extent
+    pvt_pixdim = NULL, # voxel sizes in mm (x, y, z)
+    pvt_affine = NULL, # 4x4 affine matrix defining voxel-to-world transformation
     pvt_zero_tol = 1e-6, # threshold for what constitutes a non-zero voxel
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
     pvt_slices = NULL, # allows caching of slices for + approach
@@ -74,6 +76,60 @@ ggbrain_images <- R6::R6Class(
       } else {
         private$pvt_dims <- img_dims[, 1]
       }
+
+      # Check voxel sizes match (with tolerance for floating-point comparison)
+      # For 3D images, pixdim() returns a 3-element vector; for 4D, 4-element
+      # We want all spatial dimensions (excluding the first qfac element from the NIfTI header)
+      pixdims <- sapply(img_list, function(x) RNifti::pixdim(x))
+      if (is.vector(pixdims)) pixdims <- matrix(pixdims, ncol = 1) # handle single image case
+      if (!is.null(private$pvt_pixdim)) {
+        pixdims <- cbind(pixdims, extant = private$pvt_pixdim)
+      }
+      
+      # Only check for matching if we have more than one image/column
+      if (ncol(pixdims) > 1) {
+        pixdim_tol <- 1e-4 # tolerance for voxel size comparison (in mm)
+        pixdim_match <- apply(pixdims, 1, function(row) {
+          max(row) - min(row) < pixdim_tol
+        })
+
+        if (!all(pixdim_match)) {
+          cat("Voxel sizes (pixdim) for each image:\n")
+          print(pixdims)
+          stop("Voxel sizes do not match between images. Images must have the same resolution.")
+        }
+      }
+      private$pvt_pixdim <- pixdims[, 1]
+
+      # Check affine matrices match (with tolerance)
+      # The affine (sform/xform) defines how voxel coordinates map to world coordinates
+      affines <- lapply(img_list, RNifti::xform)
+      if (!is.null(private$pvt_affine)) {
+        affines <- c(affines, list(extant = private$pvt_affine))
+      }
+      
+      # Only check for matching if we have more than one affine
+      if (length(affines) > 1) {
+        affine_tol <- 1e-4 # tolerance for affine comparison
+        ref_affine <- affines[[1]]
+        affine_mismatch <- FALSE
+        for (i in seq_along(affines)[-1]) {
+          if (max(abs(affines[[i]] - ref_affine)) > affine_tol) {
+            affine_mismatch <- TRUE
+            break
+          }
+        }
+
+        if (affine_mismatch) {
+          cat("Affine matrices differ between images:\n")
+          for (nm in names(affines)) {
+            cat(paste0("\n", nm, ":\n"))
+            print(affines[[nm]])
+          }
+          stop("Affine matrices do not match between images. Images must be in the same space/orientation.")
+        }
+      }
+      private$pvt_affine <- affines[[1]]
 
       private$pvt_imgs[names(img_list)] <- img_list
       private$pvt_img_volumes[names(img_list)] <- volumes
@@ -154,7 +210,29 @@ ggbrain_images <- R6::R6Class(
         return(self)
       } else if (!is.null(self$get_image_names()) && !identical(obj$dim(), self$dim())) {
         stop(glue::glue("Dimensions of existing object ({paste(self$dim(), collapse=',')})",
-                  "do not match object to add ({paste(obj$dim(), collapse=',')})"))
+                  " do not match object to add ({paste(obj$dim(), collapse=',')})"))
+      }
+
+      # Check voxel sizes match when combining objects
+      if (!is.null(self$get_image_names()) && !is.null(private$pvt_pixdim)) {
+        obj_pixdim <- RNifti::pixdim(obj$get_images(drop = FALSE)[[1]])
+        pixdim_tol <- 1e-4
+        # Ensure same length before comparison (handles 3D vs 4D edge cases)
+        min_len <- min(length(obj_pixdim), length(private$pvt_pixdim))
+        if (any(abs(obj_pixdim[1:min_len] - private$pvt_pixdim[1:min_len]) > pixdim_tol)) {
+          stop(glue::glue("Voxel sizes of existing object ({paste(round(private$pvt_pixdim, 4), collapse=',')})",
+                    " do not match object to add ({paste(round(obj_pixdim, 4), collapse=',')})"))
+        }
+      }
+
+      # Check affine matrices match when combining objects
+      if (!is.null(self$get_image_names()) && !is.null(private$pvt_affine)) {
+        obj_affine <- RNifti::xform(obj$get_images(drop = FALSE)[[1]])
+        affine_tol <- 1e-4
+        if (max(abs(obj_affine - private$pvt_affine)) > affine_tol) {
+          stop("Affine matrices do not match between existing object and object to add. ",
+               "Images must be in the same space/orientation.")
+        }
       }
 
       if (!identical(obj$zero_tol, self$zero_tol)) {
@@ -460,13 +538,17 @@ ggbrain_images <- R6::R6Class(
     #'   have a corresponding label in the labels data.frame. Default: FALSE
     #' @param make_square If TRUE, make all images square and of the same size
     #' @param remove_null_space If TRUE, remove slices where all values are approximately zero
+    #' @param target_resolution Optional target voxel size in mm for resampling slices. If provided, slices
+    #'   will be resampled to this resolution using the specified interpolation method.
+    #' @param resample_interpolation Integer specifying the interpolation method for imager::imresize.
+    #'   1=nearest, 2=linear, 5=cubic (default), 6=lanczos.
     #' @details This function always returns a data.frame where each row represents a slice requested
     #'   by the user. The $slice_data element is a list-column where each element is itself a list
     #'   of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
     #'   is a list-column where each element is a list of 2-D matrices, one per layer/image.
     #'  @return a ggbrain_slices object containing the requested slices and contrasts
     get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, fill_labels = FALSE,
-      make_square = TRUE, remove_null_space = TRUE) {
+      make_square = TRUE, remove_null_space = TRUE, target_resolution = NULL, resample_interpolation = 5L) {
 
       if (is.null(slices)) {
         if (!is.null(private$pvt_slices)) {
@@ -490,6 +572,26 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_character(contrasts, names="unique", null.ok = TRUE)
       checkmate::assert_logical(make_square, len=1L)
       checkmate::assert_logical(remove_null_space, len = 1L)
+      checkmate::assert_number(target_resolution, lower = 0.1, upper = 10, null.ok = TRUE)
+      checkmate::assert_integerish(resample_interpolation, lower = 1L, upper = 6L, len = 1L)
+
+      # Determine resampling scale factor based on target resolution
+      resample_factor <- NULL
+      if (!is.null(target_resolution)) {
+        # Get voxel size from first image header (assumes isotropic or uses first dimension)
+        nii_headers <- self$get_headers(drop = FALSE)
+        nii_head <- nii_headers[[1L]] # use first image header
+        # pixdim gives voxel dimensions; pixdim[2:4] are x, y, z sizes in mm
+        # pixdim is a numeric vector where indices 2, 3, 4 correspond to x, y, z voxel sizes
+        pixdim_vec <- as.numeric(nii_head$pixdim)
+        current_voxel_size <- mean(abs(pixdim_vec[2:4])) # average voxel size
+        resample_factor <- current_voxel_size / target_resolution
+        # Allow both upsampling (factor > 1) and downsampling (factor < 1)
+        # Only skip if factor is essentially 1 (no change needed)
+        if (abs(resample_factor - 1.0) < 0.01) {
+          resample_factor <- NULL # no resampling needed if already at target resolution
+        }
+      }
 
       # which images contain integer-valued data that should be labeled?
       label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
@@ -529,6 +631,71 @@ ggbrain_images <- R6::R6Class(
           lapply(ilist, function(mat) {
             center_matrix(square_dims, mat, drop_zeros = FALSE) # at present, drop_zeros = TRUE will lead to offsets across images...
           })
+        })
+      }
+
+      # Resample slices to target resolution if requested (both upsampling and downsampling supported)
+      if (!is.null(resample_factor)) {
+        slc <- lapply(slc, function(ilist) {
+          lapply(names(ilist), function(img_name) {
+            mat <- ilist[[img_name]]
+            if (is.null(mat) || length(mat) == 0L) return(mat)
+
+            # Check if this is a labeled/categorical image (use nearest neighbor for those)
+            is_labeled <- img_name %in% label_imgs
+            interp_method <- if (is_labeled) 1L else resample_interpolation # 1 = nearest neighbor
+
+            # Convert to cimg for resizing
+            cimg_obj <- imager::as.cimg(mat)
+
+            # Calculate target dimensions based on resample_factor
+            target_x <- round(dim(cimg_obj)[1] * resample_factor)
+            target_y <- round(dim(cimg_obj)[2] * resample_factor)
+
+            # NB: We use imager::resize() directly instead of imager::imresize() because imresize
+            # has a bug where it ignores the interpolation parameter when the scale factor is a
+            # power of 2 (e.g., 2x, 4x). In those cases, imresize uses fast doubling functions
+            # (resize_doubleXY) that only do nearest-neighbor interpolation, regardless of the
+            # interpolation argument. Using resize() with explicit target dimensions ensures the
+            # interpolation_type is always respected.
+
+            # For non-labeled images with interpolation methods other than nearest-neighbor, use
+            # mask-aware interpolation to avoid artifacts at edges where the image transitions
+            # from valid data to zero (masked regions). This is common with thresholded
+            # statistical maps. For cubic/lanczos, this prevents ringing. For linear, this
+            # prevents edge darkening where values blend toward zero.
+            use_mask_interpolation <- !is_labeled && interp_method > 1L # linear (3), cubic (5), or lanczos (6)
+
+            if (use_mask_interpolation) {
+              # Create a binary mask: 1 where data is valid (non-zero), 0 elsewhere
+              # Use floating-point tolerance instead of exact != 0 comparison
+              mask_mat <- ifelse(abs(mat) > private$pvt_zero_tol, 1, 0)
+              mask_cimg <- imager::as.cimg(mask_mat)
+
+              # Interpolate the data using the requested method
+              resized_data <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
+                                             interpolation_type = interp_method)
+
+              # Interpolate the mask using linear interpolation (sufficient for edge detection)
+              resized_mask <- imager::resize(mask_cimg, size_x = target_x, size_y = target_y,
+                                             interpolation_type = 3L) # linear
+
+              # Convert back to matrices
+              result <- as.matrix(resized_data[, , 1, 1])
+              mask_result <- as.matrix(resized_mask[, , 1, 1])
+
+              # Apply mask: set pixels to 0 where interpolated mask < 0.5
+              # This creates clean edges without blending artifacts
+              result[mask_result < 0.5] <- 0
+            } else {
+              # Standard interpolation for labeled images or nearest-neighbor method
+              resized <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
+                                        interpolation_type = interp_method)
+              result <- as.matrix(resized[, , 1, 1])
+            }
+
+            return(result)
+          }) %>% setNames(names(ilist))
         })
       }
 

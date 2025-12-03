@@ -376,7 +376,9 @@ get slice data for one or more slices based on their coordinates
   contrasts = NULL,
   fill_labels = FALSE,
   make_square = TRUE,
-  remove_null_space = TRUE
+  remove_null_space = TRUE,
+  target_resolution = NULL,
+  resample_interpolation = 5L
 )}\if{html}{\out{</div>}}
 }
 
@@ -395,6 +397,12 @@ have a corresponding label in the labels data.frame. Default: FALSE}
 \item{\code{make_square}}{If TRUE, make all images square and of the same size}
 
 \item{\code{remove_null_space}}{If TRUE, remove slices where all values are approximately zero}
+
+\item{\code{target_resolution}}{Optional target voxel size in mm for resampling slices. If provided, slices
+will be resampled to this resolution using the specified interpolation method.}
+
+\item{\code{resample_interpolation}}{Integer specifying the interpolation method for imager::imresize.
+1=nearest, 2=linear, 5=cubic (default), 6=lanczos.}
 }
 \if{html}{\out{</div>}}
 }

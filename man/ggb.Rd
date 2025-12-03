@@ -32,6 +32,8 @@ this object becomes a simple storage class that contains all relevant objects
 
 \item{\code{ggb_region_labels}}{a list of ggbrain_label objects to be added as text to label regions}
 
+\item{\code{ggb_target_resolution}}{a list with target resolution settings (voxel_size, interpolation, interpolation_value)}
+
 \item{\code{action}}{what should this ggb object contribute to another when added with it?}
 }
 \if{html}{\out{</div>}}
@@ -47,6 +49,7 @@ this object becomes a simple storage class that contains all relevant objects
 \item \href{#method-ggb-add_image_labels}{\code{ggb$add_image_labels()}}
 \item \href{#method-ggb-add_region_labels}{\code{ggb$add_region_labels()}}
 \item \href{#method-ggb-render}{\code{ggb$render()}}
+\item \href{#method-ggb-get_slice_data}{\code{ggb$get_slice_data()}}
 \item \href{#method-ggb-plot}{\code{ggb$plot()}}
 \item \href{#method-ggb-clone}{\code{ggb$clone()}}
 }
@@ -229,6 +232,39 @@ fields that contain the elemental data.
 is "collect", which collects legends within a given nesting level (removes duplicates).}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-get_slice_data"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-get_slice_data}{}}}
+\subsection{Method \code{get_slice_data()}}{
+get the slice data from the rendered plot for inspection
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$get_slice_data(image_name = NULL, slice_index = NULL, as_matrix = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{image_name}}{optional character string specifying a single image to extract. If NULL, returns
+all images for each slice.}
+
+\item{\code{slice_index}}{optional integer vector specifying which slices to return. If NULL, returns all slices.}
+
+\item{\code{as_matrix}}{if TRUE, convert data.frames to matrices using df2mat(). Default: FALSE}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+If \code{render()} has not been called yet, this method will call it automatically to
+populate the slice data. This is useful for verifying that resampling/interpolation occurred
+as expected when using \code{target_resolution()}.
+}
+
+\subsection{Returns}{
+A list of slice data. If \code{image_name} is specified, returns a list of data.frames (or matrices)
+for that image across slices. If \code{image_name} is NULL, returns a nested list where each element
+contains all images for that slice.
 }
 }
 \if{html}{\out{<hr>}}

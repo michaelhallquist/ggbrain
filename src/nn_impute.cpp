@@ -30,6 +30,11 @@ arma::mat nn_impute(const arma::mat& in_mat, int neighbors = 4, int radius = 8, 
     //Rcout << "calling nearest_pts for: " << na_mat(0,i) << ", " << na_mat(1,i) << std::endl;
     arma::vec pts = nearest_pts(na_mat(0,i), na_mat(1,i), in_mat, neighbors, radius, ignore_zeros);
     
+    // If no valid neighbors found, leave as NA (don't try to impute)
+    if (pts.n_elem == 0) {
+      continue;
+    }
+    
     if (aggfun == "mean") {
       out_mat(na_indices(i)) = mean(pts);
     } else if (aggfun == "median") {

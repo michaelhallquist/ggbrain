@@ -32,6 +32,9 @@ ggb <- R6::R6Class(
     #' @field ggb_region_labels a list of ggbrain_label objects to be added as text to label regions
     ggb_region_labels = NULL,
 
+    #' @field ggb_target_resolution a list with target resolution settings (voxel_size, interpolation, interpolation_value)
+    ggb_target_resolution = NULL,
+
     #' @field action what should this ggb object contribute to another when added with it?
     action = NULL,
 
@@ -259,7 +262,16 @@ ggb <- R6::R6Class(
       img$add_slices(sapply(self$ggb_slices, "[[", "coordinate"))
 
       if (!is.null(self$ggb_image_labels))  do.call(img$add_labels, self$ggb_image_labels)
-      slc <- img$get_slices()
+
+      # Pass target resolution settings to get_slices if specified
+      if (!is.null(self$ggb_target_resolution)) {
+        slc <- img$get_slices(
+          target_resolution = self$ggb_target_resolution$voxel_size,
+          resample_interpolation = self$ggb_target_resolution$interpolation_value
+        )
+      } else {
+        slc <- img$get_slices()
+      }
 
       # compute any defined contrasts before looking at inline contrasts
       slc$compute_contrasts(self$ggb_contrasts)
@@ -306,6 +318,57 @@ ggb <- R6::R6Class(
       g <- self$ggb_plot$plot(guides)
 
       return(g)
+    },
+
+    #' @description get the slice data from the rendered plot for inspection
+    #' @param image_name optional character string specifying a single image to extract. If NULL, returns
+    #'   all images for each slice.
+    #' @param slice_index optional integer vector specifying which slices to return. If NULL, returns all slices.
+    #' @param as_matrix if TRUE, convert data.frames to matrices using df2mat(). Default: FALSE
+    #' @return A list of slice data. If \code{image_name} is specified, returns a list of data.frames (or matrices)
+    #'   for that image across slices. If \code{image_name} is NULL, returns a nested list where each element
+    #'   contains all images for that slice.
+    #' @details If \code{render()} has not been called yet, this method will call it automatically to
+    #'   populate the slice data. This is useful for verifying that resampling/interpolation occurred
+    #'   as expected when using \code{target_resolution()}.
+    get_slice_data = function(image_name = NULL, slice_index = NULL, as_matrix = FALSE) {
+      # Auto-render if slice data is not yet available
+      if (is.null(self$ggb_plot) || is.null(self$ggb_plot$slices)) {
+        self$render()
+      }
+
+      slice_data <- self$ggb_plot$slices$slice_data
+
+      # Subset by slice index if requested
+      if (!is.null(slice_index)) {
+        checkmate::assert_integerish(slice_index, lower = 1, upper = length(slice_data))
+        slice_data <- slice_data[slice_index]
+      }
+
+      # Extract specific image if requested
+      if (!is.null(image_name)) {
+        checkmate::assert_string(image_name)
+        available_images <- names(slice_data[[1]])
+        if (!image_name %in% available_images) {
+          stop(glue::glue(
+            "Image '{image_name}' not found. Available images: {paste(available_images, collapse = ', ')}"
+          ))
+        }
+        slice_data <- lapply(slice_data, function(s) s[[image_name]])
+      }
+
+      # Convert to matrices if requested
+      if (isTRUE(as_matrix)) {
+        if (!is.null(image_name)) {
+          # slice_data is a flat list of data.frames (one per slice)
+          slice_data <- lapply(slice_data, df2mat)
+        } else {
+          # slice_data is a nested list (slice -> image -> data.frame), so use nested lapply
+          slice_data <- lapply(slice_data, function(s) lapply(s, df2mat))
+        }
+      }
+
+      return(slice_data)
     },
 
     #' @description plot this ggb object -- just an alias for render
@@ -386,6 +449,7 @@ print.ggbrain_patchwork <- plot.ggbrain_patchwork
     if (!is.null(o2$ggb_image_labels)) actions <- c(actions, "add_image_labels")
     if (!is.null(o2$ggb_annotations)) actions <- c(actions, "add_annotations")
     if (!is.null(o2$ggb_region_labels)) actions <- c(actions, "add_region_labels")
+    if (!is.null(o2$ggb_target_resolution)) actions <- c(actions, "set_target_resolution")
   } else {
     # single action in an add step
     actions <- o2$action
@@ -412,6 +476,8 @@ print.ggbrain_patchwork <- plot.ggbrain_patchwork
       oc$add_annotations(o2$ggb_annotations)
     } else if (aa == "add_region_labels") {
       oc$add_region_labels(o2$ggb_region_labels)
+    } else if (aa == "set_target_resolution") {
+      oc$ggb_target_resolution <- o2$ggb_target_resolution
     } else if (aa == "render") {
       # transform in to patchwork object
       oc <- oc$render()

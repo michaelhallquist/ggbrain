@@ -60,7 +60,16 @@ arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors = 4, 
   dists = sort_mat(dists, 2);
   //print_mat(dists);
 
-  arma::mat keep = dists.rows(0, neighbors - 1);
+  // Clamp neighbors to the number of available rows to avoid out-of-bounds access
+  int n_avail = dists.n_rows;
+  int n_keep = std::min(neighbors, n_avail);
+  
+  // If no rows available, return empty vector
+  if (n_keep == 0) {
+    return arma::vec();
+  }
+  
+  arma::mat keep = dists.rows(0, n_keep - 1);
   //print_mat(keep);
 
   // lookup positions of closesnt neighbors within the search matrix

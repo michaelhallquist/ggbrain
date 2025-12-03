@@ -153,7 +153,12 @@ ggbrain_layer <- R6::R6Class(
 
       # find any thread pixels (iteratively find pixels with few neighbors)
       if (private$pvt_trim_threads > 0L) {
-        threads <- find_threads(dmat, min_neighbors=private$pvt_trim_threads, maxit=20L, diagonal=TRUE)
+        # skip thread trimming if there are no non-zero pixels (avoids potential edge cases in C++)
+        if (sum(abs(dmat) > 1e-4) == 0L) {
+          threads <- matrix(FALSE, nrow = nrow(dmat), ncol = ncol(dmat))
+        } else {
+          threads <- find_threads(dmat, min_neighbors=private$pvt_trim_threads, maxit=20L, diagonal=TRUE)
+        }
         if (any(threads)) {
           dmat[threads] <- 0 # set threads to 0 in matrix form
           # convert to single row.col match string
@@ -622,7 +627,11 @@ ggbrain_layer <- R6::R6Class(
       # if user passes in TRUE/FALSE, then use default of 3 neighbors
       if (checkmate::test_logical(value)) {
         stopifnot(length(value) == 1L)
-        private$pvt_trim_threads <- 3L # default to trimming pixels with 3 or fewer neighbors (incl. diagonal)
+        if (isTRUE(value)) {
+          private$pvt_trim_threads <- 3L # default to trimming pixels with 3 or fewer neighbors (incl. diagonal)
+        } else {
+          private$pvt_trim_threads <- 0L # FALSE disables thread trimming
+        }
       } else if (checkmate::test_integerish(value)) {
         value <- as.integer(value)
         checkmate::assert_integer(value, lower = 1L, upper=8L)

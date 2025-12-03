@@ -38,8 +38,20 @@ LogicalMatrix find_threads(const arma::mat& img, int min_neighbors = 2, int maxi
   int c = img.n_cols;
 
   arma::umat threads(r, c, fill::zeros);
+  
+  // Early exit: if image has 0 rows or 0 cols, return empty result
+  if (r == 0 || c == 0) {
+    return wrap(threads);
+  }
+
   arma::umat img_bool(r, c, fill::zeros);
   arma::uvec nzpix = find(abs(img) > 1e-4);
+  
+  // Early exit: if no non-zero pixels, nothing to trim
+  if (nzpix.n_elem == 0) {
+    return wrap(threads);
+  }
+  
   img_bool.elem(nzpix).fill(1);
 
   // Compute neighbor counts once at the start
