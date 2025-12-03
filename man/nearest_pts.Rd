@@ -4,9 +4,9 @@
 \alias{nearest_pts}
 \title{Finds the nearest non-missing neighbors of a target point in a 2D matrix}
 \arguments{
-\item{x}{x-position of the point whose neighbors should be found within \code{in_mat}}
+\item{x}{0-based row index of the point whose neighbors should be found within \code{in_mat}}
 
-\item{y}{y-position of the point whose neighbors should be found within \code{in_mat}}
+\item{y}{0-based column index of the point whose neighbors should be found within \code{in_mat}}
 
 \item{in_mat}{a 2D matrix to search for neighbors of \code{pt}}
 

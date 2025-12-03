@@ -23,6 +23,9 @@ This algorithm runs count_neighbors iteratively until no pixel exceeds the trimm
 or the maximum number of iterations, \code{maxit}, is reached.
 
 By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.
+
+The algorithm computes neighbor counts once initially, then uses incremental updates when pixels are removed.
+This avoids redundant full-matrix scans on each iteration, providing significant speedup for large images.
 }
 \author{
 Michael Hallquist

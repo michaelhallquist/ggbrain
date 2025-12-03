@@ -189,6 +189,11 @@ ggb <- R6::R6Class(
       ann <- lapply(annotations, function(aa) {
         checkmate::assert_multi_class(aa, c("data.frame", "list"))
 
+        # orientation annotations carry params and will be expanded later
+        if (rlang::has_name(aa, "orientation_params")) {
+          return(tibble::tibble(orientation_params = list(aa$orientation_params)))
+        }
+
         if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text geom
         if (aa$geom %in% c("label", "text")) {
           # enforce that label and position are present for text/label

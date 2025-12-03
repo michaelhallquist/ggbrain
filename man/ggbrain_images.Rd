@@ -50,6 +50,7 @@ This value is used to set small values in the images to exactly zero for proper 
 \item \href{#method-ggbrain_images-get_slices}{\code{ggbrain_images$get_slices()}}
 \item \href{#method-ggbrain_images-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
 \item \href{#method-ggbrain_images-get_labels}{\code{ggbrain_images$get_labels()}}
+\item \href{#method-ggbrain_images-get_orientation_labels}{\code{ggbrain_images$get_orientation_labels()}}
 \item \href{#method-ggbrain_images-lookup_slices}{\code{ggbrain_images$lookup_slices()}}
 \item \href{#method-ggbrain_images-clone}{\code{ggbrain_images$clone()}}
 }
@@ -450,6 +451,19 @@ return a list of data.frames containing labels for a given image
 the names of the list correspond directly with the names of the images
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-get_orientation_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-get_orientation_labels}{}}}
+\subsection{Method \code{get_orientation_labels()}}{
+internal helper to determine anatomical orientation labels for the first image
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_orientation_labels()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+a list with elements x, y, z giving the orientation codes (e.g., c(\"L\", \"R\"))
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-lookup_slices"></a>}}

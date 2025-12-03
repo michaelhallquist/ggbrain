@@ -46,3 +46,22 @@ test_that("categorical labels stay unified across slices and render", {
   expect_identical(levels(lay1$network), levels(lay2$network))
   expect_true(length(levels(lay1$network)) >= 1)
 })
+
+test_that("annotate_orientation adds labels when orientation is available", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+
+  ggb_obj <- ggbrain(bg_color = "gray90", text_color = "black") +
+    images(c(underlay = underlay)) +
+    slices(c("z=0", "x=0", "y=0")) +
+    geom_brain("underlay", show_legend = FALSE) +
+    annotate_orientation(color = "black")
+
+  patch <- ggb_obj$render()
+  expect_s3_class(patch, "ggbrain_patchwork")
+
+  panels <- ggb_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels
+  layer_list <- panels[[1]]$gg$layers
+
+  ann_layers <- vapply(layer_list, function(l) inherits(l$geom, "GeomText"), logical(1))
+  expect_true(any(ann_layers))
+})

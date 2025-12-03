@@ -281,8 +281,9 @@ ggbrain_panel <- R6::R6Class(
 
         # fill in defaults
         annotations <- lapply(annotations, function(aa) {
-          if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text labels
-          if (aa$geom == "text") { # only add x, y, and size defaults for geom_text
+          if (!rlang::has_name(aa, "geom") || length(aa$geom) == 0L) aa$geom <- "text" # default to text labels
+          aa$geom[is.na(aa$geom)] <- "text"
+          if (length(aa$geom) > 0L && all(aa$geom == "text")) { # only add x, y, and size defaults for geom_text
             if (!rlang::has_name(aa, "x")) aa$x <- 0.5 # default center (annotation positions should really be setup by user)
             if (!rlang::has_name(aa, "y")) aa$y <- 0.5
             if (!rlang::has_name(aa, "size")) aa$size <- (private$pvt_base_size * .7) / ggplot2::.pt # default size of annotations

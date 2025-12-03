@@ -66,6 +66,9 @@ fill_from_edge <- function(im, nedges = 2L) {
 #'   or the maximum number of iterations, \code{maxit}, is reached.
 #'
 #'   By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.
+#'
+#'   The algorithm computes neighbor counts once initially, then uses incremental updates when pixels are removed.
+#'   This avoids redundant full-matrix scans on each iteration, providing significant speedup for large images.
 #' @author Michael Hallquist
 NULL
 
@@ -83,7 +86,8 @@ find_threads <- function(img, min_neighbors = 2L, maxit = 15L, diagonal = FALSE)
 #' @param c the number of columns in im
 #' @return Nothing. The matrix \code{im} is modified in place (by reference)
 #'
-#' @details This is an internal function used by geom_outline to clean up outlines
+#' @details This is an internal function used by geom_outline to clean up outlines.
+#'   Uses an iterative approach with an explicit stack to avoid stack overflow on large images.
 #' @author Michael Hallquist
 NULL
 
@@ -123,8 +127,8 @@ mat2df <- function(mat, na_zeros = FALSE) {
 #' Finds the nearest non-missing neighbors of a target point in a 2D matrix
 #' @name nearest_pts
 #'
-#' @param x x-position of the point whose neighbors should be found within \code{in_mat}
-#' @param y y-position of the point whose neighbors should be found within \code{in_mat}
+#' @param x 0-based row index of the point whose neighbors should be found within \code{in_mat}
+#' @param y 0-based column index of the point whose neighbors should be found within \code{in_mat}
 #' @param in_mat a 2D matrix to search for neighbors of \code{pt}
 #' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}
 #' @param radius the radius around \code{pt} to search. Default: 8.

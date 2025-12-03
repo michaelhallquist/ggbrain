@@ -652,6 +652,10 @@ ggbrain_images <- R6::R6Class(
       slice_df$slice_matrix <- slc
       slice_df$slice_labels <- com_stats
 
+      # attach orientation metadata so downstream code can annotate panels without the source images
+      orientation_labels <- self$get_orientation_labels()
+      slice_df$orientation_labels <- rep(list(orientation_labels), nrow(slice_df))
+
       slice_obj <- ggbrain_slices$new(slice_df)
       if (!is.null(contrasts)) { # compute contrasts, if requested
         slice_obj$compute_contrasts(contrasts)
@@ -698,6 +702,38 @@ ggbrain_images <- R6::R6Class(
     #' @details the names of the list correspond directly with the names of the images
     get_labels = function() {
       return(private$pvt_img_labels)
+    },
+
+    #' @description internal helper to determine anatomical orientation labels for the first image
+    #' @return a list with elements x, y, z giving the orientation codes (e.g., c(\"L\", \"R\"))
+    get_orientation_labels = function() {
+      if (length(private$pvt_imgs) == 0L) return(NULL)
+      img <- private$pvt_imgs[[1L]]
+
+      ori <- tryCatch(RNifti::orientation(img), error = function(e) NULL)
+      if (is.null(ori)) return(NULL)
+      if (length(ori) == 1L && nchar(ori) == 3L) {
+        ori <- strsplit(ori, "")[[1]]
+      }
+      if (length(ori) != 3L) return(NULL)
+
+      # Each element corresponds to x, y, z axes of the image; provide both low/high labels per axis
+      # RNifti uses the sign: left/right, posterior/anterior, inferior/superior along x/y/z respectively for standard orientations
+      axis_labels <- lapply(seq_along(ori), function(i) {
+        code <- toupper(ori[i])
+        # orientation code denotes the + axis direction; negative end is its opposite
+        opposites <- c(L = "R", R = "L", P = "A", A = "P", I = "S", S = "I")
+        if (!code %in% names(opposites)) return(c(NA_character_, NA_character_))
+
+        if (code %in% c("L", "P", "I")) {
+          c(code, opposites[[code]]) # low, high
+        } else {
+          c(opposites[[code]], code) # positive is high end
+        }
+      })
+
+      names(axis_labels) <- c("x", "y", "z")
+      return(axis_labels)
     },
 
     #' @description internal function to lookup which slices to display along each axis based on their quantile,

@@ -43,7 +43,7 @@ arma::imat count_neighbors(const arma::umat& im, bool diagonal = true) {
         n++;
       
       // east
-      if (j < r - 1 && im(i, j + 1) == 1)
+      if (j < c - 1 && im(i, j + 1) == 1)
         n++;
       
       // southeast

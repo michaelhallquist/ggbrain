@@ -31,6 +31,8 @@ that slice and the list elements within are each a given image}
 \item{\code{slice_labels}}{a data.frame for each slice containing the coordinates of labels available to be drawn}
 
 \item{\code{layer_names}}{a character vector of layer names within each slice}
+
+\item{\code{orientation_labels}}{axis labels inherited from the source images}
 }
 \if{html}{\out{</div>}}
 }
@@ -38,6 +40,7 @@ that slice and the list elements within are each a given image}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggbrain_slices-new}{\code{ggbrain_slices$new()}}
+\item \href{#method-ggbrain_slices-get_orientation_labels}{\code{ggbrain_slices$get_orientation_labels()}}
 \item \href{#method-ggbrain_slices-compute_contrasts}{\code{ggbrain_slices$compute_contrasts()}}
 \item \href{#method-ggbrain_slices-as_tibble}{\code{ggbrain_slices$as_tibble()}}
 \item \href{#method-ggbrain_slices-get_ranges}{\code{ggbrain_slices$get_ranges()}}
@@ -63,6 +66,16 @@ create a ggbrain_slices object based
 }
 \subsection{Details}{
 If this becomes a user-facing/exported class, we may want a more friendly constructor
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_slices-get_orientation_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_slices-get_orientation_labels}{}}}
+\subsection{Method \code{get_orientation_labels()}}{
+return the orientation labels inherited from the source ggbrain_images object
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_orientation_labels()}\if{html}{\out{</div>}}
 }
 
 }

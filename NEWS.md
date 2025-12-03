@@ -1,9 +1,14 @@
-# ggbrain 0.9.2 (28Aug2025)
+# ggbrain 0.9.2 (3Dec2025)
 
+* feature: added `annotate_orientation()` function to add anatomical orientation labels to plots
 * bugfix: avoid double calls to `refine_image()` when unifying categorical scales by releveling before data assignment
 * bugfix: ensure `fill_holes` uses mode for categorical/labeled data (even with fixed outlines) and cap imputation radius for small slices
 * bugfix: replace deprecated `aes_string()` with tidy-eval `aes()` mappings for rasters and labels
 * bugfix: replace deprecated `rlang::flatten()` with internal `flatten_list_once()` helper
+* bugfix: correct row/column swap in the eastward check of count_neighbors.
+* bugfix: switched `flood_fill` to stack-based approach to avoid overflow due to recursion.
+* bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
+* feature: Improve speed of `find_threads` by only decrementing neighbor counts for pixels identified from the initial full scan.
 * tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
 
 # ggbrain 0.9.1 (22Aug2025)

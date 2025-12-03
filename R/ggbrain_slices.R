@@ -23,6 +23,7 @@ ggbrain_slices <- R6::R6Class(
     pvt_is_contrast = NULL, # denotes whether each layer in slice_data is a contrast or an image
     pvt_layer_names = NULL, # names of layers/images within each slice
     pvt_contrast_definitions = NULL,
+    pvt_orientation_labels = NULL,
 
     # helper function to combine slice image and contrast data
     # TODO: sort out how to avoid calculating this twice for labels and numeric values
@@ -116,6 +117,11 @@ ggbrain_slices <- R6::R6Class(
     layer_names = function(value) {
       if (missing(value)) private$pvt_layer_names
       else stop("Cannot assign layer_names")
+    },
+    #' @field orientation_labels axis labels inherited from the source images
+    orientation_labels = function(value) {
+      if (missing(value)) private$pvt_orientation_labels
+      else stop("Cannot assign orientation_labels")
     }
   ),
   public = list(
@@ -138,6 +144,17 @@ ggbrain_slices <- R6::R6Class(
       empty_list <- lapply(seq_len(nrow(slice_df)), function(i) list())
 
       df_names <- names(slice_df)
+      if ("orientation_labels" %in% df_names) {
+        orientation_list <- slice_df$orientation_labels
+        if (length(orientation_list) > 0) {
+          non_null <- which(!vapply(orientation_list, is.null, logical(1)))
+          if (length(non_null) > 0) {
+            private$pvt_orientation_labels <- orientation_list[[non_null[1]]]
+          }
+        }
+        slice_df$orientation_labels <- NULL
+        df_names <- names(slice_df)
+      }
       private$pvt_coord_input <- if ("coord_input" %in% df_names) slice_df$coord_input else empty_list
       private$pvt_coord_label <- if ("coord_label" %in% df_names) slice_df$coord_label else empty_list
       private$pvt_plane <- if ("plane" %in% df_names) slice_df$plane else empty_list
@@ -146,6 +163,11 @@ ggbrain_slices <- R6::R6Class(
       private$pvt_slice_data <- if ("slice_data" %in% df_names) slice_df$slice_data else empty_list
       private$pvt_slice_labels <- if ("slice_labels" %in% df_names) slice_df$slice_labels else empty_list
       private$pvt_slice_matrix <- if ("slice_matrix" %in% df_names) slice_df$slice_matrix else empty_list
+    },
+
+    #' @description return the orientation labels inherited from the source ggbrain_images object
+    get_orientation_labels = function() {
+      private$pvt_orientation_labels
     },
 
     #' @description computes contrasts of the sliced image data
@@ -252,6 +274,7 @@ ggbrain_slices <- R6::R6Class(
 
     #' @description convert the slices object into a data.frame with list-columns for slice data elements
     as_tibble = function() {
+      nslices <- length(private$pvt_slice_index)
       tb <- tibble::tibble(
         coord_input=private$pvt_coord_input,
         coord_label=private$pvt_coord_label,
@@ -260,7 +283,8 @@ ggbrain_slices <- R6::R6Class(
         slice_number=private$pvt_plane,
         slice_data=private$pvt_slice_data,
         slice_labels=private$pvt_slice_labels,
-        slice_matrix=private$pvt_slice_matrix
+        slice_matrix=private$pvt_slice_matrix,
+        orientation_labels=rep(list(private$pvt_orientation_labels), nslices)
       )
 
       attr(tb, "layer_names") <- private$pvt_layer_names

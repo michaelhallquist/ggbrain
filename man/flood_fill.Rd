@@ -21,7 +21,8 @@ Nothing. The matrix \code{im} is modified in place (by reference)
 This function flood fills a binary image with TRUE for any value of FALSE
 }
 \details{
-This is an internal function used by geom_outline to clean up outlines
+This is an internal function used by geom_outline to clean up outlines.
+Uses an iterative approach with an explicit stack to avoid stack overflow on large images.
 }
 \author{
 Michael Hallquist

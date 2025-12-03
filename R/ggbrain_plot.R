@@ -43,7 +43,7 @@ ggbrain_plot <- R6::R6Class(
         }
 
         # fill in coord_label from slice data
-        if (any(adf$label == ".coord_label")) {
+        if (rlang::has_name(adf, "label") && any(adf$label == ".coord_label")) {
           lab_df <- data.frame(slice_index = private$pvt_slices$slice_index, .coord_label = private$pvt_slices$coord_label)
           adf <- adf %>%
             dplyr::left_join(lab_df, by = "slice_index") %>%
@@ -378,6 +378,38 @@ ggbrain_plot <- R6::R6Class(
         if (is.null(pan_i$bg_color)) pan_i$bg_color <- private$pvt_bg_color
         if (is.null(pan_i$text_color)) pan_i$text_color <- private$pvt_text_color
         if (is.null(pan_i$base_size)) pan_i$base_size <- private$pvt_base_size
+
+        # add orientation annotations if requested
+        if (!is.null(all_annotations[[i]]$annotate_settings)) {
+          ann_list <- all_annotations[[i]]$annotate_settings[[1]]
+          if ("orientation_params" %in% names(ann_list)) {
+            has_ori <- which(!vapply(ann_list$orientation_params, is.null, logical(1)))
+            ori_ann <- NULL
+            `%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
+            if (length(has_ori)) {
+              ori_ann <- dplyr::bind_rows(lapply(has_ori, function(idx) {
+                params <- ann_list$orientation_params[[idx]]
+                args <- c(
+                  list(
+                    panel_index = i,
+                    slices_obj = private$pvt_slices,
+                    size = params$size %||% 3,
+                    color = params$color %||% "white",
+                    offset = params$offset %||% 0
+                  ),
+                  params$extra
+                )
+                do.call(orientation_annotations_for_slice, args)
+              }))
+            }
+            ann_list$orientation_params <- NULL
+            if (ncol(ann_list) == 0L) ann_list <- ann_list[0, , drop = FALSE]
+            if (!is.null(ori_ann)) {
+              ann_list <- dplyr::bind_rows(ann_list, ori_ann)
+            }
+            all_annotations[[i]]$annotate_settings[[1]] <- ann_list
+          }
+        }
 
         ggbrain_panel$new(
           layers = slc_layers,

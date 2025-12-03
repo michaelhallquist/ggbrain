@@ -3,8 +3,8 @@
 //' Finds the nearest non-missing neighbors of a target point in a 2D matrix
 //' @name nearest_pts
 //'
-//' @param x x-position of the point whose neighbors should be found within \code{in_mat}
-//' @param y y-position of the point whose neighbors should be found within \code{in_mat}
+//' @param x 0-based row index of the point whose neighbors should be found within \code{in_mat}
+//' @param y 0-based column index of the point whose neighbors should be found within \code{in_mat}
 //' @param in_mat a 2D matrix to search for neighbors of \code{pt}
 //' @param neighbors the number of closest non-NA neighboring values to return within \code{in_mat}
 //' @param radius the radius around \code{pt} to search. Default: 8.
@@ -17,8 +17,7 @@
 // [[Rcpp::export]]
 
 arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors = 4, int radius = 8, bool ignore_zeros = true) {
-  x = x - 1; // x position (subtract 1 to obtain 0-based index)
-  y = y - 1; // y position
+  // x and y are already 0-based indices (e.g., from arma::ind2sub)
   int xs = in_mat.n_rows; // size of x (rows)
   int ys = in_mat.n_cols; // sizy of y (cols)
 

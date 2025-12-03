@@ -13,6 +13,9 @@
 //'   or the maximum number of iterations, \code{maxit}, is reached.
 //'
 //'   By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.
+//'
+//'   The algorithm computes neighbor counts once initially, then uses incremental updates when pixels are removed.
+//'   This avoids redundant full-matrix scans on each iteration, providing significant speedup for large images.
 //' @author Michael Hallquist
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -26,45 +29,69 @@ LogicalMatrix find_threads(const arma::mat& img, int min_neighbors = 2, int maxi
   if (min_neighbors <= 0) {
     Rcpp::stop("min_neighbors must be a positive integer");
   } else if (diagonal && min_neighbors > 8) {
-    Rcpp::stop("min_neighbors cannot exceed 8 for diagonal counting");
+    Rcpp::stop("min_neighbors cannot exceed 8 for counting when diagonal is true");
   } else if (!diagonal && min_neighbors > 4) {
-    Rcpp::stop("min_neighbors cannot exceed 8 for diagonal counting");
+    Rcpp::stop("min_neighbors cannot exceed 4 for counting when diagonal is false");
   }
 
-  arma::umat threads(img.n_rows, img.n_cols, fill::zeros);
-  arma::umat img_bool(img.n_rows, img.n_cols, fill::zeros);
+  int r = img.n_rows;
+  int c = img.n_cols;
+
+  arma::umat threads(r, c, fill::zeros);
+  arma::umat img_bool(r, c, fill::zeros);
   arma::uvec nzpix = find(abs(img) > 1e-4);
   img_bool.elem(nzpix).fill(1);
+
+  // Compute neighbor counts once at the start
+  arma::imat neighbors = count_neighbors(img_bool, diagonal);
+
+  // Build offset list for neighbor positions
+  std::vector<std::pair<int,int>> offsets;
+  offsets.push_back({-1, 0});  // north
+  offsets.push_back({1, 0});   // south
+  offsets.push_back({0, -1});  // west
+  offsets.push_back({0, 1});   // east
+  if (diagonal) {
+    offsets.push_back({-1, -1}); // northwest
+    offsets.push_back({-1, 1});  // northeast
+    offsets.push_back({1, -1});  // southwest
+    offsets.push_back({1, 1});   // southeast
+  }
 
   bool pixels_remain = true;
   int it = 0;
 
   while (pixels_remain && it < maxit) {
-    arma::imat neighbors = count_neighbors(img_bool, diagonal);
-
-    //Rcout << "it: " << it << endl;
-    //Rcout << "hasnan: " << neighbors.has_nan() << endl;
-
-    // Armadillo doesn't support NaN for integer matrices, so we use INT_MIN
+    // Find pixels below threshold (but not already removed/empty)
     arma::uvec below_thresh = find(neighbors < min_neighbors && neighbors > INT_MIN);
 
-    //arma::uvec miss = find(neighbors == INT_MIN);
-    //Rcout << "nonfinite size: " << miss.n_elem << endl;
     if (below_thresh.size() > 0) {
-      //Rcout << "size: " << below_thresh.size() << endl;
-      img_bool.elem(below_thresh).fill(0); // set below thresh pixels to false
-      threads.elem(below_thresh).fill(1); // in threads matrix, add the below-threshold pixels to set to be removed
+      // Process each removed pixel and update neighbor counts incrementally
+      for (arma::uword k = 0; k < below_thresh.size(); k++) {
+        // Convert linear index to row/col subscripts (Armadillo uses column-major order)
+        int pi = below_thresh(k) % r;  // row
+        int pj = below_thresh(k) / r;  // col
+
+        // Mark pixel as removed
+        img_bool(pi, pj) = 0;
+        threads(pi, pj) = 1;
+        neighbors(pi, pj) = INT_MIN;
+
+        // Decrement neighbor count for all adjacent active pixels
+        for (const auto& off : offsets) {
+          int ni = pi + off.first;
+          int nj = pj + off.second;
+          if (ni >= 0 && ni < r && nj >= 0 && nj < c && img_bool(ni, nj) == 1) {
+            neighbors(ni, nj)--;
+          }
+        }
+      }
     } else {
       pixels_remain = false;
     }
 
-    //pixels_remain = any(vectorise(neighbors) > 0);
     it++;
   }
-
-  // these attempts at conversion to LogicalMatrix from umat fail
-  //LogicalMatrix tlog = Rcpp::as<Rcpp::LogicalMatrix>(threads);
-  //LogicalMatrix tlog(threads.begin(), threads.end());
 
   // use wrap to return logical matrix from umat
   return(wrap(threads));
