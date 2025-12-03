@@ -27,7 +27,7 @@ int integer_mode(arma::ivec v, bool demote_zeros) {
     start  = j;
     
     //grouped loop over all values of this number
-    while(v[j] == number && j <= v.size()) { j++; }
+    while(j < v.size() && v[j] == number) { j++; }
     
     this_count = j - start;
     
