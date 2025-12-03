@@ -29,6 +29,7 @@
   used for filling holes.
 - feature: Improve speed of `find_threads` by only decrementing neighbor
   counts for pixels identified from the initial full scan.
+- feature: hardened tests of input images to check their voxel sizes
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling
