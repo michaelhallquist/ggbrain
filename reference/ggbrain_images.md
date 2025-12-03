@@ -429,7 +429,9 @@ get slice data for one or more slices based on their coordinates
       contrasts = NULL,
       fill_labels = FALSE,
       make_square = TRUE,
-      remove_null_space = TRUE
+      remove_null_space = TRUE,
+      target_resolution = NULL,
+      resample_interpolation = 5L
     )
 
 #### Arguments
@@ -460,6 +462,17 @@ get slice data for one or more slices based on their coordinates
 - `remove_null_space`:
 
   If TRUE, remove slices where all values are approximately zero
+
+- `target_resolution`:
+
+  Optional target voxel size in mm for resampling slices. If provided,
+  slices will be resampled to this resolution using the specified
+  interpolation method.
+
+- `resample_interpolation`:
+
+  Integer specifying the interpolation method for imager::imresize.
+  1=nearest, 2=linear, 5=cubic (default), 6=lanczos.
 
 #### Details
 

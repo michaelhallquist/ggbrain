@@ -425,7 +425,9 @@ Uses the syntax <code>"&lt;img_name&gt;[subset_expression] + &lt;img_name&gt;"</
 <span>  contrasts <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_labels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  make_square <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  remove_null_space <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  remove_null_space <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  target_resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  resample_interpolation <span class="op">=</span> <span class="fl">5L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -454,6 +456,16 @@ have a corresponding label in the labels data.frame. Default: FALSE</p></dd>
 
 <dt><code>remove_null_space</code></dt>
 <dd><p>If TRUE, remove slices where all values are approximately zero</p></dd>
+
+
+<dt><code>target_resolution</code></dt>
+<dd><p>Optional target voxel size in mm for resampling slices. If provided, slices
+will be resampled to this resolution using the specified interpolation method.</p></dd>
+
+
+<dt><code>resample_interpolation</code></dt>
+<dd><p>Integer specifying the interpolation method for imager::imresize.
+1=nearest, 2=linear, 5=cubic (default), 6=lanczos.</p></dd>
 
 
 </dl><p></p></div>

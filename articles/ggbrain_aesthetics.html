@@ -68,7 +68,7 @@
                         <h4 data-toc-skip class="author">Michael
 Hallquist</h4>
             
-            <h4 data-toc-skip class="date">3 Oct 2022</h4>
+            <h4 data-toc-skip class="date">2025-12-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/michaelhallquist/ggbrain/blob/main/vignettes/ggbrain_aesthetics.Rmd" class="external-link"><code>vignettes/ggbrain_aesthetics.Rmd</code></a></small>
       <div class="d-none name"><code>ggbrain_aesthetics.Rmd</code></div>
@@ -76,209 +76,626 @@ Hallquist</h4>
 
     
     
+<p>This vignette covers the advanced aesthetic refinement capabilities
+of <code>ggbrain</code>, allowing you to create publication-quality
+brain visualizations. We’ll cover image cleaning operations, custom
+color scales, combining multiple layers, adding region labels, and
+combining plots using <code>patchwork</code>.</p>
 <div class="section level2">
-<h2 id="this-is-still-in-progress">This is still in progress<a class="anchor" aria-label="anchor" href="#this-is-still-in-progress"></a>
+<h2 id="images-used-in-this-demo">Images used in this demo<a class="anchor" aria-label="anchor" href="#images-used-in-this-demo"></a>
 </h2>
-<p>The sections below are incomplete!</p>
-</div>
-<div class="section level2">
-<h2 id="images-that-will-be-used-in-the-demo">Images that will be used in the demo<a class="anchor" aria-label="anchor" href="#images-that-will-be-used-in-the-demo"></a>
-</h2>
-<p>The package includes a few images that can be used for demonstrating
-its capabilities. The locations of the images (and the code to load
-them) are listed below.</p>
+<p>The package includes several images for demonstration purposes:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># MNI 2009c anatomical underlay</span></span>
-<span><span class="va">underlay_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># onset of decision phase for learning task</span></span>
-<span><span class="va">decision_onset_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"decision_onset_zstat_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span><span class="va">underlay_2mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Parametric modulator: entropy change following feedback in learning task</span></span>
-<span><span class="va">echange_overlay_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"echange_overall_zstat_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span><span class="va">echange_overlay_2mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"echange_ptfce_fwep_0.05_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Signed reward prediction error following feedback </span></span>
+<span><span class="va">pe_overlay_2mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pe_ptfce_fwep_0.05_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Absolute reward prediction error</span></span>
+<span><span class="va">abspe_overlay_2mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"abspe_ptfce_fwep_0.05_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Schaefer 200-parcel atlas of cortex</span></span>
-<span><span class="va">schaefer200_atlas_3mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Schaefer_200_7networks_2009c_3mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span><span class="va">schaefer200_atlas_2mm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Schaefer_200_7networks_2009c_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">underlay_3mm</span>, <span class="va">decision_onset_3mm</span>, <span class="va">echange_overlay_3mm</span>, <span class="va">schaefer200_atlas_3mm</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "" "" "" ""</span></span></code></pre>
-<div class="section level3">
-<h3 id="converting-to-a-ggplot-object-and-displaying-the-plot">Converting to a ggplot object and displaying the plot<a class="anchor" aria-label="anchor" href="#converting-to-a-ggplot-object-and-displaying-the-plot"></a>
-</h3>
-<p>For reasons that are somewhat boring (having to do with how R handles
-S3 operators like <code>+</code>), the brain-related addition steps for
-<code>ggbrain</code> object must come before generic
-<code>ggplot2</code> modifications of the plot. More specifically, the
-use of the <code>+</code> operator for ggbrain commands like
-<code><a href="../reference/geom_brain.html">geom_brain()</a></code> or <code><a href="../reference/images.html">images()</a></code> create and modify an
-object that is internal to the</p>
-</div>
+<span><span class="co"># Labels for the Schaefer atlas</span></span>
+<span><span class="va">schaefer_labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Schaefer_200_7networks_labels.csv"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span>, </span>
+<span>  na.strings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">""</span>, <span class="st">"NA"</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">rename</span><span class="op">(</span>value <span class="op">=</span> <span class="va">roi_num</span><span class="op">)</span> <span class="co"># ggbrain requires a 'value' column for merging</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="adjustments-to-the-appearance-of-image-layers">Adjustments to the appearance of image layers<a class="anchor" aria-label="anchor" href="#adjustments-to-the-appearance-of-image-layers"></a>
 </h2>
+<p>When rendering brain slices, particularly functional activation maps,
+the raw data often contains visual artifacts that can be distracting or
+aesthetically unappealing. <code>ggbrain</code> provides several tools
+for cleaning up the appearance of image layers.</p>
 <div class="section level3">
-<h3 id="blur_edge">blur_edge<a class="anchor" aria-label="anchor" href="#blur_edge"></a>
+<h3 id="removing-small-specks-remove_specks">Removing small specks (<code>remove_specks</code>)<a class="anchor" aria-label="anchor" href="#removing-small-specks-remove_specks"></a>
 </h3>
+<p>At times, when slicing a given image (especially functional
+activations), it is possible that some clusters are very small, yielding
+small ‘specks’ on some rendered slices. These are visually unappealing
+and may merit removal. The <code>remove_specks</code> argument specifies
+the pixel threshold used to remove clusters smaller than a certain size.
+For example, <code>remove_specks = 20</code> would remove any clusters
+smaller than 20 pixels in size from each slice on the rendered
+image.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">base_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 4"</span>, <span class="st">"z = 20"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Without removing specks</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Without remove_specks"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># With remove_specks = 20</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span>, </span>
+<span>             remove_specks <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"With remove_specks = 20"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/remove_specks_comparison-1.png" class="r-plt" width="768"></p>
+<p>Note that removing specks can, at the extreme, misrepresent the data,
+so use this feature judiciously.</p>
 </div>
 <div class="section level3">
-<h3 id="remove_specks">remove_specks<a class="anchor" aria-label="anchor" href="#remove_specks"></a>
+<h3 id="filling-small-holes-fill_holes">Filling small holes (<code>fill_holes</code>)<a class="anchor" aria-label="anchor" href="#filling-small-holes-fill_holes"></a>
 </h3>
+<p>Another common aesthetic issue is small holes inside clusters. These
+may reflect voxels that fall slightly below a statistical threshold. The
+<code>fill_holes</code> argument specifies the size of holes (in pixels)
+that should be filled on the rendered slices using nearest neighbor
+imputation.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Without filling holes</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Without fill_holes"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># With fill_holes = 100</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span>, </span>
+<span>             fill_holes <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"With fill_holes = 100"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/fill_holes_comparison-1.png" class="r-plt" width="768"></p>
+<p>For integer-valued or categorical images, the mode of the neighboring
+voxels is used for imputation rather than the mean.</p>
 </div>
 <div class="section level3">
-<h3 id="trim_threads">trim_threads<a class="anchor" aria-label="anchor" href="#trim_threads"></a>
+<h3 id="trimming-threads-trim_threads">Trimming threads (<code>trim_threads</code>)<a class="anchor" aria-label="anchor" href="#trimming-threads-trim_threads"></a>
 </h3>
-</div>
-<div class="section level3">
-<h3 id="fill_holes">fill_holes<a class="anchor" aria-label="anchor" href="#fill_holes"></a>
-</h3>
-<pre><code>  blur_edge = NULL,
-  fill_holes = NULL, remove_specks = NULL, trim_threads = NULL)</code></pre>
-<div class="section level4">
-<h4 id="cleaning-small-specks-from-image-slices">Cleaning small ‘specks’ from image slices<a class="anchor" aria-label="anchor" href="#cleaning-small-specks-from-image-slices"></a>
-</h4>
-<p>At times, when slicing a given image (esp. functional activations),
-it is possible that some clusters are very small, yielding small
-‘specks’ on some rendered slices. These are visually unappealing and may
-merit removal, depending on your tastes. Of course, removing these
-specks can, at the extreme, misrepresent the data, which is undesirable.
-This concern notwithstanding, you can use the <code>clean_specks</code>
-argument of <code>images</code> to specify the voxel threshold used to
-remove clusters smaller than a certain size. For example,
-<code>clean_specks = 30</code> would remove any clusters smaller than 30
-voxels in size from each slice on the rendered image.</p>
+<p>The <code>trim_threads</code> argument iteratively removes pixels
+that have fewer than the specified number of neighboring pixels
+(including diagonals). This helps clean up thin “threads” or isolated
+pixels that can occur at the edges of clusters.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># TODO: make this in geom_brain</span></span>
-<span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span>echange<span class="op">=</span><span class="va">echange_overlay_3mm</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Without trimming</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Without trim_threads"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># With trim_threads = TRUE (uses default of 3 neighbors)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span>, </span>
+<span>             trim_threads <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"With trim_threads = TRUE"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/trim_threads_comparison-1.png" class="r-plt" width="768"></p>
 </div>
-<div class="section level4">
-<h4 id="filling-small-holes-in-image-slices">Filling small holes in image slices<a class="anchor" aria-label="anchor" href="#filling-small-holes-in-image-slices"></a>
-</h4>
-<p>Another aesthetic problem is that at times there will be small holes
-on the interior of a cluster. These may reflect voxels that fall below a
-statistical threshold (e.g., voxels that have a z-statistic value of
-3.02 in a cluster defined by z &gt; 3.1). These can be filled in using
-the <code>fill_holes</code> argument of <code>images</code>. This
-specifies the size of holes (in voxels) that should be filled on the
-rendered slices. For example, <code>fill_holes = 30</code> would fill
-holes of 30 or fewer voxels on the interior of each cluster. The holes
-are filled by nearest neighbor imputation in which the nearest
-non-missing voxels are used to impute missing voxels. In
-integer-valued/categorical images, the mode of the neighboring voxels is
-used for imputation.</p>
+<div class="section level3">
+<h3 id="combining-image-cleaning-operations">Combining image cleaning operations<a class="anchor" aria-label="anchor" href="#combining-image-cleaning-operations"></a>
+</h3>
+<p>For the best visual results, you can combine all three cleaning
+operations:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># TODO: make this in geom_Brain</span></span>
-<span><span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="va">gg_obj</span> <span class="op">+</span> <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span>echange<span class="op">=</span><span class="va">echange_overlay_3mm</span><span class="op">)</span></span></code></pre></div>
-</div>
+<code class="sourceCode R"><span><span class="va">gg_clean</span> <span class="op">&lt;-</span> <span class="va">base_plot</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"overlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"z-stat"</span>, palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>    fill_holes <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>    trim_threads <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_clean</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/combined_cleaning-1.png" class="r-plt" width="768"></p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="labeling-regions">Labeling regions<a class="anchor" aria-label="anchor" href="#labeling-regions"></a>
+<h2 id="working-with-color-scales">Working with color scales<a class="anchor" aria-label="anchor" href="#working-with-color-scales"></a>
 </h2>
+<div class="section level3">
+<h3 id="custom-color-scales">Custom color scales<a class="anchor" aria-label="anchor" href="#custom-color-scales"></a>
+</h3>
+<p>You can use any ggplot2 <code>scale_fill_*</code> function to
+customize the color mapping:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray60"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="st">"template_brain.nii.gz"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>dan_clust <span class="op">=</span> <span class="va">dan_clust</span><span class="op">)</span>, fill_holes <span class="op">=</span> <span class="cn">TRUE</span>, clean_specks <span class="op">=</span> <span class="fl">20</span>, labels <span class="op">=</span> <span class="va">dan_labels</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># slices(paste0("x = ", seq(10, 90, 10), "%")) +</span></span>
-<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="../reference/montage.html">montage</a></span><span class="op">(</span><span class="st">"axial"</span>, <span class="fl">10</span>, min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="co"># add_slice("y=50%", title = "hello", xlab = "testx", border_size = 1, border_color = "blue") +</span></span>
-<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey8"</span>, high <span class="op">=</span> <span class="st">"grey62"</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"dan_clust"</span>, mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">label</span><span class="op">)</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_brewer</span><span class="op">(</span><span class="st">"DAN 17 label"</span>, palette <span class="op">=</span> <span class="st">"Set1"</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"dan_clust"</span>, mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>group <span class="op">=</span> <span class="va">roi_label</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span>, outline <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span> <span class="co"># fill_scale = scale_fill_discrete("hello"),</span></span>
-<span>  <span class="co"># geom_outline(definition = "dan_clust", show_legend = TRUE, mapping=aes(group=label), size=2, outline="cyan") + #fill_scale = scale_fill_discrete("hello"),</span></span>
+<code class="sourceCode R"><span><span class="va">gg_viridis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">echange_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 0"</span>, <span class="st">"y = 0"</span>, <span class="st">"z = 30"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"overlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_viridis_c</span><span class="op">(</span><span class="st">"Entropy\nChange"</span>, option <span class="op">=</span> <span class="st">"magma"</span><span class="op">)</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">15</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
-<span>  <span class="co"># geom_outline(definition = "dan_clust", show_legend = TRUE, outline = "cyan") + #fill_scale = scale_fill_discrete("hello"),</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_viridis</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/custom_scales-1.png" class="r-plt" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="bisided-color-scales">Bisided color scales<a class="anchor" aria-label="anchor" href="#bisided-color-scales"></a>
+</h3>
+<p>For maps with both positive and negative values (e.g., signed
+prediction errors), use <code><a href="../reference/scale_fill_bisided.html">scale_fill_bisided()</a></code> to create
+separate color scales:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gg_bisided</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray80"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 0"</span>, <span class="st">"y = 0"</span>, <span class="st">"z = 30"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"overlay"</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span></span>
+<span>      name <span class="op">=</span> <span class="st">"Signed PE"</span>,</span>
+<span>      neg_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Blues"</span>, direction <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>      pos_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span>,</span>
+<span>      symmetric <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">20</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
-<span>  <span class="fu"><a href="../reference/geom_region_label_repel.html">geom_region_label_repel</a></span><span class="op">(</span>image <span class="op">=</span> <span class="st">"dan_clust"</span>, label_column <span class="op">=</span> <span class="st">"roi_label"</span>, min.segment.length <span class="op">=</span> <span class="fl">0</span>, size <span class="op">=</span> <span class="fl">1.5</span>, color <span class="op">=</span> <span class="st">"black"</span>, force_pull <span class="op">=</span> <span class="fl">0.2</span>, max.overlaps <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_layout</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_bisided</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/bisided_scale-1.png" class="r-plt" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="working-with-categorical-images-and-labels">Working with categorical images and labels<a class="anchor" aria-label="anchor" href="#working-with-categorical-images-and-labels"></a>
+</h2>
+<div class="section level3">
+<h3 id="mapping-fills-to-label-columns">Mapping fills to label columns<a class="anchor" aria-label="anchor" href="#mapping-fills-to-label-columns"></a>
+</h3>
+<p>When working with labeled images (e.g., atlases), you can map the
+fill color to label columns rather than numeric values. This requires
+adding labels to your image and specifying the appropriate aesthetic
+mapping:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create a subset of labels for Dorsal Attention Network</span></span>
+<span><span class="va">dan_labels</span> <span class="op">&lt;-</span> <span class="va">schaefer_labels</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">network</span> <span class="op">==</span> <span class="st">"DorsAttn"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span></span>
+<span>    dan_group <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span></span>
+<span>      <span class="va">value</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">31</span>, <span class="fl">32</span>, <span class="fl">135</span>, <span class="fl">136</span><span class="op">)</span> <span class="op">~</span> <span class="st">"MT+"</span>,</span>
+<span>      <span class="va">value</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">33</span><span class="op">:</span><span class="fl">40</span>, <span class="fl">137</span><span class="op">:</span><span class="fl">144</span><span class="op">)</span> <span class="op">~</span> <span class="st">"PPC"</span>,</span>
+<span>      <span class="va">value</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">41</span><span class="op">:</span><span class="fl">43</span>, <span class="fl">145</span><span class="op">:</span><span class="fl">147</span><span class="op">)</span> <span class="op">~</span> <span class="st">"Premotor"</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    dan_group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">ordered</a></span><span class="op">(</span><span class="va">dan_group</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MT+"</span>, <span class="st">"PPC"</span>, <span class="st">"Premotor"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Define colors for DAN groups</span></span>
+<span><span class="va">dan_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MT+"</span> <span class="op">=</span> <span class="st">"#E41A1C"</span>, <span class="st">"PPC"</span> <span class="op">=</span> <span class="st">"#377EB8"</span>, <span class="st">"Premotor"</span> <span class="op">=</span> <span class="st">"#4DAF4A"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">gg_dan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>dan_atlas <span class="op">=</span> <span class="va">schaefer200_atlas_2mm</span><span class="op">)</span>, labels <span class="op">=</span> <span class="va">dan_labels</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -30"</span>, <span class="st">"z = 50"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"underlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey30"</span>, high <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span>, </span>
+<span>    show_legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"dan_atlas"</span>, </span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">dan_group</span><span class="op">)</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_manual</span><span class="op">(</span><span class="st">"DAN Region"</span>, values <span class="op">=</span> <span class="va">dan_colors</span><span class="op">)</span>,</span>
+<span>    show_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    fill_holes <span class="op">=</span> <span class="fl">20</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_dan</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/categorical_labels-1.png" class="r-plt" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="combining-fills-with-outlines">Combining fills with outlines<a class="anchor" aria-label="anchor" href="#combining-fills-with-outlines"></a>
+</h3>
+<p>A powerful technique is to combine filled regions with outlines to
+highlight different groupings. For example, you might fill regions by
+network and outline individual parcels:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gg_outlined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>dan_atlas <span class="op">=</span> <span class="va">schaefer200_atlas_2mm</span><span class="op">)</span>, labels <span class="op">=</span> <span class="va">dan_labels</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -30"</span>, <span class="st">"z = 50"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"underlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey30"</span>, high <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span>, </span>
+<span>    show_legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"dan_atlas"</span>, </span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">dan_group</span><span class="op">)</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_manual</span><span class="op">(</span><span class="st">"DAN Region"</span>, values <span class="op">=</span> <span class="va">dan_colors</span><span class="op">)</span>,</span>
+<span>    show_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    fill_holes <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>    unify_scales <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="co"># Add outlines for individual Schaefer regions</span></span>
+<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"dan_atlas"</span>, </span>
+<span>    size <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>group <span class="op">=</span> <span class="va">MNI_Glasser_HCP_v1.0</span><span class="op">)</span>,</span>
+<span>    outline <span class="op">=</span> <span class="st">"cyan"</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">10</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_outlined</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/fills_with_outlines-1.png" class="r-plt" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="adding-region-labels">Adding region labels<a class="anchor" aria-label="anchor" href="#adding-region-labels"></a>
+</h2>
+<div class="section level3">
+<h3 id="using-geom_region_label_repel">Using geom_region_label_repel<a class="anchor" aria-label="anchor" href="#using-geom_region_label_repel"></a>
+</h3>
+<p>The <code><a href="../reference/geom_region_label_repel.html">geom_region_label_repel()</a></code> function adds text labels
+to regions, using <code>ggrepel</code> to prevent overlapping. This is
+extremely useful for labeling multiple regions:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Add custom short labels for display</span></span>
+<span><span class="va">dan_labels_short</span> <span class="op">&lt;-</span> <span class="va">dan_labels</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span></span>
+<span>    short_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"Anterior"</span>, <span class="st">"Ant."</span>, <span class="va">MNI_Glasser_HCP_v1.0</span><span class="op">)</span>,</span>
+<span>    short_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"Posterior"</span>, <span class="st">"Post."</span>, <span class="va">short_label</span><span class="op">)</span>,</span>
+<span>    short_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"Superior"</span>, <span class="st">"Sup."</span>, <span class="va">short_label</span><span class="op">)</span>,</span>
+<span>    short_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"Inferior"</span>, <span class="st">"Inf."</span>, <span class="va">short_label</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">gg_labeled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>dan_atlas <span class="op">=</span> <span class="va">schaefer200_atlas_2mm</span><span class="op">)</span>, labels <span class="op">=</span> <span class="va">dan_labels_short</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -30"</span>, <span class="st">"z = 50"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"underlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey30"</span>, high <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span>, </span>
+<span>    show_legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"dan_atlas"</span>, </span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">dan_group</span><span class="op">)</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_manual</span><span class="op">(</span><span class="st">"DAN Region"</span>, values <span class="op">=</span> <span class="va">dan_colors</span><span class="op">)</span>,</span>
+<span>    show_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    fill_holes <span class="op">=</span> <span class="fl">20</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_region_label_repel.html">geom_region_label_repel</a></span><span class="op">(</span></span>
+<span>    image <span class="op">=</span> <span class="st">"dan_atlas"</span>, </span>
+<span>    label_column <span class="op">=</span> <span class="st">"value"</span>,</span>
+<span>    min.segment.length <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    size <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>    force_pull <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    force <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>    max.overlaps <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>    box.padding <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>    label.padding <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>    min_px <span class="op">=</span> <span class="fl">10</span>  <span class="co"># Only label regions with at least 10 pixels on the slice</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/region_labels-1.png" class="r-plt" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="adding-annotations">Adding annotations<a class="anchor" aria-label="anchor" href="#adding-annotations"></a>
+</h2>
+<div class="section level3">
+<h3 id="coordinate-annotations">Coordinate annotations<a class="anchor" aria-label="anchor" href="#coordinate-annotations"></a>
+</h3>
+<p>Use <code><a href="../reference/annotate_coordinates.html">annotate_coordinates()</a></code> to add slice coordinate
+labels to each panel:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gg_coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 0"</span>, <span class="st">"y = 0"</span>, <span class="st">"z = 30"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"overlay"</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">15</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">1</span>, color <span class="op">=</span> <span class="st">"black"</span>, x <span class="op">=</span> <span class="st">"right"</span>, y <span class="op">=</span> <span class="st">"bottom"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_coords</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/coordinate_annotations-1.png" class="r-plt" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="orientation-annotations">Orientation annotations<a class="anchor" aria-label="anchor" href="#orientation-annotations"></a>
+</h3>
+<p>Use <code><a href="../reference/annotate_orientation.html">annotate_orientation()</a></code> to add neurological
+orientation labels (L/R, A/P, S/I):</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gg_orient</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 0"</span>, <span class="st">"y = 0"</span>, <span class="st">"z = 30"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"overlay"</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">15</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_orientation.html">annotate_orientation</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> <span class="st">"gray20"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_orient</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/orientation_annotations-1.png" class="r-plt" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="creating-reusable-plot-components">Creating reusable plot components<a class="anchor" aria-label="anchor" href="#creating-reusable-plot-components"></a>
+</h2>
+<p>When creating multiple related plots, it’s efficient to define common
+components that can be reused. This is similar to creating a ‘theme’ for
+your brain plots:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Define common plot elements</span></span>
+<span><span class="va">common_parts</span> <span class="op">&lt;-</span> </span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"underlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey30"</span>, high <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span>, </span>
+<span>    show_legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">1</span>, color <span class="op">=</span> <span class="st">"black"</span>, x <span class="op">=</span> <span class="st">"right"</span>, y <span class="op">=</span> <span class="st">"bottom"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<p>Now you can use <code>common_parts</code> across multiple plots with
+different overlays or slice selections.</p>
+</div>
+<div class="section level2">
+<h2 id="combining-ggbrain-plots-with-patchwork">Combining ggbrain plots with patchwork<a class="anchor" aria-label="anchor" href="#combining-ggbrain-plots-with-patchwork"></a>
+</h2>
+<p>The <code>patchwork</code> package provides powerful tools for
+combining multiple plots. After rendering your ggbrain plots, you can
+use patchwork operators to arrange them.</p>
+<div class="section level3">
+<h3 id="basic-patchwork-combinations">Basic patchwork combinations<a class="anchor" aria-label="anchor" href="#basic-patchwork-combinations"></a>
+</h3>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create two different brain plots</span></span>
+<span><span class="va">gg_axial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Axial View"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 20"</span>, <span class="st">"z = 40"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, remove_specks <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">gg_sagittal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Sagittal View"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -40"</span>, <span class="st">"x = 40"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, remove_specks <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Combine using patchwork</span></span>
+<span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="va">gg_axial</span> <span class="op">/</span> <span class="va">gg_sagittal</span> <span class="op">+</span></span>
+<span>  <span class="fu">plot_annotation</span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Reward Prediction Error Activation"</span>,</span>
+<span>    tag_levels <span class="op">=</span> <span class="st">"A"</span>,</span>
+<span>    tag_suffix <span class="op">=</span> <span class="st">")"</span>,</span>
+<span>    theme <span class="op">=</span> <span class="fu">theme</span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu">element_text</span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">&amp;</span></span>
+<span>  <span class="fu">theme</span><span class="op">(</span>plot.tag <span class="op">=</span> <span class="fu">element_text</span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span>, size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">combined</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/patchwork_basic-1.png" class="r-plt" width="960"></p>
+</div>
+<div class="section level3">
+<h3 id="advanced-layout-with-shared-legend">Advanced layout with shared legend<a class="anchor" aria-label="anchor" href="#advanced-layout-with-shared-legend"></a>
+</h3>
+<p>When combining multiple plots with similar color scales, you can
+extract and share a common legend:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create plots without legends</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Entropy Change"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">echange_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 0"</span>, <span class="st">"z = 20"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, </span>
+<span>             fill_scale <span class="op">=</span> <span class="fu">scale_fill_viridis_c</span><span class="op">(</span><span class="st">"z-stat"</span><span class="op">)</span>, </span>
+<span>             remove_specks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Prediction Error"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">abspe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = 0"</span>, <span class="st">"z = 20"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, </span>
+<span>             fill_scale <span class="op">=</span> <span class="fu">scale_fill_viridis_c</span><span class="op">(</span><span class="st">"z-stat"</span><span class="op">)</span>, </span>
+<span>             remove_specks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Combine with collected legends and tags</span></span>
+<span><span class="va">final_plot</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">plot_layout</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">plot_annotation</span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Learning-Related Brain Activation"</span>,</span>
+<span>    tag_levels <span class="op">=</span> <span class="st">"A"</span>,</span>
+<span>    theme <span class="op">=</span> <span class="fu">theme</span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu">element_text</span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">18</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">final_plot</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/advanced_patchwork-1.png" class="r-plt" width="1152"></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="saving-ggbrain-plots-to-file">Saving ggbrain plots to file<a class="anchor" aria-label="anchor" href="#saving-ggbrain-plots-to-file"></a>
 </h2>
+<p>To save your plots with consistent styling, use <code>ggsave()</code>
+or base R graphics devices. The <code>bg</code> argument ensures the
+background color extends to the full output device:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Using ggsave (recommended)</span></span>
+<span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"my_brain_plot.png"</span>, <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span>, dpi <span class="op">=</span> <span class="fl">300</span>, bg <span class="op">=</span> <span class="st">"gray90"</span><span class="op">)</span></span>
+<span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"my_brain_plot.pdf"</span>, <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Using base R devices</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"my_brain_plot.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span>, bg <span class="op">=</span> <span class="st">"gray90"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png</a></span><span class="op">(</span><span class="st">"my_brain_plot.png"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span>, units <span class="op">=</span> <span class="st">"in"</span>, res <span class="op">=</span> <span class="fl">300</span>, bg <span class="op">=</span> <span class="st">"gray90"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="aesthetic-mappings-for">Aesthetic mappings for<a class="anchor" aria-label="anchor" href="#aesthetic-mappings-for"></a>
+<h2 id="filtering-images-for-focused-displays">Filtering images for focused displays<a class="anchor" aria-label="anchor" href="#filtering-images-for-focused-displays"></a>
 </h2>
+<p>You can filter an image to display only certain regions using the
+<code>filter</code> argument in <code><a href="../reference/images.html">images()</a></code>. This is useful
+when you want to focus on specific ROIs or networks:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get specific parcel values for Premotor regions</span></span>
+<span><span class="va">premotor_parcels</span> <span class="op">&lt;-</span> <span class="va">dan_labels</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">dan_group</span> <span class="op">==</span> <span class="st">"Premotor"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">pull</span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create focused display of just Premotor regions</span></span>
+<span><span class="va">gg_premotor</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Premotor Regions"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>premotor_atlas <span class="op">=</span> <span class="va">schaefer200_atlas_2mm</span><span class="op">)</span>, </span>
+<span>    labels <span class="op">=</span> <span class="va">dan_labels</span>, </span>
+<span>    filter <span class="op">=</span> <span class="va">premotor_parcels</span>  <span class="co"># Only include Premotor parcels</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -45"</span>, <span class="st">"z = 50"</span>, <span class="st">"x = 50"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"underlay"</span>, </span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"grey30"</span>, high <span class="op">=</span> <span class="st">"grey80"</span><span class="op">)</span>, </span>
+<span>    show_legend <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"premotor_atlas"</span>, </span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">dan_group</span><span class="op">)</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_manual</span><span class="op">(</span><span class="st">"Region"</span>, values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Premotor"</span> <span class="op">=</span> <span class="st">"#4DAF4A"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    show_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">10</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">1</span>, color <span class="op">=</span> <span class="st">"black"</span>, x <span class="op">=</span> <span class="st">"right"</span>, y <span class="op">=</span> <span class="st">"bottom"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_premotor</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/filtered_display-1.png" class="r-plt" width="768"></p>
 </div>
 <div class="section level2">
-<h2 id="combining-ggbrain-plots">Combining ggbrain plots<a class="anchor" aria-label="anchor" href="#combining-ggbrain-plots"></a>
+<h2 id="target-resolution-for-higher-quality-displays">Target resolution for higher quality displays<a class="anchor" aria-label="anchor" href="#target-resolution-for-higher-quality-displays"></a>
 </h2>
-<p>[Principles of patchwork]</p>
+<p>Use <code><a href="../reference/target_resolution.html">target_resolution()</a></code> to upsample your display for
+smoother, higher-resolution figures:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Without upsampling (native 2mm resolution)</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 30"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, remove_specks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Native 2mm resolution"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># With upsampling to 1mm</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 30"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/target_resolution.html">target_resolution</a></span><span class="op">(</span><span class="fl">1.0</span>, interpolation <span class="op">=</span> <span class="st">"cubic"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, remove_specks <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Upsampled to 1mm with cubic interpolation"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/target_resolution-1.png" class="r-plt" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="other-considerations">Other considerations<a class="anchor" aria-label="anchor" href="#other-considerations"></a>
 </h2>
-<div class="section level4">
-<h4 id="resampling-images-to-have-the-same-resolution">Resampling images to have the same resolution<a class="anchor" aria-label="anchor" href="#resampling-images-to-have-the-same-resolution"></a>
-</h4>
-<p>Oftentimes, higher-resolution images (e.g., 1mm) yield better
-graphics since they potentially provide more detail. But fMRI data are
-often of lower resolution than T1-weighted images. If you wish to render
-your fMRI data on a higher-resolution anatomical template in
-<code>ggbrain</code>, you can first use AFNI’s <code>3dresample</code>
-command to resample your functional data to match the anatomical
-template (underlay).</p>
-<p>Here is an example of resampling a 3mm statistic image to a 1mm
-underlay using nearest neighbor interpolation. Note that the image to be
-resampled should be in the same sterotaxic space as the master/template
-image.</p>
-<pre><code>3dresample -input echange_overall_zstat_3mm.nii.gz \
-  -prefix echange_overall_zstat_1mm.nii.gz \
-  -master mni_template_2009c_1mm.nii.gz \
-  -rmode NN</code></pre>
+<div class="section level3">
+<h3 id="resampling-images-externally">Resampling images externally<a class="anchor" aria-label="anchor" href="#resampling-images-externally"></a>
+</h3>
+<p>Users could also consider resampling images externally using tools
+like AFNI’s <code>3dresample</code> before loading into
+<code>ggbrain</code>. This will yield similar results to te</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="ex">3dresample</span> <span class="at">-input</span> functional_overlay_3mm.nii.gz <span class="dt">\</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="at">-prefix</span> functional_overlay_1mm.nii.gz <span class="dt">\</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="at">-master</span> anatomical_template_1mm.nii.gz <span class="dt">\</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="at">-rmode</span> NN</span></code></pre></div>
 </div>
-</div>
-<div class="section level2">
-<h2 id="overview-of-ggbrain">Overview of ggbrain<a class="anchor" aria-label="anchor" href="#overview-of-ggbrain"></a>
-</h2>
-<p>The <code>ggbrain</code> package uses the <code>ggplot2</code>
-package to create 2D volume renderings of NIfTI files containing MRI
-data. It seeks to follow the principles of a graphical grammar in which
-plots are built from datasets that are mapped onto the visual space via
-a set of aesthetic mappings. Likewise, <code>ggbrain</code> follows the
-approach of creating layers in which different geometric marks (e.g.,
-square pixels) are overlaid on the plot, such that many images and marks
-can be combined.</p>
 <div class="section level3">
 <h3 id="the-hierarchy-of-a-ggbrain-plot">The hierarchy of a ggbrain plot<a class="anchor" aria-label="anchor" href="#the-hierarchy-of-a-ggbrain-plot"></a>
 </h3>
-<p>Every ggbrain plot is composed of one or more panels that have layers
-representing different images that have been overlaid. Each panel
-contains a slice along one of the three axes of the volume: x
-(Left-Right), y (Anterior-Posterior), or z (Superior-Inferior). Panels
-can also contain annotations that reflect one or more marks to aid in
-the interpretation of the plot, as well as region labels in which text
-is positioned at certain markers within the displayed brain slice.</p>
+<p>Every ggbrain plot is composed of:</p>
 <ul>
-<li>Plot
+<li>
+<strong>Plot</strong>: The overall container for the visualization
 <ul>
-<li>Panels (aka Slices)
+<li>
+<strong>Panels (Slices)</strong>: Each showing a 2D slice along one
+axis (x/sagittal, y/coronal, z/axial)
 <ul>
-<li>Layers: each pixel in the 2D slice contains a value such as a test
-statistic from a voxelwise analysis. Pixel values can also be
-categorical, such as levels of a factor (e.g., lobe).</li>
-<li>Annotations: custom text or graphical marks overlaid on the panel
-using the ggplot2 <code>annotate</code> function (e.g., coordinate
-label)</li>
-<li>Region Labels: a variant of ggplot2 <code>geom_text</code>, region
-labels represent text that should be overlaid at one or more spatial
-positions across the panel/slice (e.g., anatomical labels)</li>
+<li>
+<strong>Layers</strong>: Raster data mapped to fill colors
+(underlays, overlays, atlas regions)</li>
+<li>
+<strong>Outlines</strong>: Boundaries of clusters or regions</li>
+<li>
+<strong>Annotations</strong>: Text or geometric marks (coordinates,
+orientation labels)</li>
+<li>
+<strong>Region Labels</strong>: Text labels positioned at region
+centroids</li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
+<p>Understanding this hierarchy helps when building complex,
+multi-layered visualizations.</p>
 </div>
+<div class="section level3">
+<h3 id="tips-for-publication-quality-figures">Tips for publication-quality figures<a class="anchor" aria-label="anchor" href="#tips-for-publication-quality-figures"></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Use consistent background colors</strong> across all panels
+and in your output device</li>
+<li>
+<strong>Clean up specks and fill holes</strong> to improve visual
+appearance</li>
+<li>
+<strong>Choose appropriate color scales</strong> - consider
+colorblind-friendly palettes</li>
+<li>
+<strong>Add orientation and coordinate labels</strong> for
+interpretability</li>
+<li>
+<strong>Use <code>patchwork</code> tags</strong> (A, B, C…) for
+multi-panel figures</li>
+<li>
+<strong>Save as vector formats</strong> (PDF, SVG) for maximum
+quality and editability</li>
+<li>
+<strong>Consider upsampling</strong> for smoother appearance in
+final figures</li>
+</ol>
 </div>
-<div class="section level2">
-<h2 id="question-of-how-to-get-entire-background-to-match-in-color">Question of how to get entire background to match in color<a class="anchor" aria-label="anchor" href="#question-of-how-to-get-entire-background-to-match-in-color"></a>
-</h2>
-<p>Use bg argument</p>
-<pre><code><span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"test.png"</span>, <span class="va">gg_obj</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span><span class="op">)</span>, width<span class="op">=</span><span class="fl">8</span>, height<span class="op">=</span><span class="fl">6</span>, bg<span class="op">=</span><span class="st">"blue"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"test_dev.pdf"</span>, width<span class="op">=</span><span class="fl">8</span>, height<span class="op">=</span><span class="fl">6</span>, bg<span class="op">=</span><span class="st">"blue"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

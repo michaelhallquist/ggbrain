@@ -44,6 +44,11 @@ objects (e.g., ggbrain_images) required to generate a brain plot
 
   a list of ggbrain_label objects to be added as text to label regions
 
+- `ggb_target_resolution`:
+
+  a list with target resolution settings (voxel_size, interpolation,
+  interpolation_value)
+
 - `action`:
 
   what should this ggb object contribute to another when added with it?
@@ -67,6 +72,8 @@ objects (e.g., ggbrain_images) required to generate a brain plot
 - [`ggb$add_region_labels()`](#method-ggb-add_region_labels)
 
 - [`ggb$render()`](#method-ggb-render)
+
+- [`ggb$get_slice_data()`](#method-ggb-get_slice_data)
 
 - [`ggb$plot()`](#method-ggb-plot)
 
@@ -275,6 +282,49 @@ underlying ggb fields that contain the elemental data.
   Passes through to patchwork::plot_layout to control how legends are
   combined across plots. The default is "collect", which collects
   legends within a given nesting level (removes duplicates).
+
+------------------------------------------------------------------------
+
+### Method `get_slice_data()`
+
+get the slice data from the rendered plot for inspection
+
+#### Usage
+
+    ggb$get_slice_data(image_name = NULL, slice_index = NULL, as_matrix = FALSE)
+
+#### Arguments
+
+- `image_name`:
+
+  optional character string specifying a single image to extract. If
+  NULL, returns all images for each slice.
+
+- `slice_index`:
+
+  optional integer vector specifying which slices to return. If NULL,
+  returns all slices.
+
+- `as_matrix`:
+
+  if TRUE, convert data.frames to matrices using df2mat(). Default:
+  FALSE
+
+#### Details
+
+If
+[`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
+has not been called yet, this method will call it automatically to
+populate the slice data. This is useful for verifying that
+resampling/interpolation occurred as expected when using
+[`target_resolution()`](https://michaelhallquist.github.io/ggbrain/reference/target_resolution.md).
+
+#### Returns
+
+A list of slice data. If `image_name` is specified, returns a list of
+data.frames (or matrices) for that image across slices. If `image_name`
+is NULL, returns a nested list where each element contains all images
+for that slice.
 
 ------------------------------------------------------------------------
 

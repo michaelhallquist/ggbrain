@@ -146,3 +146,6 @@
 - [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
   : Adds slices to the ggbrain plot, including additional panel
   aesthetics
+
+- [`target_resolution()`](https://michaelhallquist.github.io/ggbrain/reference/target_resolution.md)
+  : Set the target resolution for resampling slices in a ggbrain plot

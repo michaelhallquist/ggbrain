@@ -3,6 +3,13 @@
 ## ggbrain 0.9.2 (3Dec2025)
 
 - feature: added
+  [`target_resolution()`](https://michaelhallquist.github.io/ggbrain/reference/target_resolution.md)
+  function to resample slices to a different resolution for display.
+  This allows users to upsample images to finer resolution (e.g., show
+  2.5mm data at 1mm) or downsample for faster rendering and smaller file
+  sizes. Supports nearest, linear, cubic (default), and lanczos
+  interpolation methods.
+- feature: added
   [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
   function to add anatomical orientation labels to plots
 - bugfix: avoid double calls to `refine_image()` when unifying
