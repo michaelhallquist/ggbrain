@@ -31,7 +31,9 @@ Nothing. The matrix `im` is modified in place (by reference)
 
 ## Details
 
-This is an internal function used by geom_outline to clean up outlines
+This is an internal function used by geom_outline to clean up outlines.
+Uses an iterative approach with an explicit stack to avoid stack
+overflow on large images.
 
 ## Author
 

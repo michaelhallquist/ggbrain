@@ -6,13 +6,13 @@ Finds the nearest non-missing neighbors of a target point in a 2D matrix
 
 - x:
 
-  x-position of the point whose neighbors should be found within
+  0-based row index of the point whose neighbors should be found within
   `in_mat`
 
 - y:
 
-  y-position of the point whose neighbors should be found within
-  `in_mat`
+  0-based column index of the point whose neighbors should be found
+  within `in_mat`
 
 - in_mat:
 

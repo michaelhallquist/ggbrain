@@ -79,6 +79,8 @@
     <p>This algorithm runs count_neighbors iteratively until no pixel exceeds the trimming threshold <code>min_neighbors</code>
 or the maximum number of iterations, <code>maxit</code>, is reached.</p>
 <p>By running iteratively, long tails are trimmed sequentially by pruning the most disconnected voxels.</p>
+<p>The algorithm computes neighbor counts once initially, then uses incremental updates when pixels are removed.
+This avoids redundant full-matrix scans on each iteration, providing significant speedup for large images.</p>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>

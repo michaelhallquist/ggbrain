@@ -492,7 +492,6 @@ highlight the occipital region here.</p>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>xmin<span class="op">=</span><span class="st">"q0"</span>, xmax<span class="op">=</span><span class="st">"q38"</span>, ymin<span class="op">=</span><span class="st">"q25"</span>, ymax<span class="op">=</span><span class="st">"q59"</span>, slice_index<span class="op">=</span><span class="fl">1</span>, geom<span class="op">=</span><span class="st">"rect"</span>, </span>
 <span>                 color<span class="op">=</span><span class="st">"blue"</span>, fill<span class="op">=</span><span class="st">"transparent"</span>, linewidth<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ann</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: Unknown or uninitialised column: `label`.</span></span></code></pre>
 <p><img src="ggbrain_labels_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" width="672"></p>
 </div>
 <div class="section level2">
@@ -518,7 +517,7 @@ parcellation regions comprising the three DAN areas of MT+, PPC, and
 Premotor. These labels already exist in our
 <code>schaefer200_atlas_labels</code> data.frame. Let’s use the
 MNI_Glasser_HCP_v1.0 labels.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_region_label.html">geom_region_label</a></span><span class="op">(</span>image<span class="op">=</span><span class="st">"atlas"</span>, label_column<span class="op">=</span><span class="st">"MNI_Glasser_HCP_v1.0"</span>, size<span class="op">=</span><span class="fl">3</span>, color<span class="op">=</span><span class="st">"black"</span><span class="op">)</span></span>
 <span><span class="co"># </span></span>
@@ -540,7 +539,7 @@ visualization than the long labels.</p>
 <span><span class="co">## [4] "|L_Medial_Superior_Temporal_Area      |TPJ          |"</span></span>
 <span><span class="co">## [5] "|L_Area_V3A                           |iLIP         |"</span></span>
 <span><span class="co">## [6] "|L_Frontal_Eye_Fields                 |lFEF         |"</span></span></code></pre>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_region_label.html">geom_region_label</a></span><span class="op">(</span>image<span class="op">=</span><span class="st">"atlas"</span>, label_column<span class="op">=</span><span class="st">"custom_label"</span>, size<span class="op">=</span><span class="fl">3</span>, color<span class="op">=</span><span class="st">"black"</span><span class="op">)</span></span>
 <span><span class="co"># </span></span>

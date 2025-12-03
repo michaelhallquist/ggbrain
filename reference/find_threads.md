@@ -37,6 +37,11 @@ iterations, `maxit`, is reached.
 By running iteratively, long tails are trimmed sequentially by pruning
 the most disconnected voxels.
 
+The algorithm computes neighbor counts once initially, then uses
+incremental updates when pixels are removed. This avoids redundant
+full-matrix scans on each iteration, providing significant speedup for
+large images.
+
 ## Author
 
 Michael Hallquist

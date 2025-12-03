@@ -386,8 +386,6 @@ ann <- abspe_gg +
 plot(ann)
 ```
 
-    ## Warning: Unknown or uninitialised column: `label`.
-
 ![](ggbrain_labels_files/figure-html/unnamed-chunk-16-1.png)
 
 ## Adding labels systematically

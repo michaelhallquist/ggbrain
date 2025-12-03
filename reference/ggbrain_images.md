@@ -77,6 +77,8 @@ images().
 
 - [`ggbrain_images$get_labels()`](#method-ggbrain_images-get_labels)
 
+- [`ggbrain_images$get_orientation_labels()`](#method-ggbrain_images-get_orientation_labels)
+
 - [`ggbrain_images$lookup_slices()`](#method-ggbrain_images-lookup_slices)
 
 - [`ggbrain_images$clone()`](#method-ggbrain_images-clone)
@@ -521,6 +523,22 @@ return a list of data.frames containing labels for a given image
 #### Details
 
 the names of the list correspond directly with the names of the images
+
+------------------------------------------------------------------------
+
+### Method `get_orientation_labels()`
+
+internal helper to determine anatomical orientation labels for the first
+image
+
+#### Usage
+
+    ggbrain_images$get_orientation_labels()
+
+#### Returns
+
+a list with elements x, y, z giving the orientation codes (e.g.,
+c(\\L\\, \\R\\))
 
 ------------------------------------------------------------------------
 

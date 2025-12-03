@@ -6,6 +6,10 @@
   : Adds the coordinate labels to each panel based on the location of
   the slice along the slicing axis (e.g., z = 15)
 
+- [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
+  : Annotate orientation labels (L/R/A/P/S/I) on each panel using NIfTI
+  header info
+
 - [`annotate_slice()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_slice.md)
   : Adds custom annotations to a single panel on the ggbrain plot
 

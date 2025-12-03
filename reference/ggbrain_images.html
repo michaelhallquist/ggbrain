@@ -105,6 +105,7 @@ This value is used to set small values in the images to exactly zero for proper 
 <li><p><a href="#method-ggbrain_images-get_slices"><code>ggbrain_images$get_slices()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-get_slices_inplane"><code>ggbrain_images$get_slices_inplane()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-get_labels"><code>ggbrain_images$get_labels()</code></a></p></li>
+<li><p><a href="#method-ggbrain_images-get_orientation_labels"><code>ggbrain_images$get_orientation_labels()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-lookup_slices"><code>ggbrain_images$lookup_slices()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-clone"><code>ggbrain_images$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-ggbrain_images-new"></a><div class="section">
@@ -517,11 +518,23 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 </div>
 
 
+</div><p></p><hr><a id="method-ggbrain_images-get_orientation_labels"></a><div class="section">
+<h3 id="method-get-orientation-labels-">Method <code>get_orientation_labels()</code><a class="anchor" aria-label="anchor" href="#method-get-orientation-labels-"></a></h3>
+<p>internal helper to determine anatomical orientation labels for the first image</p><div class="section">
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_orientation_labels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>a list with elements x, y, z giving the orientation codes (e.g., c(\"L\", \"R\"))</p>
+</div>
+
 </div><p></p><hr><a id="method-ggbrain_images-lookup_slices"></a><div class="section">
 <h3 id="method-lookup-slices-">Method <code>lookup_slices()</code><a class="anchor" aria-label="anchor" href="#method-lookup-slices-"></a></h3>
 <p>internal function to lookup which slices to display along each axis based on their quantile,
 xyz coordinate, or ijk coordinate</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">lookup_slices</span><span class="op">(</span><span class="va">slices</span>, ignore_null_space <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -542,7 +555,7 @@ use the quantiles of only the non-zero slices (ignoring blank sliaces)</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

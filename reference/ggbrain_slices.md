@@ -45,11 +45,17 @@ Michael Hallquist
 
   a character vector of layer names within each slice
 
+- `orientation_labels`:
+
+  axis labels inherited from the source images
+
 ## Methods
 
 ### Public methods
 
 - [`ggbrain_slices$new()`](#method-ggbrain_slices-new)
+
+- [`ggbrain_slices$get_orientation_labels()`](#method-ggbrain_slices-get_orientation_labels)
 
 - [`ggbrain_slices$compute_contrasts()`](#method-ggbrain_slices-compute_contrasts)
 
@@ -81,6 +87,17 @@ create a ggbrain_slices object based
 
 If this becomes a user-facing/exported class, we may want a more
 friendly constructor
+
+------------------------------------------------------------------------
+
+### Method `get_orientation_labels()`
+
+return the orientation labels inherited from the source ggbrain_images
+object
+
+#### Usage
+
+    ggbrain_slices$get_orientation_labels()
 
 ------------------------------------------------------------------------
 
