@@ -912,7 +912,7 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_character(slices)
       img_dims <- self$dim()
 
-      slc_range_full <- list(i = seq_len(img_dims[1]), j = seq_len(img_dims[2]), k = seq_len(img_dims[2]))
+      slc_range_full <- list(i = seq_len(img_dims[1]), j = seq_len(img_dims[2]), k = seq_len(img_dims[3]))
 
       if (isTRUE(ignore_null_space)) {
         slc_range <- self$get_nz_indices()
@@ -974,7 +974,7 @@ ggbrain_images <- R6::R6Class(
             checkmate::assert_number(number, lower=min(coords), upper=max(coords))
             slc_num <- which.min(abs(number - coords))
           } else if (coord == "voxel") { #ijk
-            coords <- switch(plane, sagittal = slc_range_full$i, coronal = slc_range_full$j, axial = lc_range_full$k)
+            coords <- switch(plane, sagittal = slc_range_full$i, coronal = slc_range_full$j, axial = slc_range_full$k)
             checkmate::assert_integerish(number, lower=min(coords), upper=max(coords), len=1L)
             slc_num <- number
           }

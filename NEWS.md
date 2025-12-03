@@ -12,6 +12,7 @@
 * bugfix: switched `flood_fill` to stack-based approach to avoid overflow due to recursion.
 * bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
 * feature: Improve speed of `find_threads` by only decrementing neighbor counts for pixels identified from the initial full scan.
+* feature: hardened tests of input images to check their voxel sizes
 * tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
 
 # ggbrain 0.9.1 (22Aug2025)

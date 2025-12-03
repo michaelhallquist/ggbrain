@@ -9,3 +9,5 @@ pkg_build
 ^\.github$
 ^\.vscode$
 ^LICENSE\.md$
+^doc$
+^Meta$

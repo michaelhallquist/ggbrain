@@ -81,7 +81,7 @@ ggbrain_label <- R6::R6Class(
     #' @param geom The geom type to be plotted. Must be "text" or "label", corresponding to geom_text and geom_label, respectively.
     #' @param image A string specifying the image to which these labels pertain
     #' @param label_column the column in \code{data} that should be drawn as labels on the plot
-    #' @param min_px the minimum number of pixels 
+    #' @param min_px the minimum number of pixels on a slice required to display label. Default: 1
     #' @param ... All other arguments that will be passed directly to geom_text or geom_label such as hjust, size, and color
     initialize = function(data = NULL, geom="text", image = NULL, label_column = NULL, min_px = NULL, ...) {
       self$addl_args <- list(...)

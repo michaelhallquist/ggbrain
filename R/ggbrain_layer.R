@@ -646,7 +646,11 @@ ggbrain_layer <- R6::R6Class(
       # if user passes in TRUE/FALSE, then use default size of 10 pixels
       if (checkmate::test_logical(value)) {
         stopifnot(length(value) == 1L)
-        private$pvt_fill_holes <- 10L # default to 10 pixels or smaller
+        if (isTRUE(value)) {
+          private$pvt_fill_holes <- 10L # default to 10 pixels or smaller
+        } else {
+          private$pvt_fill_holes <- 0L # FALSE disables hole filling
+        }
       } else if (checkmate::test_integerish(value)) {
         value <- as.integer(value)
         checkmate::assert_integer(value, lower = 0L)
@@ -661,7 +665,11 @@ ggbrain_layer <- R6::R6Class(
       # if user passes in TRUE/FALSE, then use default size of 10 pixels
       if (checkmate::test_logical(value)) {
         stopifnot(length(value) == 1L)
-        private$pvt_remove_specks <- 10L # default to 10 pixels or smaller
+        if (isTRUE(value)) {
+          private$pvt_remove_specks <- 10L # default to 10 pixels or smaller
+        } else {
+          private$pvt_remove_specks <- 0L # FALSE disables speck removal
+        }
       } else if (checkmate::test_integerish(value)) {
         value <- as.integer(value)
         checkmate::assert_integer(value, lower = 0L)
