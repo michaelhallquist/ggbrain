@@ -60,6 +60,7 @@
 <li>bugfix: switched <code>flood_fill</code> to stack-based approach to avoid overflow due to recursion.</li>
 <li>bugfix: Correct invalid 1-based indexing assumption in <code>nearest_pts</code> used for filling holes.</li>
 <li>bugfix: Use bisided scale for all slices when <code>unify=TRUE</code> but only some slices have positive and negative values</li>
+<li>bugfix: Use geom_tile() for outlines to avoid spurious warnings about uneven spacing</li>
 <li>tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for <code>refine_image</code> call count and hole filling</li>
 </ul></div>
     <div class="section level2">
