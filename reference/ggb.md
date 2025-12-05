@@ -23,6 +23,15 @@ objects (e.g., ggbrain_images) required to generate a brain plot
 
   list slices to extract for this plot
 
+- `ggb_cluster_slices`:
+
+  a list of cluster_slices_spec objects for deferred slice computation
+
+- `ggb_cluster_data`:
+
+  a list of data.frames containing cluster information from resolved
+  cluster_slices
+
 - `ggb_contrasts`:
 
   a character vector of contrasts to be computed as part of this plot
@@ -62,6 +71,10 @@ objects (e.g., ggbrain_images) required to generate a brain plot
 - [`ggb$add_layers()`](#method-ggb-add_layers)
 
 - [`ggb$add_slices()`](#method-ggb-add_slices)
+
+- [`ggb$add_cluster_slices()`](#method-ggb-add_cluster_slices)
+
+- [`ggb$get_cluster_data()`](#method-ggb-get_cluster_data)
 
 - [`ggb$add_contrasts()`](#method-ggb-add_contrasts)
 
@@ -187,6 +200,47 @@ add slices to the existing vector of slices
 - `slices`:
 
   a character vector of slices to be appended to the existing slices
+
+------------------------------------------------------------------------
+
+### Method `add_cluster_slices()`
+
+add a cluster_slices_spec for deferred slice computation
+
+#### Usage
+
+    ggb$add_cluster_slices(spec = NULL)
+
+#### Arguments
+
+- `spec`:
+
+  a cluster_slices_spec object from cluster_slices()
+
+------------------------------------------------------------------------
+
+### Method `get_cluster_data()`
+
+retrieve cluster data from resolved cluster_slices specifications
+
+#### Usage
+
+    ggb$get_cluster_data()
+
+#### Details
+
+This method returns the cluster information computed during rendering.
+It must be called after plot() or render() has been invoked, otherwise
+it returns NULL. The returned data.frame contains columns: cluster_id,
+size (in voxels), com_i, com_j, com_k (center of mass in voxel
+coordinates), com_x, com_y, com_z (center of mass in world/mm
+coordinates), and slice_coord (the slice coordinate string used for
+plotting).
+
+#### Returns
+
+A data.frame with cluster information, or NULL if no cluster_slices were
+used or render() hasn't been called
 
 ------------------------------------------------------------------------
 

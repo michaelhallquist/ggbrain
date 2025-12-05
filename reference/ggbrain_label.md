@@ -88,7 +88,8 @@ create a new ggbrain_label object
 
 - `min_px`:
 
-  the minimum number of pixels
+  the minimum number of pixels on a slice required to display label.
+  Default: 1
 
 - `...`:
 

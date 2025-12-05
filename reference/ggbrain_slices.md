@@ -57,6 +57,8 @@ Michael Hallquist
 
 - [`ggbrain_slices$get_orientation_labels()`](#method-ggbrain_slices-get_orientation_labels)
 
+- [`ggbrain_slices$ensure_label_columns()`](#method-ggbrain_slices-ensure_label_columns)
+
 - [`ggbrain_slices$compute_contrasts()`](#method-ggbrain_slices-compute_contrasts)
 
 - [`ggbrain_slices$as_tibble()`](#method-ggbrain_slices-as_tibble)
@@ -98,6 +100,23 @@ object
 #### Usage
 
     ggbrain_slices$get_orientation_labels()
+
+------------------------------------------------------------------------
+
+### Method `ensure_label_columns()`
+
+Ensure requested label columns exist on slice data (used for inline
+factor labels)
+
+#### Usage
+
+    ggbrain_slices$ensure_label_columns(add_labels = NULL)
+
+#### Arguments
+
+- `add_labels`:
+
+  named list of label columns to add per layer
 
 ------------------------------------------------------------------------
 

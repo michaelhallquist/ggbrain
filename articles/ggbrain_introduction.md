@@ -247,6 +247,51 @@ This code adds 5 sagittal slices between the x = -10 and x = 10
 gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10))
 ```
 
+#### Automatically locating clusters and outlines
+
+When you have a statistical overlay,
+[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+can pick informative slice locations based on the centers of mass of the
+largest 3D clusters. Use
+[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+within
+[`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
+in place of manual coordinates:
+
+``` r
+t1      <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
+
+gg <- ggbrain() +
+  images(c(underlay = t1, overlay = overlay)) +
+  slices(cluster_slices(
+    definition     = "overlay[abs(overlay) > 3]",
+    nclusters      = 4,
+    min_clust_size = 40,
+    plane          = "axial",
+    outline        = TRUE,              # auto-add outline layer for clusters
+    outline_size   = 2L,
+    outline_scale  = scale_fill_manual( # optional: supply your own palette/limits
+      values = c("1" = "gold", "2" = "cyan", "3" = "magenta", "4" = "limegreen"),
+      limits = c("1", "2", "3", "4")
+    )
+  )) +
+  geom_brain("underlay") +
+  geom_brain(definition = "overlay[abs(overlay) > 3]", name = "Activation")
+```
+
+Key points:
+
+- `definition` matches the overlay you want to cluster; the base image
+  must be added using
+  [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md).
+- `outline = TRUE` adds a
+  [`geom_outline()`](https://michaelhallquist.github.io/ggbrain/reference/geom_outline.md)
+  layer using the cluster IDs as categorical values. Provide
+  `outline_scale` for a custom palette/legend, or `outline_color`
+  (single value) for a fixed outline. Set `outline_show_legend` to force
+  or suppress the outline legend.
+
 ### Add brain overlay layers
 
 Now that we have defined the images to read and the slices to render, we
@@ -354,7 +399,7 @@ plot our figure to see the result.
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-16-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png)
 
 #### Defining subset layers
 
@@ -374,7 +419,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png)
 
 Note how ‘overlay’ is treated as an R object that is subset using square
 brackets. The subsetting expression inside the brackets uses standard R
@@ -390,7 +435,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png)
 
 Finally, note that one can combine subsetting expressions using logical
 operators `&` and `|` , as in standard R syntax for vector operations.
@@ -408,7 +453,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png)
 
 #### Defining a contrast layer
 
@@ -440,7 +485,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png)
 
 An equivalent plot would be achieved by including the definition inline:
 
@@ -469,7 +514,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-22-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png)
 
 ### Add outlines
 
@@ -506,7 +551,44 @@ gg_obj <- ggbrain() +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png)
+
+### Clusterized categorical layers
+
+If you want to clusterize an image (i.e., find clusters of contiguous
+voxels) and display the clusters themselves as a categorical fill
+(rather than a continuous overlay), use
+[`geom_brain_clusterized()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain_clusterized.md).
+It clusters a definition into the top N clusters, adds a labeled image,
+and draws it as a categorical layer; it does *not* add slices
+automatically (that is done with
+[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md),
+as noted above)
+
+``` r
+gg <- ggbrain() +
+  images(c(underlay = t1, overlay = overlay)) +
+  slices("z=0") +
+  geom_brain("underlay") +
+  geom_brain_clusterized(
+    definition     = "overlay[abs(overlay) > 3]",
+    name           = "PE clusters",
+    nclusters      = 3,
+    min_clust_size = 40,
+    fill_scale     = scale_fill_manual(values = c("1" = "red", "2" = "blue", "3" = "green")),
+    cluster_info   = c("number", "voxels") # legend labels: e.g., "1: 1312 voxels"
+  )
+```
+
+Tips:
+
+- Combine with
+  [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
+  to choose where to view the clusters.
+- `cluster_info` controls legend labels (`"number"`, `"voxels"`,
+  `"size"` in mm^3).
+- `show_legend` toggles the cluster legend; `fill_scale` lets you set
+  your own palette/limits.
 
 ### Converting to a ggplot object and displaying the plot
 
@@ -570,7 +652,7 @@ Likewise, you can modify the overall theme information using the
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-25-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-27-1.png)
 
 Note that you don’t necessarily need to use
 [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
@@ -593,7 +675,7 @@ brain_plot <- ggbrain() +
 render(brain_plot) + plot_annotation(title = "Overall")
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-26-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-28-1.png)
 
 ``` r
 # or you can also simply store the rendered plot into a separate object

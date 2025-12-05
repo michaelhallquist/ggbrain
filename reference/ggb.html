@@ -72,6 +72,14 @@ Generic R6 base class that is used to support + semantics"></head><body>
 <dd><p>list slices to extract for this plot</p></dd>
 
 
+<dt><code>ggb_cluster_slices</code></dt>
+<dd><p>a list of cluster_slices_spec objects for deferred slice computation</p></dd>
+
+
+<dt><code>ggb_cluster_data</code></dt>
+<dd><p>a list of data.frames containing cluster information from resolved cluster_slices</p></dd>
+
+
 <dt><code>ggb_contrasts</code></dt>
 <dd><p>a character vector of contrasts to be computed as part of this plot</p></dd>
 
@@ -111,6 +119,8 @@ Generic R6 base class that is used to support + semantics"></head><body>
 <ul><li><p><a href="#method-ggb-new"><code>ggb$new()</code></a></p></li>
 <li><p><a href="#method-ggb-add_layers"><code>ggb$add_layers()</code></a></p></li>
 <li><p><a href="#method-ggb-add_slices"><code>ggb$add_slices()</code></a></p></li>
+<li><p><a href="#method-ggb-add_cluster_slices"><code>ggb$add_cluster_slices()</code></a></p></li>
+<li><p><a href="#method-ggb-get_cluster_data"><code>ggb$get_cluster_data()</code></a></p></li>
 <li><p><a href="#method-ggb-add_contrasts"><code>ggb$add_contrasts()</code></a></p></li>
 <li><p><a href="#method-ggb-add_annotations"><code>ggb$add_annotations()</code></a></p></li>
 <li><p><a href="#method-ggb-add_image_labels"><code>ggb$add_image_labels()</code></a></p></li>
@@ -226,15 +236,52 @@ will get this list from obj$ggb_layers</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-ggb-add_contrasts"></a><div class="section">
-<h3 id="method-add-contrasts-">Method <code>add_contrasts()</code><a class="anchor" aria-label="anchor" href="#method-add-contrasts-"></a></h3>
-<p>add contrast definitions to the plot object</p><div class="section">
+</div><p></p><hr><a id="method-ggb-add_cluster_slices"></a><div class="section">
+<h3 id="method-add-cluster-slices-">Method <code>add_cluster_slices()</code><a class="anchor" aria-label="anchor" href="#method-add-cluster-slices-"></a></h3>
+<p>add a cluster_slices_spec for deferred slice computation</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_contrasts</span><span class="op">(</span><span class="va">contrasts</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_cluster_slices</span><span class="op">(</span>spec <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>spec</code></dt>
+<dd><p>a cluster_slices_spec object from cluster_slices()</p></dd>
+
+
+</dl><p></p></div>
+</div>
+
+</div><p></p><hr><a id="method-ggb-get_cluster_data"></a><div class="section">
+<h3 id="method-get-cluster-data-">Method <code>get_cluster_data()</code><a class="anchor" aria-label="anchor" href="#method-get-cluster-data-"></a></h3>
+<p>retrieve cluster data from resolved cluster_slices specifications</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">get_cluster_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
+<p>This method returns the cluster information computed during rendering.
+It must be called after plot() or render() has been invoked, otherwise it returns NULL.
+The returned data.frame contains columns: cluster_id, size (in voxels), com_i, com_j, com_k
+(center of mass in voxel coordinates), com_x, com_y, com_z (center of mass in world/mm coordinates),
+and slice_coord (the slice coordinate string used for plotting).</p>
+</div>
+
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>A data.frame with cluster information, or NULL if no cluster_slices were used or render() hasn't been called</p>
+</div>
+
+</div><p></p><hr><a id="method-ggb-add_contrasts"></a><div class="section">
+<h3 id="method-add-contrasts-">Method <code>add_contrasts()</code><a class="anchor" aria-label="anchor" href="#method-add-contrasts-"></a></h3>
+<p>add contrast definitions to the plot object</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_contrasts</span><span class="op">(</span><span class="va">contrasts</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>contrasts</code></dt>
 <dd><p>a character vector of contrasts to compute as part of the plot generation</p></dd>
 
@@ -245,12 +292,12 @@ will get this list from obj$ggb_layers</p></dd>
 </div><p></p><hr><a id="method-ggb-add_annotations"></a><div class="section">
 <h3 id="method-add-annotations-">Method <code>add_annotations()</code><a class="anchor" aria-label="anchor" href="#method-add-annotations-"></a></h3>
 <p>add annotations to panels</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_annotations</span><span class="op">(</span>annotations <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>annotations</code></dt>
 <dd><p>a list or data.frame containing the annotations to add to each panel. Minimally,
 the list or data.frame must contain <code>position</code> and <code>label</code> columns that define the position
@@ -264,12 +311,12 @@ in <code>annotations</code> and these will be passed through to annotate</p></dd
 </div><p></p><hr><a id="method-ggb-add_image_labels"></a><div class="section">
 <h3 id="method-add-image-labels-">Method <code>add_image_labels()</code><a class="anchor" aria-label="anchor" href="#method-add-image-labels-"></a></h3>
 <p>add labels to a given image</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_image_labels</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>a named list of arguments where each is a data.frame with labels denoting corresponding images</p></dd>
 
@@ -280,12 +327,12 @@ in <code>annotations</code> and these will be passed through to annotate</p></dd
 </div><p></p><hr><a id="method-ggb-add_region_labels"></a><div class="section">
 <h3 id="method-add-region-labels-">Method <code>add_region_labels()</code><a class="anchor" aria-label="anchor" href="#method-add-region-labels-"></a></h3>
 <p>add a list of ggbrain_label objects to the overall ggb for compiling a plot</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">add_region_labels</span><span class="op">(</span>labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>labels</code></dt>
 <dd><p>a list of data.frames with region labels that should be plotted on each slice. This is generated
 internally by ggbrain_images$get_slices() in the $slice_labels field.</p></dd>
@@ -299,12 +346,12 @@ internally by ggbrain_images$get_slices() in the $slice_labels field.</p></dd>
 <p>this method converts the ggb object into a compiled ggplot2 object that can then be passed to other
 functions from cowplot, ggplot2, and patchwork. Once the object is rendered, it no longer retains the underlying ggb
 fields that contain the elemental data.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">render</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>guides</code></dt>
 <dd><p>Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
 is "collect", which collects legends within a given nesting level (removes duplicates).</p></dd>
@@ -316,12 +363,12 @@ is "collect", which collects legends within a given nesting level (removes dupli
 </div><p></p><hr><a id="method-ggb-get_slice_data"></a><div class="section">
 <h3 id="method-get-slice-data-">Method <code>get_slice_data()</code><a class="anchor" aria-label="anchor" href="#method-get-slice-data-"></a></h3>
 <p>get the slice data from the rendered plot for inspection</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">get_slice_data</span><span class="op">(</span>image_name <span class="op">=</span> <span class="cn">NULL</span>, slice_index <span class="op">=</span> <span class="cn">NULL</span>, as_matrix <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>image_name</code></dt>
 <dd><p>optional character string specifying a single image to extract. If NULL, returns
 all images for each slice.</p></dd>
@@ -338,14 +385,14 @@ all images for each slice.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
+<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
 <p>If <code><a href="render.html">render()</a></code> has not been called yet, this method will call it automatically to
 populate the slice data. This is useful for verifying that resampling/interpolation occurred
 as expected when using <code><a href="target_resolution.html">target_resolution()</a></code>.</p>
 </div>
 
 <div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>A list of slice data. If <code>image_name</code> is specified, returns a list of data.frames (or matrices)
 for that image across slices. If <code>image_name</code> is NULL, returns a nested list where each element
 contains all images for that slice.</p>
@@ -354,12 +401,12 @@ contains all images for that slice.</p>
 </div><p></p><hr><a id="method-ggb-plot"></a><div class="section">
 <h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
 <p>plot this ggb object – just an alias for render</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>guides</code></dt>
 <dd><p>Passes through to patchwork::plot_layout to control how legends are combined across plots. The default
 is "collect", which collects legends within a given nesting level (removes duplicates).</p></dd>
@@ -368,7 +415,7 @@ is "collect", which collects legends within a given nesting level (removes dupli
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
+<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
 <p>requires that required elements are in place already.</p>
 </div>
 
@@ -376,12 +423,12 @@ is "collect", which collects legends within a given nesting level (removes dupli
 </div><p></p><hr><a id="method-ggb-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggb</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

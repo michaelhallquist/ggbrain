@@ -45,6 +45,8 @@ images().
 
 - [`ggbrain_images$add_images()`](#method-ggbrain_images-add_images)
 
+- [`ggbrain_images$add_array_as_image()`](#method-ggbrain_images-add_array_as_image)
+
 - [`ggbrain_images$filter_images()`](#method-ggbrain_images-filter_images)
 
 - [`ggbrain_images$dim()`](#method-ggbrain_images-dim)
@@ -187,6 +189,37 @@ add one or more images to this ggbrain_images object
   present, this must be a single number – perhaps in the future, it
   could be a vector so that many timepoints in a 4-D image could be
   displayed.
+
+------------------------------------------------------------------------
+
+### Method `add_array_as_image()`
+
+add an in-memory array as a new image
+
+#### Usage
+
+    ggbrain_images$add_array_as_image(arr, name, reference = NULL)
+
+#### Arguments
+
+- `arr`:
+
+  A 3D array to add as an image
+
+- `name`:
+
+  The name for this image
+
+- `reference`:
+
+  Optional reference NIfTI image for header information. If NULL, uses
+  the first existing image in the object as reference.
+
+#### Details
+
+This is useful for adding computed/derived images (like cluster masks)
+without writing to disk. The array dimensions must match existing
+images.
 
 ------------------------------------------------------------------------
 

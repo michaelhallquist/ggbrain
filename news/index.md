@@ -1,17 +1,28 @@
 # Changelog
 
-## ggbrain 0.9.2 (3Dec2025)
+## ggbrain 1.0 (3Dec2025)
 
+- feature: added
+  [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+  function that allows user to choose slices based on connected clusters
+  in a given image
+- feature: added
+  [`geom_brain_clusterized()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain_clusterized.md),
+  which allows users to display connected clusters instead of continuous
+  values
 - feature: added
   [`target_resolution()`](https://michaelhallquist.github.io/ggbrain/reference/target_resolution.md)
   function to resample slices to a different resolution for display.
   This allows users to upsample images to finer resolution (e.g., show
   2.5mm data at 1mm) or downsample for faster rendering and smaller file
-  sizes. Supports nearest, linear, cubic (default), and lanczos
+  sizes. Supports nearest neighbor, linear, cubic (default), and lanczos
   interpolation methods.
 - feature: added
   [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
   function to add anatomical orientation labels to plots
+- feature: Improve speed of `find_threads` by only decrementing neighbor
+  counts for pixels identified from the initial full scan.
+- feature: hardened tests of input images to check their voxel sizes
 - bugfix: avoid double calls to `refine_image()` when unifying
   categorical scales by releveling before data assignment
 - bugfix: ensure `fill_holes` uses mode for categorical/labeled data
@@ -27,9 +38,8 @@
   overflow due to recursion.
 - bugfix: Correct invalid 1-based indexing assumption in `nearest_pts`
   used for filling holes.
-- feature: Improve speed of `find_threads` by only decrementing neighbor
-  counts for pixels identified from the initial full scan.
-- feature: hardened tests of input images to check their voxel sizes
+- bugfix: Use bisided scale for all slices when `unify=TRUE` but only
+  some slices have positive and negative values
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling

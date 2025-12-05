@@ -89,6 +89,7 @@ This value is used to set small values in the images to exactly zero for proper 
 <li><p><a href="#method-ggbrain_images-add"><code>ggbrain_images$add()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-add_labels"><code>ggbrain_images$add_labels()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-add_images"><code>ggbrain_images$add_images()</code></a></p></li>
+<li><p><a href="#method-ggbrain_images-add_array_as_image"><code>ggbrain_images$add_array_as_image()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-filter_images"><code>ggbrain_images$filter_images()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-dim"><code>ggbrain_images$dim()</code></a></p></li>
 <li><p><a href="#method-ggbrain_images-get_image_names"><code>ggbrain_images$get_image_names()</code></a></p></li>
@@ -202,15 +203,46 @@ be displayed.</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-ggbrain_images-filter_images"></a><div class="section">
-<h3 id="method-filter-images-">Method <code>filter_images()</code><a class="anchor" aria-label="anchor" href="#method-filter-images-"></a></h3>
-<p>filters an image based on an expression such as a subsetting operation</p><div class="section">
+</div><p></p><hr><a id="method-ggbrain_images-add_array_as_image"></a><div class="section">
+<h3 id="method-add-array-as-image-">Method <code>add_array_as_image()</code><a class="anchor" aria-label="anchor" href="#method-add-array-as-image-"></a></h3>
+<p>add an in-memory array as a new image</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">filter_images</span><span class="op">(</span>filter <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">add_array_as_image</span><span class="op">(</span><span class="va">arr</span>, <span class="va">name</span>, reference <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>arr</code></dt>
+<dd><p>A 3D array to add as an image</p></dd>
+
+
+<dt><code>name</code></dt>
+<dd><p>The name for this image</p></dd>
+
+
+<dt><code>reference</code></dt>
+<dd><p>Optional reference NIfTI image for header information. If NULL, uses the first
+existing image in the object as reference.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
+<p>This is useful for adding computed/derived images (like cluster masks) without writing
+to disk. The array dimensions must match existing images.</p>
+</div>
+
+
+</div><p></p><hr><a id="method-ggbrain_images-filter_images"></a><div class="section">
+<h3 id="method-filter-images-">Method <code>filter_images()</code><a class="anchor" aria-label="anchor" href="#method-filter-images-"></a></h3>
+<p>filters an image based on an expression such as a subsetting operation</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">filter_images</span><span class="op">(</span>filter <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>filter</code></dt>
 <dd><p>a character string or numeric vector of the filter to apply</p></dd>
 
@@ -218,7 +250,7 @@ be displayed.</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
+<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
 <p>if expr is a numeric vector, only values in this set will be retained. If a character
 string expression is used, it should use the variable name <code>'value'</code> to refer to the numeric
 values to be filtered, such as <code>'value &gt; 10'</code>.</p>
@@ -228,7 +260,7 @@ values to be filtered, such as <code>'value &gt; 10'</code>.</p>
 </div><p></p><hr><a id="method-ggbrain_images-dim"></a><div class="section">
 <h3 id="method-dim-">Method <code><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim()</a></code><a class="anchor" aria-label="anchor" href="#method-dim-"></a></h3>
 <p>return the 3D dimensions of the images contained in this object</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">dim</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -236,7 +268,7 @@ values to be filtered, such as <code>'value &gt; 10'</code>.</p>
 </div><p></p><hr><a id="method-ggbrain_images-get_image_names"></a><div class="section">
 <h3 id="method-get-image-names-">Method <code>get_image_names()</code><a class="anchor" aria-label="anchor" href="#method-get-image-names-"></a></h3>
 <p>return the names of the images contained in this object</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_image_names</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -244,12 +276,12 @@ values to be filtered, such as <code>'value &gt; 10'</code>.</p>
 </div><p></p><hr><a id="method-ggbrain_images-get_images"></a><div class="section">
 <h3 id="method-get-images-">Method <code>get_images()</code><a class="anchor" aria-label="anchor" href="#method-get-images-"></a></h3>
 <p>return the RNifti objects of one or more images contained in this object</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_images</span><span class="op">(</span>img_names <span class="op">=</span> <span class="cn">NULL</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>img_names</code></dt>
 <dd><p>The names of images to return. Use <code>$get_image_names()</code> if you're uncertain
 about what is available.</p></dd>
@@ -266,12 +298,12 @@ containing that object.</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-get_headers"></a><div class="section">
 <h3 id="method-get-headers-">Method <code>get_headers()</code><a class="anchor" aria-label="anchor" href="#method-get-headers-"></a></h3>
 <p>return the NIfTI headers for one or more images contained in this object</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_headers</span><span class="op">(</span>img_names <span class="op">=</span> <span class="cn">NULL</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>img_names</code></dt>
 <dd><p>The names of images whose header are returned. Use <code>$get_image_names()</code> if you're uncertain
 about what is available.</p></dd>
@@ -288,12 +320,12 @@ containing that object.</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-remove_images"></a><div class="section">
 <h3 id="method-remove-images-">Method <code>remove_images()</code><a class="anchor" aria-label="anchor" href="#method-remove-images-"></a></h3>
 <p>method for removing one or more images from the ggbrain_images object</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">remove_images</span><span class="op">(</span><span class="va">img_names</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>img_names</code></dt>
 <dd><p>names of images to remove from object</p></dd>
 
@@ -304,12 +336,12 @@ containing that object.</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-winsorize_images"></a><div class="section">
 <h3 id="method-winsorize-images-">Method <code>winsorize_images()</code><a class="anchor" aria-label="anchor" href="#method-winsorize-images-"></a></h3>
 <p>winsorize the tails of a set of images to pull in extreme values</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">winsorize_images</span><span class="op">(</span><span class="va">img_names</span>, quantiles <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.999</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>img_names</code></dt>
 <dd><p>The names of images in the ggbrain_images object to be winsorized</p></dd>
 
@@ -324,12 +356,12 @@ containing that object.</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-na_images"></a><div class="section">
 <h3 id="method-na-images-">Method <code>na_images()</code><a class="anchor" aria-label="anchor" href="#method-na-images-"></a></h3>
 <p>method to set values less than <code>threshold</code> to NA</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">na_images</span><span class="op">(</span><span class="va">img_names</span>, threshold <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>img_names</code></dt>
 <dd><p>The names of images in the ggbrain_images object whose values should be set to NA</p></dd>
 
@@ -345,7 +377,7 @@ If <code>NULL</code>, use the pvt_zero_tol field (default 1e-6).</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-summary"></a><div class="section">
 <h3 id="method-summary-">Method <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code><a class="anchor" aria-label="anchor" href="#method-summary-"></a></h3>
 <p>print a summary of the ggbrain_images object</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">summary</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -353,12 +385,12 @@ If <code>NULL</code>, use the pvt_zero_tol field (default 1e-6).</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-get_nz_indices"></a><div class="section">
 <h3 id="method-get-nz-indices-">Method <code>get_nz_indices()</code><a class="anchor" aria-label="anchor" href="#method-get-nz-indices-"></a></h3>
 <p>return the indices of non-zero voxels</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_nz_indices</span><span class="op">(</span>img_names <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>img_names</code></dt>
 <dd><p>The names of images in the ggbrain_images object whose non-zero indices should be looked up</p></dd>
 
@@ -366,7 +398,7 @@ If <code>NULL</code>, use the pvt_zero_tol field (default 1e-6).</p></dd>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
+<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
 <p>Note that this function looks for non-zero voxels in any of the images specified by <code>img_names</code>.</p>
 </div>
 
@@ -375,12 +407,12 @@ If <code>NULL</code>, use the pvt_zero_tol field (default 1e-6).</p></dd>
 <h3 id="method-add-slices-">Method <code>add_slices()</code><a class="anchor" aria-label="anchor" href="#method-add-slices-"></a></h3>
 <p>adds one or more slices to the cached slices that will be retrieved by
 $get_slices() when no <code>slices</code> argument is passed.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">add_slices</span><span class="op">(</span>slices <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>slices</code></dt>
 <dd><p>a character vector containing one or more slices to be extracted by <code>$get_slices</code>.
 Uses the syntax <code>"&lt;xyz&gt;=&lt;number&gt;"</code>. Example: <code>c("x=10", "y=50%")</code></p></dd>
@@ -393,12 +425,12 @@ Uses the syntax <code>"&lt;xyz&gt;=&lt;number&gt;"</code>. Example: <code>c("x=1
 <h3 id="method-add-contrasts-">Method <code>add_contrasts()</code><a class="anchor" aria-label="anchor" href="#method-add-contrasts-"></a></h3>
 <p>adds one or more contrasts to the cached contrasts that will be retrieved by
 $get_slices() when no <code>contrasts</code> argument is passed.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">add_contrasts</span><span class="op">(</span>contrasts <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>contrasts</code></dt>
 <dd><p>a character vector containing one or more contrasts to be extracted by <code>$get_slices</code>.
 Uses the syntax <code>"&lt;img_name&gt;[subset_expression] + &lt;img_name&gt;"</code>.</p></dd>
@@ -410,7 +442,7 @@ Uses the syntax <code>"&lt;img_name&gt;[subset_expression] + &lt;img_name&gt;"</
 </div><p></p><hr><a id="method-ggbrain_images-reset_slices"></a><div class="section">
 <h3 id="method-reset-slices-">Method <code>reset_slices()</code><a class="anchor" aria-label="anchor" href="#method-reset-slices-"></a></h3>
 <p>remove all cached slice settings</p><div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">reset_slices</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -418,7 +450,7 @@ Uses the syntax <code>"&lt;img_name&gt;[subset_expression] + &lt;img_name&gt;"</
 </div><p></p><hr><a id="method-ggbrain_images-get_slices"></a><div class="section">
 <h3 id="method-get-slices-">Method <code>get_slices()</code><a class="anchor" aria-label="anchor" href="#method-get-slices-"></a></h3>
 <p>get slice data for one or more slices based on their coordinates</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_slices</span><span class="op">(</span></span>
 <span>  slices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  img_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -432,7 +464,7 @@ Uses the syntax <code>"&lt;img_name&gt;[subset_expression] + &lt;img_name&gt;"</
 </div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>slices</code></dt>
 <dd><p>a vector of slice positions</p></dd>
 
@@ -471,7 +503,7 @@ will be resampled to this resolution using the specified interpolation method.</
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
+<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
 <p>This function always returns a data.frame where each row represents a slice requested
 by the user. The $slice_data element is a list-column where each element is itself a list
 of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
@@ -483,7 +515,7 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 </div><p></p><hr><a id="method-ggbrain_images-get_slices_inplane"></a><div class="section">
 <h3 id="method-get-slices-inplane-">Method <code>get_slices_inplane()</code><a class="anchor" aria-label="anchor" href="#method-get-slices-inplane-"></a></h3>
 <p>get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_slices_inplane</span><span class="op">(</span></span>
 <span>  imgs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">slice_numbers</span>,</span>
@@ -493,7 +525,7 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 </div>
 
 <div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>imgs</code></dt>
 <dd><p>The names of images to slice</p></dd>
 
@@ -520,12 +552,12 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 </div><p></p><hr><a id="method-ggbrain_images-get_labels"></a><div class="section">
 <h3 id="method-get-labels-">Method <code>get_labels()</code><a class="anchor" aria-label="anchor" href="#method-get-labels-"></a></h3>
 <p>return a list of data.frames containing labels for a given image</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_labels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
+<h4 id="details-6">Details<a class="anchor" aria-label="anchor" href="#details-6"></a></h4>
 <p>the names of the list correspond directly with the names of the images</p>
 </div>
 
@@ -533,7 +565,7 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 </div><p></p><hr><a id="method-ggbrain_images-get_orientation_labels"></a><div class="section">
 <h3 id="method-get-orientation-labels-">Method <code>get_orientation_labels()</code><a class="anchor" aria-label="anchor" href="#method-get-orientation-labels-"></a></h3>
 <p>internal helper to determine anatomical orientation labels for the first image</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">get_orientation_labels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -546,12 +578,12 @@ is a list-column where each element is a list of 2-D matrices, one per layer/ima
 <h3 id="method-lookup-slices-">Method <code>lookup_slices()</code><a class="anchor" aria-label="anchor" href="#method-lookup-slices-"></a></h3>
 <p>internal function to lookup which slices to display along each axis based on their quantile,
 xyz coordinate, or ijk coordinate</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">lookup_slices</span><span class="op">(</span><span class="va">slices</span>, ignore_null_space <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>slices</code></dt>
 <dd><p>A character vector of coordinates for slices to display</p></dd>
 
@@ -567,12 +599,12 @@ use the quantiles of only the non-zero slices (ignoring blank sliaces)</p></dd>
 </div><p></p><hr><a id="method-ggbrain_images-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_images</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

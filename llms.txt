@@ -17,6 +17,10 @@ R package for creating plots of brains using ggplot.
 - [`annotate_slice()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_slice.md)
   : Adds custom annotations to a single panel on the ggbrain plot
 
+- [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+  : Find slice locations based on cluster centers of mass in a 3D brain
+  image
+
 - [`count_neighbors`](https://michaelhallquist.github.io/ggbrain/reference/count_neighbors.md)
   : This function counts the number of neighboring/touching pixels in a
   2D binary image
@@ -39,6 +43,9 @@ R package for creating plots of brains using ggplot.
 - [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
   : Adds a raster layer to the ggbrain plot, displaying pixels from the
   specified layer definition
+
+- [`geom_brain_clusterized()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain_clusterized.md)
+  : Clusterize a contrast/image and display clusters as categorical fill
 
 - [`geom_outline()`](https://michaelhallquist.github.io/ggbrain/reference/geom_outline.md)
   : Adds an outline layer to the ggbrain plot, displaying outlines from

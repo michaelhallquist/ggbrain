@@ -23,7 +23,9 @@ slices(
 - coordinates:
 
   a character vector specifying the x, y, or z coordinates of the slices
-  to be added.
+  to be added. Can also be a `cluster_slices_spec` object from
+  [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md),
+  which will compute slice locations based on cluster centers of mass.
 
 - title:
 
@@ -73,6 +75,11 @@ note that if you pass in multiple coordinates (as a vector), the
 added by this operation. Thus, if you want to customize specific slices
 or groups of slices, use multiple addition operations, as in
 `slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')`.
+
+You can also pass the result of
+[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+to automatically select slices based on cluster centers of mass in a
+thresholded image.
 
 ## Examples
 

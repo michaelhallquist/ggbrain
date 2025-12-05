@@ -69,7 +69,9 @@
 
 
 <dl><dt id="arg-coordinates">coordinates<a class="anchor" aria-label="anchor" href="#arg-coordinates"></a></dt>
-<dd><p>a character vector specifying the x, y, or z coordinates of the slices to be added.</p></dd>
+<dd><p>a character vector specifying the x, y, or z coordinates of the slices to be added.
+Can also be a <code>cluster_slices_spec</code> object from <code><a href="cluster_slices.html">cluster_slices()</a></code>, which will
+compute slice locations based on cluster centers of mass.</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
@@ -115,6 +117,8 @@ greater than zero, a border of this size and with color <code>border_color</code
     <p>note that if you pass in multiple coordinates (as a vector), the <code>title</code>, <code>bg_color</code>, and other attributes
 will be reused for all slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
 multiple addition operations, as in <code>slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')</code>.</p>
+<p>You can also pass the result of <code><a href="cluster_slices.html">cluster_slices()</a></code> to automatically select slices based on
+cluster centers of mass in a thresholded image.</p>
     </div>
 
     <div class="section level2">
