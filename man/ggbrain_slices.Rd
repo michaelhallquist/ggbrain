@@ -41,6 +41,7 @@ that slice and the list elements within are each a given image}
 \itemize{
 \item \href{#method-ggbrain_slices-new}{\code{ggbrain_slices$new()}}
 \item \href{#method-ggbrain_slices-get_orientation_labels}{\code{ggbrain_slices$get_orientation_labels()}}
+\item \href{#method-ggbrain_slices-ensure_label_columns}{\code{ggbrain_slices$ensure_label_columns()}}
 \item \href{#method-ggbrain_slices-compute_contrasts}{\code{ggbrain_slices$compute_contrasts()}}
 \item \href{#method-ggbrain_slices-as_tibble}{\code{ggbrain_slices$as_tibble()}}
 \item \href{#method-ggbrain_slices-get_ranges}{\code{ggbrain_slices$get_ranges()}}
@@ -78,6 +79,23 @@ return the orientation labels inherited from the source ggbrain_images object
 \if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$get_orientation_labels()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_slices-ensure_label_columns"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_slices-ensure_label_columns}{}}}
+\subsection{Method \code{ensure_label_columns()}}{
+Ensure requested label columns exist on slice data (used for inline factor labels)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_slices$ensure_label_columns(add_labels = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{add_labels}}{named list of label columns to add per layer}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_slices-compute_contrasts"></a>}}

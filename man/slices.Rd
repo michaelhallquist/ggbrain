@@ -17,7 +17,9 @@ slices(
 )
 }
 \arguments{
-\item{coordinates}{a character vector specifying the x, y, or z coordinates of the slices to be added.}
+\item{coordinates}{a character vector specifying the x, y, or z coordinates of the slices to be added.
+Can also be a \code{cluster_slices_spec} object from \code{cluster_slices()}, which will
+compute slice locations based on cluster centers of mass.}
 
 \item{title}{a title for the slice panels added to the ggplot object using \code{ggtitle()}}
 
@@ -47,6 +49,9 @@ Adds slices to the ggbrain plot, including additional panel aesthetics
 note that if you pass in multiple coordinates (as a vector), the \code{title}, \code{bg_color}, and other attributes
 will be reused for all slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
 multiple addition operations, as in \code{slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')}.
+
+You can also pass the result of \code{cluster_slices()} to automatically select slices based on
+cluster centers of mass in a thresholded image.
 }
 \examples{
   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")

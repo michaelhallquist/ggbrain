@@ -68,6 +68,8 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
 
 #' Adds slices to the ggbrain plot, including additional panel aesthetics
 #' @param coordinates a character vector specifying the x, y, or z coordinates of the slices to be added.
+#'   Can also be a \code{cluster_slices_spec} object from \code{cluster_slices()}, which will
+#'   compute slice locations based on cluster centers of mass.
 #' @param title a title for the slice panels added to the ggplot object using `ggtitle()`
 #' @param bg_color the color used for the background of the panels. Default: \code{'gray10'} (nearly black)
 #' @param text_color the color used for text displayed on the panels. Default: \code{'white'}.
@@ -81,6 +83,9 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
 #' @details note that if you pass in multiple coordinates (as a vector), the \code{title}, \code{bg_color}, and other attributes
 #'   will be reused for all slices added by this operation. Thus, if you want to customize specific slices or groups of slices, use
 #'   multiple addition operations, as in `slices(c('x=10', 'y=15'), bg_color='white') + slices(c('x=18', 'y=22'), bg_color='black')`.
+#'
+#'   You can also pass the result of \code{cluster_slices()} to automatically select slices based on
+#'   cluster centers of mass in a thresholded image.
 #' @return a `ggb` object with the relevant slices and an action of 'add_slices'
 #' @examples
 #'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
@@ -90,6 +95,15 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
 #' @export
 slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color = NULL, border_color = NULL,
                    border_size = NULL, xlab = NULL, ylab = NULL, theme_custom = NULL) {
+
+  # Handle cluster_slices_spec objects (deferred or resolved)
+  if (is_cluster_slices_spec(coordinates)) {
+    # Create a ggb object and manually add the cluster_slices_spec
+    ret <- ggb$new(action = "add_cluster_slices")
+    ret$ggb_cluster_slices <- list(coordinates)
+    return(ret)
+  }
+
   checkmate::assert_character(coordinates)
 
   # store as single-element list with named list inside -- title, bg_color, etc. are shared by each slice added
@@ -335,6 +349,79 @@ geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline
   l_obj <- do.call(ggbrain_layer_outline$new, arglist)
 
   ggb$new(layers = l_obj, action = "add_layers")
+}
+
+#' Clusterize a contrast/image and display clusters as categorical fill
+#'
+#' @param definition a character string of the contrast or image definition to cluster (e.g., `"overlay[overlay > 3]"`)
+#' @param name the name of this layer, used for referencing in layer and panel modifications
+#' @param nclusters maximum number of clusters to retain (largest by size). Default: 10
+#' @param min_clust_size minimum cluster size in voxels. Default: 1
+#' @param nn Neighborhood connectivity for defining clusters (1 = 6-connectivity, 2 = 18, 3 = 26). Default: 3
+#' @param fill_scale a ggplot2 discrete scale_fill_* object to use for mapping cluster ids. If NULL, an automatic palette is used.
+#' @param show_legend logical; whether to show the cluster legend. Default: TRUE
+#' @param blur_edge,fill_holes,remove_specks,trim_threads optional image refinements passed to `geom_brain()`
+#' @param cluster_info character vector indicating which fields to include in cluster labels for the legend.
+#'   Supported values: "number" (cluster index), "voxels" (voxel count), "size" (mm^3 volume). Order is respected.
+#' @details This helper clusters the given definition, adds the labeled cluster image to the plot, and draws it with a categorical fill.
+#'   It does not select slices; combine with `slices()` separately.
+#' @return a `ggb` object that adds the clusterized layer
+#' @export
+geom_brain_clusterized <- function(definition,
+  name = NULL,
+  nclusters = 10,
+  min_clust_size = 1,
+  nn = 3,
+  fill_scale = NULL,
+  show_legend = TRUE,
+  cluster_info = c("number", "voxels"),
+  blur_edge = NULL,
+  fill_holes = NULL,
+  remove_specks = NULL,
+  trim_threads = NULL) {
+
+  checkmate::assert_string(definition)
+  checkmate::assert_count(nclusters, positive = TRUE)
+  checkmate::assert_count(min_clust_size, positive = TRUE)
+  checkmate::assert_choice(nn, c(1L, 2L, 3L))
+  checkmate::assert_class(fill_scale, "Scale", null.ok = TRUE)
+  checkmate::assert_logical(show_legend, len = 1L)
+  checkmate::assert_subset(cluster_info, c("number", "voxels", "size"))
+
+  # Build a deferred cluster_slices_spec; we'll reuse compute_cluster_slices at render time
+  placeholder_def <- if (is.null(name)) "clusterized" else name
+
+  spec <- cluster_slices(
+    definition = definition,
+    nclusters = nclusters,
+    min_clust_size = min_clust_size,
+    nn = nn,
+    outline = FALSE
+  )
+
+  # Store the fill_scale to be applied later
+  spec$cluster_fill_scale <- fill_scale
+  spec$cluster_show_legend <- show_legend
+  spec$action <- "clusterized"
+  spec$cluster_layer_name <- placeholder_def
+  spec$cluster_label_fields <- cluster_info
+
+  layer_obj <- ggbrain_layer_brain$new(
+    name = placeholder_def,
+    definition = placeholder_def, # will be updated after adding cluster image
+    show_legend = show_legend,
+    blur_edge = blur_edge,
+    fill_holes = fill_holes,
+    remove_specks = remove_specks,
+    trim_threads = trim_threads,
+    mapping = ggplot2::aes(fill = value),
+    unify_scales = TRUE
+  )
+
+  obj <- ggb$new(action = "add_clusterized_layer")
+  obj$ggb_cluster_slices <- list(spec)
+  obj$ggb_layers <- list(layer_obj)
+  obj
 }
 
 #' Variant of geom_text used for plotting region labels on slices

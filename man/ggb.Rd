@@ -22,6 +22,10 @@ this object becomes a simple storage class that contains all relevant objects
 
 \item{\code{ggb_slices}}{list slices to extract for this plot}
 
+\item{\code{ggb_cluster_slices}}{a list of cluster_slices_spec objects for deferred slice computation}
+
+\item{\code{ggb_cluster_data}}{a list of data.frames containing cluster information from resolved cluster_slices}
+
 \item{\code{ggb_contrasts}}{a character vector of contrasts to be computed as part of this plot}
 
 \item{\code{ggb_layers}}{a list of ggbrain_layer objects containing the bottom-to-top layers to be plotted}
@@ -44,6 +48,8 @@ this object becomes a simple storage class that contains all relevant objects
 \item \href{#method-ggb-new}{\code{ggb$new()}}
 \item \href{#method-ggb-add_layers}{\code{ggb$add_layers()}}
 \item \href{#method-ggb-add_slices}{\code{ggb$add_slices()}}
+\item \href{#method-ggb-add_cluster_slices}{\code{ggb$add_cluster_slices()}}
+\item \href{#method-ggb-get_cluster_data}{\code{ggb$get_cluster_data()}}
 \item \href{#method-ggb-add_contrasts}{\code{ggb$add_contrasts()}}
 \item \href{#method-ggb-add_annotations}{\code{ggb$add_annotations()}}
 \item \href{#method-ggb-add_image_labels}{\code{ggb$add_image_labels()}}
@@ -140,6 +146,44 @@ add slices to the existing vector of slices
 \item{\code{slices}}{a character vector of slices to be appended to the existing slices}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-add_cluster_slices"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-add_cluster_slices}{}}}
+\subsection{Method \code{add_cluster_slices()}}{
+add a cluster_slices_spec for deferred slice computation
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$add_cluster_slices(spec = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{spec}}{a cluster_slices_spec object from cluster_slices()}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggb-get_cluster_data"></a>}}
+\if{latex}{\out{\hypertarget{method-ggb-get_cluster_data}{}}}
+\subsection{Method \code{get_cluster_data()}}{
+retrieve cluster data from resolved cluster_slices specifications
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggb$get_cluster_data()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+This method returns the cluster information computed during rendering.
+It must be called after plot() or render() has been invoked, otherwise it returns NULL.
+The returned data.frame contains columns: cluster_id, size (in voxels), com_i, com_j, com_k
+(center of mass in voxel coordinates), com_x, com_y, com_z (center of mass in world/mm coordinates),
+and slice_coord (the slice coordinate string used for plotting).
+}
+
+\subsection{Returns}{
+A data.frame with cluster information, or NULL if no cluster_slices were used or render() hasn't been called
 }
 }
 \if{html}{\out{<hr>}}

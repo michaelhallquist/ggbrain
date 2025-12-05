@@ -292,8 +292,32 @@ ggbrain_plot <- R6::R6Class(
       }
 
       # lookup ranges of each layer and unique values of labels
+      private$pvt_slices$ensure_label_columns(ll)
       img_ranges <- private$pvt_slices$get_ranges(slice_indices)
       img_uvals <- private$pvt_slices$get_uvals(slice_indices, add_labels = ll)
+
+      # When scales are unified and the overall data contain both positive and negative values,
+      # default to a bisided scale even if individual slices are one-sided.
+      if (nrow(img_ranges) > 0L) {
+        for (li in seq_along(layers)) {
+          l_obj <- layers[[li]]
+          if (isTRUE(l_obj$unify_scales) &&
+              !isTRUE(l_obj$categorical_fill) &&
+              is.null(l_obj$fill_scale)) {
+
+            rng <- img_ranges %>% dplyr::filter(layer == !!l_obj$source)
+            has_pos <- any(!is.na(rng$high_pos))
+            has_neg <- any(!is.na(rng$high_neg))
+
+            if (isTRUE(has_pos) && isTRUE(has_neg)) {
+              l_obj$fill_scale <- scale_fill_bisided(
+                neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
+                pos_scale = scale_fill_distiller(palette = "Reds")
+              )
+            }
+          }
+        }
+      }
       
       # generate a list of panel objects that combine layers and slice data
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
@@ -306,6 +330,26 @@ ggbrain_plot <- R6::R6Class(
           l_obj <- layers[[j]]$clone(deep = TRUE)
           layer_data <- comb_data[[j]]
 
+          # For outline layers, ensure cluster ids are treated as categorical
+          if (inherits(l_obj, "ggbrain_layer_outline")) {
+            if (!"outline_id" %in% names(layer_data) && "value" %in% names(layer_data)) {
+              layer_data$outline_id <- layer_data$value
+            }
+            if ("outline_id" %in% names(layer_data)) {
+              limits <- NULL
+              if (!is.null(l_obj$fill_scale)) {
+                limits <- l_obj$fill_scale$limits
+                if (inherits(limits, "waiver") || is.function(limits)) limits <- NULL
+              }
+              # keep levels stable across slices using any limits from the scale if present
+              if (!is.null(limits) && length(limits) > 0L) {
+                layer_data$outline_id <- factor(layer_data$outline_id, levels = limits)
+              } else {
+                layer_data$outline_id <- factor(layer_data$outline_id)
+              }
+            }
+          }
+
           # unify factor levels before assigning data so refine_image() only runs once per layer
           if (isTRUE(l_obj$unify_scales)) {
             f_col <- l_obj$fill_column
@@ -314,9 +358,22 @@ ggbrain_plot <- R6::R6Class(
                 inherits(layer_data[[f_col]], c("character", "factor", "ordered")))
 
             if (isTRUE(is_cat) && !is.null(f_col)) {
-              f_levels <- img_uvals %>%
-                dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
-                dplyr::pull(uvals)
+              if (nrow(img_uvals) > 0 && all(c("layer", ".label_col", "uvals") %in% names(img_uvals))) {
+                f_levels <- img_uvals %>%
+                  dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
+                  dplyr::pull(uvals)
+              } else {
+                f_levels <- character(0)
+              }
+
+              if (!f_col %in% names(layer_data)) {
+                if ("value" %in% names(layer_data)) {
+                  layer_data[[f_col]] <- layer_data$value
+                } else {
+                  # create empty factor of correct length to avoid length mismatch errors
+                  layer_data[[f_col]] <- rep(NA_character_, nrow(layer_data))
+                }
+              }
 
               # For now, don't attempt to unify ordered types since this will mangle the order.
               # This should work as expected because levels are preserved for labeled data.
@@ -334,28 +391,28 @@ ggbrain_plot <- R6::R6Class(
           if (isTRUE(l_obj$unify_scales)) {
             if (isTRUE(l_obj$categorical_fill)) {
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
-            } else {
-              if (isTRUE(l_obj$bisided)) {
-                pos_lims <- img_ranges %>%
-                  filter(layer == !!l_obj$source) %>%
-                  select(low_pos, high_pos) %>%
-                  unlist()
-                l_obj$set_pos_limits(pos_lims)
-
-                neg_lims <- img_ranges %>%
-                  filter(layer == !!l_obj$source) %>%
-                  select(low_neg, high_neg) %>%
-                  unlist()
-                l_obj$set_neg_limits(neg_lims)
               } else {
-                lims <- img_ranges %>%
-                  filter(layer == !!l_obj$source) %>%
-                  select(low, high) %>%
-                  unlist()
-                l_obj$set_limits(lims)
+                if (isTRUE(l_obj$bisided)) {
+                  pos_lims <- img_ranges %>%
+                    filter(layer == !!l_obj$source) %>%
+                    select(low_pos, high_pos) %>%
+                    unlist()
+                  if (length(pos_lims) == 2L) l_obj$set_pos_limits(pos_lims)
+
+                  neg_lims <- img_ranges %>%
+                    filter(layer == !!l_obj$source) %>%
+                    select(low_neg, high_neg) %>%
+                    unlist()
+                  if (length(neg_lims) == 2L) l_obj$set_neg_limits(neg_lims)
+                } else {
+                  lims <- img_ranges %>%
+                    filter(layer == !!l_obj$source) %>%
+                    select(low, high) %>%
+                    unlist()
+                  if (length(lims) == 2L) l_obj$set_limits(lims)
+                }
               }
             }
-          }
 
           return(l_obj)
         })

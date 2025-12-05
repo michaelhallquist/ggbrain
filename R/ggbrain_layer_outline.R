@@ -41,6 +41,16 @@ ggbrain_layer_outline <- R6::R6Class(
       df <- subset(df, !is.na(value))
       attr(df, "dim1") <- max_dim1
       attr(df, "dim2") <- max_dim2
+      # preserve the original cluster id in a dedicated column for coloring
+      df$outline_id <- df$value
+
+      # ensure grouping columns are unique and prefer outline_id over value for grouping
+      if (is.null(group_cols)) {
+        group_cols <- "outline_id"
+      } else {
+        group_cols <- unique(gsub("^value$", "outline_id", group_cols))
+        group_cols <- unique(c("outline_id", group_cols))
+      }
 
       if (nrow(df) == 0L) return(df) # skip out if no valid rows
 
@@ -102,13 +112,28 @@ ggbrain_layer_outline <- R6::R6Class(
           )
 
         # copy across factor levels for categorical data
-        if (isTRUE(by_roi)) ret <- ret %>% dplyr::bind_cols(df_keys[ii,,drop=FALSE])
+        if (isTRUE(by_roi)) {
+          key_df <- df_keys[ii, , drop = FALSE]
+
+          # If any remaining key columns collide with existing names, prefix them
+          dup_cols <- intersect(names(key_df), names(ret))
+          if (length(dup_cols) > 0L) {
+            names(key_df)[names(key_df) %in% dup_cols] <- paste0("group_", names(key_df)[names(key_df) %in% dup_cols])
+          }
+
+          ret <- ret %>% dplyr::bind_cols(key_df)
+        }
         
         zvals <- ret$value < 1e-6
-        ret[zvals, c("value", group_cols)] <- NA # set value==0 pixels to NA
+        ret[zvals, c("value", "outline_id")] <- NA # set alpha==0 pixels to NA (and drop cluster id there)
         
         return(ret)
       }))
+
+      # ensure cluster id used for coloring is a factor for discrete scales
+      if ("outline_id" %in% names(df_melt)) {
+        df_melt$outline_id <- factor(df_melt$outline_id)
+      }
 
       # handle alpha layering -- need to convert to an alpha mapping internally to get antialiasing to work
       if (!is.null(blur_sigma)) {

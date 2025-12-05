@@ -34,6 +34,7 @@ This value is used to set small values in the images to exactly zero for proper 
 \item \href{#method-ggbrain_images-add}{\code{ggbrain_images$add()}}
 \item \href{#method-ggbrain_images-add_labels}{\code{ggbrain_images$add_labels()}}
 \item \href{#method-ggbrain_images-add_images}{\code{ggbrain_images$add_images()}}
+\item \href{#method-ggbrain_images-add_array_as_image}{\code{ggbrain_images$add_array_as_image()}}
 \item \href{#method-ggbrain_images-filter_images}{\code{ggbrain_images$filter_images()}}
 \item \href{#method-ggbrain_images-dim}{\code{ggbrain_images$dim()}}
 \item \href{#method-ggbrain_images-get_image_names}{\code{ggbrain_images$get_image_names()}}
@@ -143,6 +144,33 @@ be displayed.}
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_images-add_array_as_image"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-add_array_as_image}{}}}
+\subsection{Method \code{add_array_as_image()}}{
+add an in-memory array as a new image
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_array_as_image(arr, name, reference = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{arr}}{A 3D array to add as an image}
+
+\item{\code{name}}{The name for this image}
+
+\item{\code{reference}}{Optional reference NIfTI image for header information. If NULL, uses the first
+existing image in the object as reference.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+This is useful for adding computed/derived images (like cluster masks) without writing
+to disk. The array dimensions must match existing images.
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-filter_images"></a>}}

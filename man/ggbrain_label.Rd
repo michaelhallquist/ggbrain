@@ -68,7 +68,7 @@ The dim1 and dim2 columns control where the labels will appear on the panel}
 
 \item{\code{label_column}}{the column in \code{data} that should be drawn as labels on the plot}
 
-\item{\code{min_px}}{the minimum number of pixels}
+\item{\code{min_px}}{the minimum number of pixels on a slice required to display label. Default: 1}
 
 \item{\code{...}}{All other arguments that will be passed directly to geom_text or geom_label such as hjust, size, and color}
 }

@@ -303,6 +303,46 @@ ggbrain_images <- R6::R6Class(
       return(self)
     },
 
+    #' @description add an in-memory array as a new image
+
+    #' @param arr A 3D array to add as an image
+    #' @param name The name for this image
+    #' @param reference Optional reference NIfTI image for header information. If NULL, uses the first
+    #'   existing image in the object as reference.
+    #' @details This is useful for adding computed/derived images (like cluster masks) without writing
+    #'   to disk. The array dimensions must match existing images.
+    add_array_as_image = function(arr, name, reference = NULL) {
+      checkmate::assert_array(arr)
+      checkmate::assert_string(name)
+      
+      # Check dimensions match
+      if (!is.null(private$pvt_dims)) {
+        if (!all(dim(arr) == private$pvt_dims)) {
+          stop(glue::glue(
+            "Array dimensions {paste(dim(arr), collapse='x')} do not match existing images {paste(private$pvt_dims, collapse='x')}"
+          ))
+        }
+      }
+      
+      # Get reference image for NIfTI header
+      if (is.null(reference)) {
+        if (length(private$pvt_imgs) == 0L) {
+          stop("No reference image available. Either add images first or provide a reference.")
+        }
+        reference <- private$pvt_imgs[[1L]]
+      }
+      
+      # Create NIfTI image from array with proper header
+      nii_img <- RNifti::asNifti(arr, reference = reference)
+      
+      # Add to images list
+      private$pvt_imgs[[name]] <- nii_img
+      private$pvt_img_names <- names(private$pvt_imgs)
+      private$pvt_img_volumes[[name]] <- 1L
+      
+      return(self)
+    },
+
     #' @description filters an image based on an expression such as a subsetting operation
     #' @param filter a character string or numeric vector of the filter to apply
     #' @details if expr is a numeric vector, only values in this set will be retained. If a character
@@ -996,11 +1036,15 @@ ggbrain_images <- R6::R6Class(
       }
 
       slice_df <- lapply(slices, get_slice_num) %>%
-        bind_rows() %>%
-        distinct() %>% # remove any dupes
+        bind_rows(.id = "input_index") %>%
+        mutate(
+          input_index = as.integer(input_index),
+          coord_input = slices[input_index]
+        ) %>%
+        distinct(plane, slice_number, .keep_all = TRUE) %>% # remove duplicate slice positions
         tibble::remove_rownames() %>% # unneeded labels
-        mutate(slice_index = seq_len(n()), coord_input = slices) %>%
-        select(slice_index, coord_input, coord_label, everything())
+        mutate(slice_index = seq_len(n())) %>%
+        select(slice_index, coord_input, coord_label, plane, slice_number)
 
       return(slice_df)
     }

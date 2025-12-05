@@ -170,6 +170,26 @@ ggbrain_slices <- R6::R6Class(
       private$pvt_orientation_labels
     },
 
+    #' @description Ensure requested label columns exist on slice data (used for inline factor labels)
+    #' @param add_labels named list of label columns to add per layer
+    ensure_label_columns = function(add_labels = NULL) {
+      if (is.null(add_labels)) return(invisible(NULL))
+      checkmate::assert_list(add_labels, names = "unique")
+      checkmate::assert_subset(names(add_labels), private$pvt_layer_names)
+      for (ii in seq_along(private$pvt_slice_data)) {
+        for (jj in seq_along(add_labels)) {
+          lname <- names(add_labels)[jj]
+          missing_cols <- setdiff(add_labels[[jj]], names(private$pvt_slice_data[[ii]][[lname]]))
+          if (length(missing_cols) > 0L && "value" %in% names(private$pvt_slice_data[[ii]][[lname]])) {
+            for (mc in missing_cols) {
+              private$pvt_slice_data[[ii]][[lname]][[mc]] <- private$pvt_slice_data[[ii]][[lname]]$value
+            }
+          }
+        }
+      }
+      return(invisible(NULL))
+    },
+
     #' @description computes contrasts of the sliced image data
     #' @param contrast_list a named list or character vector containing contrasts to be computed.
     #'   The names of the list form the contrast names, while the values should be character strings

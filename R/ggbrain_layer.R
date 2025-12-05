@@ -3,8 +3,8 @@
 #'   Note that this class is exported only for power users and rarely needs to be called directly
 #'     in typical use of the package. Instead, look at geom_brain() and geom_outline().
 #' @importFrom checkmate assert_data_frame assert_class assert_numeric assert_logical
-#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller .pt aes geom_raster guides
-#'   guide_colorbar
+#' @importFrom ggplot2 scale_fill_gradient scale_fill_distiller scale_fill_brewer
+#'   .pt aes geom_raster guides guide_colorbar
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom Matrix sparseMatrix
 #' @importFrom imager as.cimg as.pixset pixset split_connected
@@ -455,7 +455,7 @@ ggbrain_layer <- R6::R6Class(
         has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)
         all_na <- all(is.na(private$pvt_data$value))
         if (isTRUE(private$pvt_categorical_fill)) {
-          self$fill_scale <- scale_fill_brewer(palette = "Set3")
+          self$fill_scale <- ggplot2::scale_fill_brewer(palette = "Set3")
         } else if (has_pos && has_neg) {
           #self$fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
           self$fill_scale <- scale_fill_bisided(
