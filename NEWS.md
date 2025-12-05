@@ -16,6 +16,7 @@
 * bugfix: switched `flood_fill` to stack-based approach to avoid overflow due to recursion.
 * bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
 * bugfix: Use bisided scale for all slices when `unify=TRUE` but only some slices have positive and negative values
+* bugfix: Use geom_tile() for outlines to avoid spurious warnings about uneven spacing
 * tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
 
 # ggbrain 0.9.1 (22Aug2025)

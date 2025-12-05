@@ -44,12 +44,14 @@ ggbrain_layer_outline <- R6::R6Class(
       # preserve the original cluster id in a dedicated column for coloring
       df$outline_id <- df$value
 
-      # ensure grouping columns are unique and prefer outline_id over value for grouping
-      if (is.null(group_cols)) {
-        group_cols <- "outline_id"
-      } else {
+      # only force grouping when the user has supplied a grouping mapping (e.g., outline or group)
+      # otherwise, treat the entire mask as one object so continuous outlines don't degenerate into per-voxel groups
+      use_grouping <- !is.null(group_cols) && length(group_cols) > 0L
+      if (isTRUE(use_grouping)) {
         group_cols <- unique(gsub("^value$", "outline_id", group_cols))
         group_cols <- unique(c("outline_id", group_cols))
+      } else {
+        group_cols <- NULL
       }
 
       if (nrow(df) == 0L) return(df) # skip out if no valid rows

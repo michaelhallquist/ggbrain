@@ -206,6 +206,8 @@ ggbrain_layer <- R6::R6Class(
         return(gg)
       } # no change
 
+      use_tile <- inherits(self, "ggbrain_layer_outline") # outlines use geom_tile to avoid sparse-raster warnings
+
       # When alpha is < 1, na.value="transparent" doesn't work as expected. Need to use na.omit()
       if (!is.null(private$pvt_alpha_column) || (!is.null(private$pvt_alpha) && private$pvt_alpha < 1)) {
         df <- df %>% dplyr::filter(!is.na(!!rlang::sym(value_col)))
@@ -251,9 +253,15 @@ ggbrain_layer <- R6::R6Class(
       
       raster_args$na.rm <- TRUE # suppress warnings about missing data
 
-      robj <- do.call(geom_raster, raster_args)
-      # robj <- do.call(geom_tile, raster_args) # for comparison re: warnings about uneven intervals
+      # switch to geom_tile for outline layers -- it's about 20% slower but gets rid of spurious warnings
+      geom_fun <- if (use_tile) ggplot2::geom_tile else ggplot2::geom_raster
+      # geom_fun <- ggplot2::geom_raster
       
+      if (use_tile && !is.null(raster_args$interpolate)) {
+        raster_args$interpolate <- NULL # geom_tile has no interpolate argument
+      }
+      robj <- do.call(geom_fun, raster_args)
+
       gg <- gg + robj + fill_scale
       
       # cleanup psychotic collision of 2 bugs: show.legend = TRUE is needed to show all levels of a factor
