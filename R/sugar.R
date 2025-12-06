@@ -6,12 +6,13 @@
 #' @param slices a set of slices to be added to the plot
 #' @param title the overall title to be added to the plot
 #' @param bg_color The background color of the overall plot
-#' @param text_color The default text color of the overall plot (passes through to panels)
+#' @param text_color The default text color of the overall plot (passes through to panels). If NULL,
+#'   a high-contrast color is chosen based on \code{bg_color}.
 #' @param base_size The base size of fonts used in the plot (cf. `theme_minimal`)
 #' @return a `ggb` object containing basic information for a `ggbrain` plot such as background color,
 #'   text color, and font size
 #' @export
-ggbrain <- function(images = NULL, slices = NULL, title = NULL, bg_color="grey8", text_color="grey92", base_size = 14) {
+ggbrain <- function(images = NULL, slices = NULL, title = NULL, bg_color="grey8", text_color=NULL, base_size = 14) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
   } else {
@@ -72,7 +73,8 @@ images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) 
 #'   compute slice locations based on cluster centers of mass.
 #' @param title a title for the slice panels added to the ggplot object using `ggtitle()`
 #' @param bg_color the color used for the background of the panels. Default: \code{'gray10'} (nearly black)
-#' @param text_color the color used for text displayed on the panels. Default: \code{'white'}.
+#' @param text_color the color used for text displayed on the panels. If NULL (default), the plot's
+#'   text color is used; when the plot text color is automatic, it is chosen for contrast against the panel background.
 #' @param border_color the color used for drawing a border around on the panels. Default: \code{'gray50'}
 #'   (though borders are not drawn by default).
 #' @param border_size the size of the border line drawn around the panels. Default: NULL. If this value is

@@ -104,7 +104,7 @@ unintended modify-in-place behaviors of R6 classes.
 
 \item{\code{bg_color}}{the background color of the overall plot}
 
-\item{\code{text_color}}{the text color of the overall plot}
+\item{\code{text_color}}{the text color of the overall plot; if NULL, a contrasting color is chosen from the background}
 
 \item{\code{base_size}}{the base size of text on the plot}
 

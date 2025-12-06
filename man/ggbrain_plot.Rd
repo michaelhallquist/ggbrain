@@ -73,7 +73,7 @@ instantiate a new instance of a ggbrain_plot object
 
 \item{\code{bg_color}}{background color of plot}
 
-\item{\code{text_color}}{text color of plot}
+\item{\code{text_color}}{text color of plot. If NULL, a contrasting color is chosen from the background.}
 
 \item{\code{base_size}}{base size of text used in ggplot theming}
 

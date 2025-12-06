@@ -55,7 +55,7 @@ ggb <- R6::R6Class(
     #' @param region_labels a list of ggbrain_label objects with text-based labels to be drawn on the plot
     #' @param title overall title of the plot
     #' @param bg_color the background color of the overall plot
-    #' @param text_color the text color of the overall plot
+    #' @param text_color the text color of the overall plot; if NULL, a contrasting color is chosen from the background
     #' @param base_size the base size of text on the plot
     #' @param action the action to be taken when adding this object to an existing ggb
     initialize=function(images=NULL, slices=NULL, contrasts = NULL, layers = NULL, labels = NULL, annotations=NULL, region_labels = NULL,

@@ -11,8 +11,6 @@ permissions: read-all
 
 jobs:
   R-CMD-check:
-    # Temporarily skip R-devel builds while Rcpp is broken on R-devel.
-    if: ${{ matrix.config.r != 'devel' }}
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
@@ -23,7 +21,7 @@ jobs:
         config:
           - {os: macos-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
+    #     - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
 

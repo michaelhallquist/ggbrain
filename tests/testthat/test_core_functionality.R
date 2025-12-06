@@ -66,6 +66,92 @@ test_that("annotate_orientation adds labels when orientation is available", {
   expect_true(any(ann_layers))
 })
 
+test_that("default text color contrasts with panel background", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+  
+  ggb_obj <- ggbrain(bg_color = "gray90") +
+    images(c(underlay = underlay)) +
+    slices("z=0") +
+    geom_brain("underlay", show_legend = FALSE) +
+    annotate_orientation(offset = 10, size = 6)
+  
+  ggb_obj$render()
+  
+  panels <- ggb_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels
+  ann_list <- panels[[1]]$.__enclos_env__$private$pvt_annotations
+  colors <- unique(unname(unlist(lapply(ann_list, function(df) df$color))))
+  
+  expect_true(length(colors) > 0)
+  expect_identical(colors, ggbrain:::infer_text_color_from_bg("gray90"))
+  
+  # try light text on dark background
+  
+  ggb_obj <- ggbrain(bg_color = "gray10") +
+    images(c(underlay = underlay)) +
+    slices("z=0") +
+    geom_brain("underlay", show_legend = FALSE) +
+    annotate_orientation(offset = 10, size = 6)
+  
+  ggb_obj$render()
+  
+  panels <- ggb_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels
+  ann_list <- panels[[1]]$.__enclos_env__$private$pvt_annotations
+  colors <- unique(unname(unlist(lapply(ann_list, function(df) df$color))))
+  
+  expect_true(length(colors) > 0)
+  expect_identical(colors, ggbrain:::infer_text_color_from_bg("gray10"))
+  
+})
+
+test_that("annotate_orientation can limit which labels are shown", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+
+  ggb_obj <- ggbrain(bg_color = "gray90") +
+    images(c(underlay = underlay)) +
+    slices("z=0") +
+    geom_brain("underlay", show_legend = FALSE) +
+    annotate_orientation(show = c("L", "A"))
+
+  ggb_obj$render()
+
+  panels <- ggb_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels
+  ann_list <- panels[[1]]$.__enclos_env__$private$pvt_annotations
+  labels <- unique(unname(unlist(lapply(ann_list, function(df) df$label))))
+
+  expect_setequal(labels, c("L", "A"))
+})
+
+test_that("orientation offsets can extend outside panel bounds", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+
+  ggb_obj <- ggbrain(bg_color = "gray90") +
+    images(c(underlay = underlay)) +
+    slices("z=0") +
+    geom_brain("underlay", show_legend = FALSE) +
+    annotate_orientation(offset = 5)
+
+  expect_silent(ggb_obj$render())
+})
+
+test_that("orientation offsets accept percentages", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+
+  ggb_obj <- ggbrain(bg_color = "gray90") +
+    images(c(underlay = underlay)) +
+    slices("z=0") +
+    geom_brain("underlay", show_legend = FALSE) +
+    annotate_orientation(offset = "10%")
+
+  ggb_obj$render()
+
+  panels <- ggb_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels
+  ann <- panels[[1]]$.__enclos_env__$private$pvt_annotations[[1]]
+  x_range <- range(panels[[1]]$get_data()[[1]]$dim1)
+  width <- diff(x_range)
+  expected_left <- x_range[1] - 0.1 * width
+  expect_true(any(abs(ann$x - expected_left) < 1e-6))
+})
+
 test_that("unified scales default to bisided when any slice has mixed signs", {
   # synthetic 3-slice overlay with mixed signs only in some slices
   arr_underlay <- array(1, dim = c(5, 5, 3)) # avoid all-NA underlay after zero trimming

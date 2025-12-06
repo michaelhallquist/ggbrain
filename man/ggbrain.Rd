@@ -9,7 +9,7 @@ ggbrain(
   slices = NULL,
   title = NULL,
   bg_color = "grey8",
-  text_color = "grey92",
+  text_color = NULL,
   base_size = 14
 )
 }
@@ -23,7 +23,8 @@ images should be included in this plot}
 
 \item{bg_color}{The background color of the overall plot}
 
-\item{text_color}{The default text color of the overall plot (passes through to panels)}
+\item{text_color}{The default text color of the overall plot (passes through to panels). If NULL,
+a high-contrast color is chosen based on \code{bg_color}.}
 
 \item{base_size}{The base size of fonts used in the plot (cf. \code{theme_minimal})}
 }

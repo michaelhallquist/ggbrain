@@ -20,7 +20,7 @@ ggbrain_panel <- R6::R6Class(
     pvt_addl = list(), # any custom additional objects to add, as a list
     pvt_base_size = 14, # font size
     pvt_bg_color = "gray10", # nearly black
-    pvt_text_color = "white",
+    pvt_text_color = NULL,
     pvt_border_color = "gray60", # default panel border color, if requested
     pvt_border_size = NULL, # no border
     pvt_xlab = NULL,
@@ -123,8 +123,12 @@ ggbrain_panel <- R6::R6Class(
       }
 
       # helper subfunction to map user-friendly positions (e.g., 'left') to x or y coordinates (dim1, dim2)
-      map_pos <- function(aes_name, vec) {
-        sapply(vec, function(pos) {
+      map_pos <- function(aes_name, vec, allow_oob = FALSE) {
+        allow_oob <- rep_len(allow_oob, length(vec))
+        sapply(seq_along(vec), function(i) {
+          pos <- vec[[i]]
+          oob_ok <- allow_oob[[i]]
+
           if (pos == "left") {
             stopifnot(grepl("^x", aes_name))
             pos <- quantile(df$dim1, 0, na.rm = TRUE)
@@ -155,13 +159,15 @@ ggbrain_panel <- R6::R6Class(
               pos <- quant(df$dim2, qnum, na.rm = TRUE)
             }
           } else if (is.numeric(pos)) {
-            if (grepl("^x", aes_name)) {
-              if (!checkmate::test_number(pos, lower = min(df$dim1, na.rm=TRUE), upper=max(df$dim1, na.rm=TRUE))) {
-                stop("If using a number, x coordinate must be between: ", min(df$dim1, na.rm = TRUE), " and ", max(df$dim1, na.rm = TRUE))
-              }
-            } else {
-              if (!checkmate::test_number(pos, lower = min(df$dim2, na.rm=TRUE), upper=max(df$dim2, na.rm=TRUE))) {
-                stop("If using a number, y coordinate must be between: ", min(df$dim2, na.rm = TRUE), " and ", max(df$dim2, na.rm = TRUE))
+            if (!isTRUE(oob_ok)) {
+              if (grepl("^x", aes_name)) {
+                if (!checkmate::test_number(pos, lower = min(df$dim1, na.rm=TRUE), upper=max(df$dim1, na.rm=TRUE))) {
+                  stop("If using a number, x coordinate must be between: ", min(df$dim1, na.rm = TRUE), " and ", max(df$dim1, na.rm = TRUE))
+                }
+              } else {
+                if (!checkmate::test_number(pos, lower = min(df$dim2, na.rm=TRUE), upper=max(df$dim2, na.rm=TRUE))) {
+                  stop("If using a number, y coordinate must be between: ", min(df$dim2, na.rm = TRUE), " and ", max(df$dim2, na.rm = TRUE))
+                }
               }
             }
           } else {
@@ -179,8 +185,12 @@ ggbrain_panel <- R6::R6Class(
       gg_ann_list <- do.call(c, lapply(private$pvt_annotations, function(ann_df) {
         # touch up aes mapping columns
         aes_cols <- grep("^(x|y)", names(ann_df), value = TRUE)
+        allow_oob <- if ("allow_oob" %in% names(ann_df)) ann_df$allow_oob else FALSE
         for (aa in aes_cols) {
-          ann_df[[aa]] <- map_pos(aa, ann_df[[aa]])
+          ann_df[[aa]] <- map_pos(aa, ann_df[[aa]], allow_oob)
+        }
+        if ("allow_oob" %in% names(ann_df)) {
+          ann_df$allow_oob <- NULL
         }
 
         lapply(seq_len(nrow(ann_df)), function(i) {
@@ -203,7 +213,8 @@ ggbrain_panel <- R6::R6Class(
     #' @param layers a list of ggbrain_layer objects to form the panel
     #' @param title a title for the panel added to the ggplot object using ggtitle()
     #' @param bg_color the color used for the background of the plot. Default: 'gray10' (nearly black)
-    #' @param text_color the color used for text displayed on the plot. Default: 'white'.
+    #' @param text_color the color used for text displayed on the plot. If NULL (default), a contrasting
+    #'   color is chosen based on the panel background.
     #' @param border_color the color used for drawing a border around on the plot. Default: 'gray50'
     #'   (though borders are not drawn by default).
     #' @param border_size the size of the border line drawn around the panel. Default: NULL. If this value is
@@ -273,6 +284,10 @@ ggbrain_panel <- R6::R6Class(
       if (!is.null(theme_custom)) {
         checkmate::assert_class(theme_custom, "theme")
         private$pvt_theme_custom <- theme_custom
+      }
+
+      if (is.null(private$pvt_text_color)) {
+        private$pvt_text_color <- infer_text_color_from_bg(private$pvt_bg_color)
       }
 
       if (!is.null(annotations)) {

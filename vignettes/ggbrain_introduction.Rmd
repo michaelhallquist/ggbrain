@@ -190,7 +190,7 @@ gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10
 
 When you have a statistical overlay, `cluster_slices()` can pick informative slice locations based on the centers of mass of the largest 3D clusters. Use `cluster_slices()` within `slices()` in place of manual coordinates:
 
-```{r}
+```{r fig.width=7.2, fig.height=5.4}
 t1      <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
@@ -210,6 +210,8 @@ gg <- ggbrain() +
   )) +
   geom_brain("underlay") +
   geom_brain(definition = "overlay[abs(overlay) > 3]", name = "Activation")
+
+plot(gg)
 ```
 
 Key points:

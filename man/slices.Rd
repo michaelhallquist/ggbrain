@@ -25,7 +25,8 @@ compute slice locations based on cluster centers of mass.}
 
 \item{bg_color}{the color used for the background of the panels. Default: \code{'gray10'} (nearly black)}
 
-\item{text_color}{the color used for text displayed on the panels. Default: \code{'white'}.}
+\item{text_color}{the color used for text displayed on the panels. If NULL (default), the plot's
+text color is used; when the plot text color is automatic, it is chosen for contrast against the panel background.}
 
 \item{border_color}{the color used for drawing a border around on the panels. Default: \code{'gray50'}
 (though borders are not drawn by default).}

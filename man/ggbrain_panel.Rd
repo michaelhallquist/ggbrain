@@ -68,7 +68,8 @@ create a new ggbrain_panel object
 
 \item{\code{bg_color}}{the color used for the background of the plot. Default: 'gray10' (nearly black)}
 
-\item{\code{text_color}}{the color used for text displayed on the plot. Default: 'white'.}
+\item{\code{text_color}}{the color used for text displayed on the plot. If NULL (default), a contrasting
+color is chosen based on the panel background.}
 
 \item{\code{border_color}}{the color used for drawing a border around on the plot. Default: 'gray50'
 (though borders are not drawn by default).}

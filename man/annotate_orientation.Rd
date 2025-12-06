@@ -4,14 +4,19 @@
 \alias{annotate_orientation}
 \title{Annotate orientation labels (L/R/A/P/S/I) on each panel using NIfTI header info}
 \usage{
-annotate_orientation(size = 3, color = "white", offset = 0, ...)
+annotate_orientation(size = 3, color = NULL, offset = 0, show = "all", ...)
 }
 \arguments{
 \item{size}{Text size passed to ggplot2::annotate}
 
-\item{color}{Text color passed to ggplot2::annotate}
+\item{color}{Text color passed to ggplot2::annotate. If NULL, defaults to the panel text color.}
 
-\item{offset}{Offset (in data units) to nudge labels away from the image edge. Can be scalar or length 4 (left, right, bottom, top)}
+\item{offset}{Offset to nudge labels away from the image edge. Can be scalar or length 4 (left, right, bottom, top).
+Numeric values are in data units; percentage strings (e.g., "10\%") are interpreted relative to the panel width (left/right)
+or height (bottom/top).}
+
+\item{show}{Character vector of labels to display. Valid values are any of \code{c("A","P","I","S","L","R")}
+or \code{"All"} (default) to show all labels.}
 
 \item{...}{Additional arguments passed to ggplot2::annotate (e.g., fontface)}
 }
