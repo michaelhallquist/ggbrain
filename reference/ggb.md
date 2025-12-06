@@ -158,7 +158,8 @@ unintended modify-in-place behaviors of R6 classes.
 
 - `text_color`:
 
-  the text color of the overall plot
+  the text color of the overall plot; if NULL, a contrasting color is
+  chosen from the background
 
 - `base_size`:
 

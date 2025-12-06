@@ -23,6 +23,8 @@
 - feature: Improve speed of `find_threads` by only decrementing neighbor
   counts for pixels identified from the initial full scan.
 - feature: hardened tests of input images to check their voxel sizes
+- feature: Text colors on plots default to a color that contrasts with
+  the background (allowing dark-on-light or light-on-dark plots)
 - bugfix: avoid double calls to `refine_image()` when unifying
   categorical scales by releveling before data assignment
 - bugfix: ensure `fill_holes` uses mode for categorical/labeled data
@@ -40,8 +42,8 @@
   used for filling holes.
 - bugfix: Use bisided scale for all slices when `unify=TRUE` but only
   some slices have positive and negative values
-- bugfix: Use geom_tile() for outlines to avoid spurious warnings about
-  uneven spacing
+- bugfix: Use square data for outlines to avoid warnings about
+  misalignment
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling

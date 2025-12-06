@@ -86,7 +86,8 @@ create a new ggbrain_panel object
 
 - `text_color`:
 
-  the color used for text displayed on the plot. Default: 'white'.
+  the color used for text displayed on the plot. If NULL (default), a
+  contrasting color is chosen based on the panel background.
 
 - `border_color`:
 

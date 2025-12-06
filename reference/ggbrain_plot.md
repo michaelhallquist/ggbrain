@@ -103,7 +103,8 @@ instantiate a new instance of a ggbrain_plot object
 
 - `text_color`:
 
-  text color of plot
+  text color of plot. If NULL, a contrasting color is chosen from the
+  background.
 
 - `base_size`:
 

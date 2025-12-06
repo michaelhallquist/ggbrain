@@ -10,7 +10,7 @@ ggbrain(
   slices = NULL,
   title = NULL,
   bg_color = "grey8",
-  text_color = "grey92",
+  text_color = NULL,
   base_size = 14
 )
 ```
@@ -36,7 +36,8 @@ ggbrain(
 
 - text_color:
 
-  The default text color of the overall plot (passes through to panels)
+  The default text color of the overall plot (passes through to panels).
+  If NULL, a high-contrast color is chosen based on `bg_color`.
 
 - base_size:
 

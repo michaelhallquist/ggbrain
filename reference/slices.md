@@ -39,7 +39,9 @@ slices(
 
 - text_color:
 
-  the color used for text displayed on the panels. Default: `'white'`.
+  the color used for text displayed on the panels. If NULL (default),
+  the plot's text color is used; when the plot text color is automatic,
+  it is chosen for contrast against the panel background.
 
 - border_color:
 
