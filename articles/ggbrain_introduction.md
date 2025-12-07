@@ -282,13 +282,6 @@ gg <- ggbrain() +
 plot(gg)
 ```
 
-    ## Warning: Raster pixels are placed at uneven horizontal intervals and will be shifted
-    ## ℹ Consider using `geom_tile()` instead.
-    ## Raster pixels are placed at uneven horizontal intervals and will be shifted
-    ## ℹ Consider using `geom_tile()` instead.
-    ## Raster pixels are placed at uneven horizontal intervals and will be shifted
-    ## ℹ Consider using `geom_tile()` instead.
-
 ![](ggbrain_introduction_files/figure-html/unnamed-chunk-14-1.png)
 
 Key points:
