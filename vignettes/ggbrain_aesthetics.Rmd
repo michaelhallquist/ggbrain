@@ -348,6 +348,28 @@ gg_orient <- ggbrain(bg_color = "gray90", text_color = "black") +
 plot(gg_orient)
 ```
 
+## Crosshair annotations
+
+Use `annotate_crosshairs()` to drop crosshairs at specific world (xyz) coordinates. If the
+coordinate along the slicing axis is `NA`, the crosshair is shown on every slice for which
+the remaining axes match (within the nearest in-plane voxel). The `tol` argument (in mm)
+controls how closely a coordinate must match a slice along the slicing axis (default: 1 mm).
+
+```{r crosshair_annotations, fig.width=8, fig.height=4}
+gg_cross <- ggbrain(bg_color = "gray90", text_color = "black") +
+  images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
+  slices(c("z = 20", "z = 40")) +
+  geom_brain(definition = "underlay") +
+  geom_brain(
+    definition = "overlay",
+    fill_scale = scale_fill_bisided(),
+    remove_specks = 15
+  ) +
+  annotate_crosshairs(data.frame(x = 0, y = 0, z = NA), color = "white", linewidth = 0.6)
+
+plot(gg_cross)
+```
+
 # Creating reusable plot components
 
 When creating multiple related plots, it's efficient to define common components that can be reused. This is similar to creating a 'theme' for your brain plots:

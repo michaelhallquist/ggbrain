@@ -6,7 +6,213 @@
 #' @keywords internal
 ggb <- R6::R6Class(
   "ggb",
-  private=list(),
+  private=list(
+    # Resolve any deferred cluster_slices specifications before slicing
+    resolve_cluster_specs = function(img) {
+      outline_imgs <- character(0) # track any auto-generated outline images to refresh slices later
+
+      if (is.null(self$ggb_cluster_slices) || length(self$ggb_cluster_slices) == 0L) {
+        return(list(img = img, outline_imgs = outline_imgs))
+      }
+
+      for (spec in self$ggb_cluster_slices) {
+        cluster_result <- resolve_cluster_slices(spec, img, self$ggb_layers)
+        if (length(cluster_result$coordinates) > 0 && !identical(spec$action, "clusterized")) {
+          # Convert to the list format expected by ggb_slices
+          cluster_slice_list <- lapply(cluster_result$coordinates, function(coord) list(coordinate = coord))
+          self$ggb_slices <- c(self$ggb_slices, cluster_slice_list)
+        }
+        # Annotate cluster provenance and store for later retrieval
+        cluster_df <- cluster_result$cluster_data
+        cluster_df$type <- if (identical(spec$action, "clusterized")) "display" else "slicing"
+        cluster_df$cluster_source <- if (!is.null(spec$layer)) spec$layer else spec$definition
+        cluster_df$cluster_layer <- if (!is.null(spec$cluster_layer_name)) spec$cluster_layer_name else NA_character_
+        self$ggb_cluster_data <- c(self$ggb_cluster_data, list(cluster_df))
+
+        # If this spec is for a clusterized fill layer, add the labeled volume and wire fill scale
+        if (identical(spec$action, "clusterized") && !is.null(cluster_result$labeled_volume)) {
+          cluster_img_name <- spec$cluster_layer_name %||% "clusterized"
+          existing_imgs <- img$get_image_names()
+          counter <- 1L
+          while (cluster_img_name %in% existing_imgs) {
+            counter <- counter + 1L
+            cluster_img_name <- paste0("clusterized_", counter)
+          }
+
+          img$add_array_as_image(cluster_result$labeled_volume, name = cluster_img_name)
+
+          # Update the placeholder layer to point to the new cluster image and scale
+          if (!is.null(self$ggb_layers) && length(self$ggb_layers) > 0L) {
+            cl_idx <- which(vapply(self$ggb_layers, function(ll) identical(ll$name, spec$cluster_layer_name), logical(1)))
+            if (length(cl_idx) == 0L) cl_idx <- length(self$ggb_layers) # fallback
+            cl_idx <- cl_idx[[1L]]
+            self$ggb_layers[[cl_idx]]$name <- cluster_img_name
+            self$ggb_layers[[cl_idx]]$definition <- cluster_img_name
+            self$ggb_layers[[cl_idx]]$source <- cluster_img_name
+
+            # If user supplied a fill_scale, use it; otherwise build a discrete scale from palette
+            if (!is.null(spec$cluster_fill_scale)) {
+              self$ggb_layers[[cl_idx]]$fill_scale <- spec$cluster_fill_scale
+            } else {
+              cluster_vals <- cluster_result$labeled_volume[!is.na(cluster_result$labeled_volume)]
+              uids <- sort(unique(cluster_vals))
+              pal <- grDevices::hcl.colors(length(uids), palette = "Dark 3")
+              names(pal) <- as.character(uids)
+              self$ggb_layers[[cl_idx]]$fill_scale <- ggplot2::scale_fill_manual(
+                values = pal, limits = names(pal), na.translate = FALSE, drop = FALSE
+              )
+            }
+
+            # attach custom labels if requested and scale has no labels yet
+            if (!is.null(spec$cluster_label_fields) && length(spec$cluster_label_fields) > 0L) {
+              lab_fields <- spec$cluster_label_fields
+              scale_obj <- self$ggb_layers[[cl_idx]]$fill_scale
+              has_labels <- !is.null(scale_obj$labels) && !inherits(scale_obj$labels, "waiver")
+              if (!has_labels) {
+                hdr <- img$get_headers(img_names = spec$cluster_source, drop = TRUE)
+                pixdim <- as.numeric(hdr$pixdim[2:4])
+                lims <- scale_obj$limits
+                ids <- if (!is.null(lims) && !is.function(lims) && length(lims) > 0L) {
+                  as.character(lims)
+                } else {
+                  as.character(sort(unique(cluster_result$cluster_data$cluster_index)))
+                }
+                valid_ids <- intersect(ids, as.character(cluster_result$cluster_data$cluster_index))
+                label_fun <- function(id) {
+                  parts <- character(0)
+                  if ("number" %in% lab_fields) parts <- c(parts, id)
+                  if ("voxels" %in% lab_fields) {
+                    vox <- cluster_result$cluster_data$size[cluster_result$cluster_data$cluster_index == as.integer(id)]
+                    parts <- c(parts, paste0(vox, " voxels"))
+                  }
+                  if ("size" %in% lab_fields) {
+                    vox <- cluster_result$cluster_data$size[cluster_result$cluster_data$cluster_index == as.integer(id)]
+                    vol_mm3 <- vox * prod(pixdim)
+                    parts <- c(parts, paste0(round(vol_mm3), " mm^3"))
+                  }
+                  if (length(parts) == 0L) return(as.character(id))
+                  if (length(parts) == 1L) return(parts)
+                  paste0(parts[1L], ": ", paste(parts[-1L], collapse = ", "))
+                }
+                lab_vals <- vapply(valid_ids, label_fun, character(1))
+                self$ggb_layers[[cl_idx]]$fill_scale$labels <- lab_vals
+                if (is.null(self$ggb_layers[[cl_idx]]$fill_scale$limits)) {
+                  self$ggb_layers[[cl_idx]]$fill_scale$limits <- valid_ids
+                }
+              }
+            }
+
+            self$ggb_layers[[cl_idx]]$mapping <- ggplot2::aes(fill = factor(value))
+            self$ggb_layers[[cl_idx]]$show_legend <- isTRUE(spec$cluster_show_legend)
+            self$ggb_layers[[cl_idx]]$unify_scales <- FALSE
+          }
+        }
+
+        # Optionally add an outline layer derived from the identified clusters
+        if (isTRUE(spec$outline) && !is.null(cluster_result$labeled_volume)) {
+          outline_img_name <- "cluster_outline"
+          existing_imgs <- img$get_image_names()
+          counter <- 1L
+          while (outline_img_name %in% existing_imgs) {
+            counter <- counter + 1L
+            outline_img_name <- paste0("cluster_outline_", counter)
+          }
+
+          img$add_array_as_image(cluster_result$labeled_volume, name = outline_img_name)
+
+          cluster_vals <- cluster_result$labeled_volume[!is.na(cluster_result$labeled_volume)]
+          if (length(cluster_vals) == 0L) next
+          n_outline <- length(unique(cluster_vals))
+          outline_ids <- as.character(sort(unique(cluster_vals)))
+          outline_palette <- cluster_result$outline_palette
+          outline_scale_user <- spec$outline_scale
+          if (is.null(outline_scale_user)) outline_scale_user <- cluster_result$outline_scale
+
+          use_mapping <- n_outline > 1L || !is.null(outline_scale_user)
+          outline_levels <- names(outline_palette)
+          outline_map <- if (use_mapping) ggplot2::aes(outline = outline_id, fill = NULL) else ggplot2::aes(outline = NULL, fill = NULL)
+          outline_scale <- NULL
+          outline_color <- NULL
+
+          if (!is.null(outline_scale_user)) {
+            outline_scale <- outline_scale_user
+            if (is.null(outline_scale$limits) || inherits(outline_scale$limits, "waiver") || is.function(outline_scale$limits)) {
+              outline_scale$limits <- outline_ids
+            }
+            outline_scale$drop <- FALSE
+            if (is.null(outline_scale$na.translate)) outline_scale$na.translate <- FALSE
+          } else if (use_mapping) {
+            if (is.null(outline_palette) && n_outline > 0L) {
+              outline_palette <- grDevices::hcl.colors(n_outline, palette = "Dark 3")
+            }
+            if (!is.null(outline_palette) && length(outline_palette) > 0L) {
+              names(outline_palette) <- as.character(seq_len(length(outline_palette)))
+            }
+            outline_levels <- names(outline_palette)
+            outline_scale <- ggplot2::scale_fill_manual(values = outline_palette, limits = outline_levels, na.translate = FALSE, drop = FALSE)
+          } else if (!is.null(outline_palette) && length(outline_palette) > 0L) {
+            outline_color <- outline_palette[[1L]]
+          }
+
+          outline_imgs <- c(outline_imgs, outline_img_name)
+          show_legend_flag <- if (!is.null(spec$outline_show_legend)) spec$outline_show_legend else use_mapping
+
+          outline_layer <- ggbrain_layer_outline$new(
+            name = outline_img_name,
+            definition = outline_img_name,
+            mapping = outline_map,
+            outline = outline_color,
+            outline_scale = outline_scale,
+            size = spec$outline_size,
+            show_legend = show_legend_flag
+          )
+
+          self$add_layers(list(outline_layer))
+        }
+      }
+
+      list(img = img, outline_imgs = outline_imgs)
+    },
+
+    # Retrieve slices with target resolution settings, if present
+    get_slices_for_render = function(img) {
+      if (!is.null(self$ggb_target_resolution)) {
+        return(img$get_slices(
+          target_resolution = self$ggb_target_resolution$voxel_size,
+          resample_interpolation = self$ggb_target_resolution$interpolation_value
+        ))
+      }
+      img$get_slices()
+    },
+
+    # Compute layer sources and inline contrasts from layer definitions
+    compute_layer_sources = function(layer_defs, img, cluster_layer_names) {
+      is_contrast <- !layer_defs %in% img$get_image_names()
+      is_contrast[layer_defs %in% cluster_layer_names] <- FALSE
+      layer_sources <- rep(NA_character_, length(layer_defs))
+      layer_sources[!is_contrast] <- layer_defs[!is_contrast]
+
+      inline_contrasts <- list()
+      if (any(is_contrast)) {
+        inline_contrasts <- lapply(layer_defs[is_contrast], contrast_split)
+
+        con_names <- sapply(inline_contrasts, "[[", "name")
+        con_names[con_names == ""] <- make.unique(rep("con", sum(con_names == "")))
+        inline_contrasts <- lapply(inline_contrasts, "[[", "value")
+        names(inline_contrasts) <- con_names
+
+        layer_sources[is_contrast] <- con_names
+      }
+
+      list(layer_sources = layer_sources, inline_contrasts = inline_contrasts)
+    },
+
+    assign_layer_sources = function(layer_sources) {
+      for (ii in seq_along(layer_sources)) {
+        self$ggb_layers[[ii]]$source <- layer_sources[ii]
+      }
+    }
+  ),
   public=list(
     #' @field ggb_images ggbrain_images object for this plot
     ggb_images = NULL,
@@ -231,6 +437,11 @@ ggb <- R6::R6Class(
           return(tibble::tibble(orientation_params = list(aa$orientation_params)))
         }
 
+        # crosshair annotations carry params and will be expanded later
+        if (rlang::has_name(aa, "crosshair_params")) {
+          return(tibble::tibble(crosshair_params = list(aa$crosshair_params)))
+        }
+
         if (!rlang::has_name(aa, "geom")) aa$geom <- "text" # default to text geom
         if (aa$geom %in% c("label", "text")) {
           # enforce that label and position are present for text/label
@@ -299,171 +510,9 @@ ggb <- R6::R6Class(
 
       img <- self$ggb_images$clone(deep = TRUE)
 
-      # Resolve any deferred cluster_slices specifications before adding slices
-      outline_imgs <- character(0) # track any auto-generated outline images to refresh slices later
-      if (!is.null(self$ggb_cluster_slices) && length(self$ggb_cluster_slices) > 0L) {
-        for (spec in self$ggb_cluster_slices) {
-          cluster_result <- resolve_cluster_slices(spec, img, self$ggb_layers)
-          if (length(cluster_result$coordinates) > 0 && !identical(spec$action, "clusterized")) {
-            # Convert to the list format expected by ggb_slices
-            cluster_slice_list <- lapply(cluster_result$coordinates, function(coord) list(coordinate = coord))
-            self$ggb_slices <- c(self$ggb_slices, cluster_slice_list)
-          }
-          # Annotate cluster provenance and store for later retrieval
-          cluster_df <- cluster_result$cluster_data
-          cluster_df$type <- if (identical(spec$action, "clusterized")) "display" else "slicing"
-          cluster_df$cluster_source <- if (!is.null(spec$layer)) spec$layer else spec$definition
-          cluster_df$cluster_layer <- if (!is.null(spec$cluster_layer_name)) spec$cluster_layer_name else NA_character_
-          self$ggb_cluster_data <- c(self$ggb_cluster_data, list(cluster_df))
-
-          # If this spec is for a clusterized fill layer, add the labeled volume and wire fill scale
-          if (identical(spec$action, "clusterized") && !is.null(cluster_result$labeled_volume)) {
-            cluster_img_name <- spec$cluster_layer_name %||% "clusterized"
-            existing_imgs <- img$get_image_names()
-            counter <- 1L
-            while (cluster_img_name %in% existing_imgs) {
-              counter <- counter + 1L
-              cluster_img_name <- paste0("clusterized_", counter)
-            }
-
-            img$add_array_as_image(cluster_result$labeled_volume, name = cluster_img_name)
-
-            # Update the placeholder layer to point to the new cluster image and scale
-            if (!is.null(self$ggb_layers) && length(self$ggb_layers) > 0L) {
-              # identify the clusterized layer by name
-              cl_idx <- which(vapply(self$ggb_layers, function(ll) identical(ll$name, spec$cluster_layer_name), logical(1)))
-              if (length(cl_idx) == 0L) cl_idx <- length(self$ggb_layers) # fallback
-              cl_idx <- cl_idx[[1L]]
-              # keep layer name/definition/source aligned with the actual image name
-              self$ggb_layers[[cl_idx]]$name <- cluster_img_name
-              self$ggb_layers[[cl_idx]]$definition <- cluster_img_name
-              self$ggb_layers[[cl_idx]]$source <- cluster_img_name
-
-              # If user supplied a fill_scale, use it; otherwise build a discrete scale from palette
-              if (!is.null(spec$cluster_fill_scale)) {
-                self$ggb_layers[[cl_idx]]$fill_scale <- spec$cluster_fill_scale
-              } else {
-                cluster_vals <- cluster_result$labeled_volume[!is.na(cluster_result$labeled_volume)]
-                uids <- sort(unique(cluster_vals))
-                pal <- grDevices::hcl.colors(length(uids), palette = "Dark 3")
-                names(pal) <- as.character(uids)
-                self$ggb_layers[[cl_idx]]$fill_scale <- ggplot2::scale_fill_manual(
-                  values = pal, limits = names(pal), na.translate = FALSE, drop = FALSE
-                )
-              }
-
-              # attach custom labels if requested and scale has no labels yet
-              if (!is.null(spec$cluster_label_fields) && length(spec$cluster_label_fields) > 0L) {
-                lab_fields <- spec$cluster_label_fields
-                scale_obj <- self$ggb_layers[[cl_idx]]$fill_scale
-                has_labels <- !is.null(scale_obj$labels) && !inherits(scale_obj$labels, "waiver")
-                if (!has_labels) {
-                  hdr <- img$get_headers(img_names = spec$cluster_source, drop = TRUE)
-                  pixdim <- as.numeric(hdr$pixdim[2:4])
-                  lims <- scale_obj$limits
-                  ids <- if (!is.null(lims) && !is.function(lims) && length(lims) > 0L) {
-                    as.character(lims)
-                  } else {
-                    as.character(sort(unique(cluster_result$cluster_data$cluster_index)))
-                  }
-                  # only label ids that exist in cluster_data
-                  valid_ids <- intersect(ids, as.character(cluster_result$cluster_data$cluster_index))
-                  label_fun <- function(id) {
-                    parts <- character(0)
-                    if ("number" %in% lab_fields) parts <- c(parts, id)
-                    if ("voxels" %in% lab_fields) {
-                      vox <- cluster_result$cluster_data$size[cluster_result$cluster_data$cluster_index == as.integer(id)]
-                      parts <- c(parts, paste0(vox, " voxels"))
-                    }
-                    if ("size" %in% lab_fields) {
-                      vox <- cluster_result$cluster_data$size[cluster_result$cluster_data$cluster_index == as.integer(id)]
-                      vol_mm3 <- vox * prod(pixdim)
-                      parts <- c(parts, paste0(round(vol_mm3), " mm^3"))
-                    }
-                    if (length(parts) == 0L) return(as.character(id))
-                    if (length(parts) == 1L) return(parts)
-                    paste0(parts[1L], ": ", paste(parts[-1L], collapse = ", "))
-                  }
-                  lab_vals <- vapply(valid_ids, label_fun, character(1))
-                  self$ggb_layers[[cl_idx]]$fill_scale$labels <- lab_vals
-                  if (is.null(self$ggb_layers[[cl_idx]]$fill_scale$limits)) {
-                    self$ggb_layers[[cl_idx]]$fill_scale$limits <- valid_ids
-                  }
-                }
-              }
-
-              # Ensure categorical treatment
-              self$ggb_layers[[cl_idx]]$mapping <- ggplot2::aes(fill = factor(value))
-              self$ggb_layers[[cl_idx]]$show_legend <- isTRUE(spec$cluster_show_legend)
-              self$ggb_layers[[cl_idx]]$unify_scales <- FALSE
-            }
-          }
-
-          # Optionally add an outline layer derived from the identified clusters
-          if (isTRUE(spec$outline) && !is.null(cluster_result$labeled_volume)) {
-            # Generate a unique name for the outline image to avoid collisions
-            outline_img_name <- "cluster_outline"
-            existing_imgs <- img$get_image_names()
-            counter <- 1L
-            while (outline_img_name %in% existing_imgs) {
-              counter <- counter + 1L
-              outline_img_name <- paste0("cluster_outline_", counter)
-            }
-
-            img$add_array_as_image(cluster_result$labeled_volume, name = outline_img_name)
-
-            cluster_vals <- cluster_result$labeled_volume[!is.na(cluster_result$labeled_volume)]
-            if (length(cluster_vals) == 0L) next
-            n_outline <- length(unique(cluster_vals))
-            outline_ids <- as.character(sort(unique(cluster_vals)))
-            outline_palette <- cluster_result$outline_palette
-            outline_scale_user <- spec$outline_scale
-            if (is.null(outline_scale_user)) outline_scale_user <- cluster_result$outline_scale
-
-            use_mapping <- n_outline > 1L || !is.null(outline_scale_user)
-            outline_levels <- names(outline_palette)
-            outline_map <- if (use_mapping) ggplot2::aes(outline = outline_id, fill = NULL) else ggplot2::aes(outline = NULL, fill = NULL)
-            outline_scale <- NULL
-            outline_color <- NULL
-
-            if (!is.null(outline_scale_user)) {
-              outline_scale <- outline_scale_user
-              # keep all cluster ids across slices even when custom scales omit limits
-              if (is.null(outline_scale$limits) || inherits(outline_scale$limits, "waiver") || is.function(outline_scale$limits)) {
-                outline_scale$limits <- outline_ids
-              }
-              outline_scale$drop <- FALSE
-              if (is.null(outline_scale$na.translate)) outline_scale$na.translate <- FALSE
-            } else if (use_mapping) {
-              if (is.null(outline_palette) && n_outline > 0L) {
-                outline_palette <- grDevices::hcl.colors(n_outline, palette = "Dark 3")
-              }
-              if (!is.null(outline_palette) && length(outline_palette) > 0L) {
-                names(outline_palette) <- as.character(seq_len(length(outline_palette)))
-              }
-              outline_levels <- names(outline_palette)
-              outline_scale <- ggplot2::scale_fill_manual(values = outline_palette, limits = outline_levels, na.translate = FALSE, drop = FALSE)
-            } else if (!is.null(outline_palette) && length(outline_palette) > 0L) {
-              outline_color <- outline_palette[[1L]]
-            }
-
-            outline_imgs <- c(outline_imgs, outline_img_name)
-            show_legend_flag <- if (!is.null(spec$outline_show_legend)) spec$outline_show_legend else use_mapping
-
-            outline_layer <- ggbrain_layer_outline$new(
-              name = outline_img_name,
-              definition = outline_img_name,
-              mapping = outline_map,
-              outline = outline_color,
-              outline_scale = outline_scale,
-              size = spec$outline_size,
-              show_legend = show_legend_flag
-            )
-
-            self$add_layers(list(outline_layer))
-          }
-        }
-      }
+      res <- private$resolve_cluster_specs(img)
+      img <- res$img
+      outline_imgs <- res$outline_imgs
 
       if (!is.null(self$ggb_slices)) {
         img$add_slices(sapply(self$ggb_slices, "[[", "coordinate"))
@@ -471,52 +520,23 @@ ggb <- R6::R6Class(
 
       if (!is.null(self$ggb_image_labels))  do.call(img$add_labels, self$ggb_image_labels)
 
-      # Pass target resolution settings to get_slices if specified
-      if (!is.null(self$ggb_target_resolution)) {
-        slc <- img$get_slices(
-          target_resolution = self$ggb_target_resolution$voxel_size,
-          resample_interpolation = self$ggb_target_resolution$interpolation_value
-        )
-      } else {
-        slc <- img$get_slices()
-      }
+      slc <- private$get_slices_for_render(img)
 
       # compute any defined contrasts before looking at inline contrasts
       slc$compute_contrasts(self$ggb_contrasts)
 
       # image/contrast definitions for each layer
       layer_defs <- trimws(sapply(self$ggb_layers, "[[", "definition"))
-      is_contrast <- !layer_defs %in% img$get_image_names() # if definition is just an image name, it's not a contrast to be computed
-      # clusterized layers use computed cluster images; treat them as images, not contrasts
       cluster_layer_names <- vapply(self$ggb_cluster_slices, function(s) {
         if (!is.null(s$cluster_layer_name)) s$cluster_layer_name else NA_character_
       }, character(1))
-      is_contrast[layer_defs %in% cluster_layer_names] <- FALSE
-      layer_sources <- rep(NA_character_, length(layer_defs))
-
-      # data sources for simple image layers
-      layer_sources[!is_contrast] <- layer_defs[!is_contrast]
-
-      # compute any contrasts requested
-      if (any(is_contrast)) {
-        # allow for definitions of the form "con1 := overlay*2" -- split at the :=
-        inline_contrasts <- lapply(layer_defs[is_contrast], contrast_split)
-
-        con_names <- sapply(inline_contrasts, "[[", "name")
-        con_names[con_names == ""] <- make.unique(rep("con", sum(con_names == "")))
-        inline_contrasts <- lapply(inline_contrasts, "[[", "value")
-        names(inline_contrasts) <- con_names
-
-        # fill in layer_sources with appropriate contrast names
-        layer_sources[is_contrast] <- con_names
-
-        slc$compute_contrasts(inline_contrasts)
-      }
+      layer_info <- private$compute_layer_sources(layer_defs, img, cluster_layer_names)
+      layer_sources <- layer_info$layer_sources
+      inline_contrasts <- layer_info$inline_contrasts
+      if (length(inline_contrasts) > 0L) slc$compute_contrasts(inline_contrasts)
 
       # populate source fields in layers so that the appropriate layer can be looked up from slices
-      for (ii in seq_along(layer_sources)) {
-        self$ggb_layers[[ii]]$source <- layer_sources[ii]
-      }
+      private$assign_layer_sources(layer_sources)
 
       # Align panel settings with the actual slices (after deduplication in get_slices)
       panel_settings <- lapply(slc$coord_input, function(ci) {

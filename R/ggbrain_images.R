@@ -179,24 +179,24 @@ ggbrain_images <- R6::R6Class(
     #'   (e.g., \code{'value < 100'}) or a numeric vector denoting values of the image that should be retained (e.g., \code{c(5, 10, 12)}).
     initialize = function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
       private$set_images(images, volumes)
+      img_names <- self$get_image_names()
       if (!is.null(labels)) {
         # if user provides a data.frame as label input, this works in the case of a single image, which is assumed to correspond
         if (checkmate::test_data_frame(labels) && length(images) == 1L) {
-          labels <- list(labels) %>% setNames(self$get_image_names())
+          labels <- list(labels) %>% setNames(img_names)
         }
         checkmate::assert_list(labels, names = "unique")
         do.call(self$add_labels, labels)
+      }
 
-        # retain filter as a named list matching the input image if a single image is provided
-        if (!is.null(filter)) {
-          if (!is.list(filter) && length(images) == 1L) {
-            filter <- list(filter) %>% setNames(names(images))
-          } else {
-            checkmate::assert_list(filter, names = "unique")
-            checkmate::assert_subset(names(filter), names(images))
-          }
+      # apply filters (if any) regardless of whether labels are provided
+      if (!is.null(filter)) {
+        if (!is.list(filter) && length(img_names) == 1L) {
+          filter <- list(filter) %>% setNames(img_names)
+        } else {
+          checkmate::assert_list(filter, names = "unique")
+          checkmate::assert_subset(names(filter), img_names)
         }
-
         self$filter_images(filter)
       }
     },
@@ -603,6 +603,7 @@ ggbrain_images <- R6::R6Class(
       }
 
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
+      img_dims <- self$dim()
       all_img_names <- self$get_image_names()
       if (!is.null(img_names)) {
         checkmate::assert_subset(img_names, all_img_names)
@@ -644,10 +645,23 @@ ggbrain_images <- R6::R6Class(
         self$get_slices_inplane(img_names, slc$slice_number, slc$plane, drop = TRUE)
       })
 
+      # track how voxel indices map onto display coordinates for each slice
+      slice_maps <- lapply(slc, function(ilist) {
+        m <- ilist[[1]]
+        list(row_idx = seq_len(nrow(m)), col_idx = seq_len(ncol(m)))
+      })
+
+      # precompute world coordinates for each voxel index (used later for crosshair mapping)
+      nii_head <- self$get_headers(drop = FALSE)[[1L]]
+      xcoords_full <- RNifti::voxelToWorld(cbind(seq_len(img_dims[1]), 1, 1), nii_head)[, 1]
+      ycoords_full <- RNifti::voxelToWorld(cbind(1, seq_len(img_dims[2]), 1), nii_head)[, 2]
+      zcoords_full <- RNifti::voxelToWorld(cbind(1, 1, seq_len(img_dims[3])), nii_head)[, 3]
+
       # remove blank space from matrices if requested (this must come before making the slices square)
       if (isTRUE(remove_null_space)) {
         # find voxels in each image that are different from zero
-        slc <- lapply(slc, function(ilist) {
+        for (si in seq_along(slc)) {
+          ilist <- slc[[si]]
           img_nz <- lapply(flatten_list_once(ilist), function(img) {
             abs(img) > private$pvt_zero_tol
           })
@@ -656,26 +670,61 @@ ggbrain_images <- R6::R6Class(
           good_rows <- rowSums(img_any, na.rm = TRUE) > 0L
           good_cols <- colSums(img_any, na.rm = TRUE) > 0L
 
-          lapply(ilist, function(mat) {
+          slc[[si]] <- lapply(ilist, function(mat) {
             mat[good_rows, good_cols]
           })
-        })
+
+          slice_maps[[si]]$row_idx <- slice_maps[[si]]$row_idx[good_rows]
+          slice_maps[[si]]$col_idx <- slice_maps[[si]]$col_idx[good_cols]
+        }
       }
 
       # whether to make all images have the same square dimensions
       if (isTRUE(make_square)) {
         slc_dims <- sapply(flatten_list_once(slc), dim)
         square_dims <- apply(slc_dims, 1, max)
+
+        pad_to_square <- function(idx, out_len) {
+          d_diff <- out_len - length(idx)
+          d_off <- if (d_diff > 1L) round(d_diff / 2) else 0L
+          out <- rep(NA_integer_, out_len)
+          out[seq_along(idx) + d_off] <- idx
+          out
+        }
+
         # for each slice and image within slice, center the matrix in the target output dims
-        slc <- lapply(slc, function(ilist) {
-          lapply(ilist, function(mat) {
+        for (si in seq_along(slc)) {
+          slc[[si]] <- lapply(slc[[si]], function(mat) {
             center_matrix(square_dims, mat, drop_zeros = FALSE) # at present, drop_zeros = TRUE will lead to offsets across images...
           })
-        })
+
+          slice_maps[[si]]$row_idx <- pad_to_square(slice_maps[[si]]$row_idx, square_dims[1])
+          slice_maps[[si]]$col_idx <- pad_to_square(slice_maps[[si]]$col_idx, square_dims[2])
+        }
       }
 
       # Resample slices to target resolution if requested (both upsampling and downsampling supported)
       if (!is.null(resample_factor)) {
+        resample_idx_map <- function(idx, target_len) {
+          if (length(idx) == 0L) return(idx)
+          valid <- which(!is.na(idx))
+          if (!length(valid)) return(rep(NA_integer_, target_len))
+          approx(
+            x = valid,
+            y = idx[valid],
+            xout = seq(1, length(idx), length.out = target_len),
+            rule = 2,
+            ties = "ordered"
+          )$y
+        }
+
+        for (si in seq_along(slice_maps)) {
+          target_x <- round(length(slice_maps[[si]]$row_idx) * resample_factor)
+          target_y <- round(length(slice_maps[[si]]$col_idx) * resample_factor)
+          slice_maps[[si]]$row_idx <- resample_idx_map(slice_maps[[si]]$row_idx, target_x)
+          slice_maps[[si]]$col_idx <- resample_idx_map(slice_maps[[si]]$col_idx, target_y)
+        }
+
         slc <- lapply(slc, function(ilist) {
           lapply(names(ilist), function(img_name) {
             mat <- ilist[[img_name]]
@@ -862,6 +911,39 @@ ggbrain_images <- R6::R6Class(
       # attach orientation metadata so downstream code can annotate panels without the source images
       orientation_labels <- self$get_orientation_labels()
       slice_df$orientation_labels <- rep(list(orientation_labels), nrow(slice_df))
+
+      # store voxel/world mapping per slice for annotation helpers (e.g., crosshairs)
+      slice_df$slice_grid <- lapply(seq_len(nrow(slice_df)), function(idx) {
+        plane <- slice_df$plane[idx]
+        smap <- slice_maps[[idx]]
+        if (is.null(smap)) return(NULL)
+
+        if (plane == "sagittal") {
+          dim1_world <- ycoords_full[smap$row_idx]
+          dim2_world <- zcoords_full[smap$col_idx]
+          slice_coord <- xcoords_full[slice_df$slice_number[idx]]
+        } else if (plane == "coronal") {
+          dim1_world <- xcoords_full[smap$row_idx]
+          dim2_world <- zcoords_full[smap$col_idx]
+          slice_coord <- ycoords_full[slice_df$slice_number[idx]]
+        } else { # axial
+          dim1_world <- xcoords_full[smap$row_idx]
+          dim2_world <- ycoords_full[smap$col_idx]
+          slice_coord <- zcoords_full[slice_df$slice_number[idx]]
+        }
+
+        list(
+          plane = plane,
+          slice_number = slice_df$slice_number[idx],
+          slice_coord_world = slice_coord,
+          dim1_vox = smap$row_idx,
+          dim2_vox = smap$col_idx,
+          dim1_world = dim1_world,
+          dim2_world = dim2_world,
+          dim1_len = length(smap$row_idx),
+          dim2_len = length(smap$col_idx)
+        )
+      })
 
       slice_obj <- ggbrain_slices$new(slice_df)
       if (!is.null(contrasts)) { # compute contrasts, if requested

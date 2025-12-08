@@ -448,9 +448,44 @@ ggbrain_plot <- R6::R6Class(
         }
         if (is.null(pan_i$base_size)) pan_i$base_size <- private$pvt_base_size
 
-        # add orientation annotations if requested
+        # add crosshair and orientation annotations if requested
         if (!is.null(all_annotations[[i]]$annotate_settings)) {
           ann_list <- all_annotations[[i]]$annotate_settings[[1]]
+
+          if ("crosshair_params" %in% names(ann_list)) {
+            has_ch <- which(!vapply(ann_list$crosshair_params, is.null, logical(1)))
+            ch_ann <- NULL
+            if (length(has_ch)) {
+              ch_ann <- dplyr::bind_rows(lapply(has_ch, function(idx) {
+                params <- ann_list$crosshair_params[[idx]]
+                if (length(params) == 1L && is.null(names(params)) && is.list(params[[1]])) {
+                  params <- params[[1]]
+                }
+                do.call(
+                  crosshair_annotations_for_slice,
+                  c(
+                    list(
+                      slices_obj = private$pvt_slices,
+                      slice_index = i,
+                      xyz = params$xyz,
+                      color = params$color,
+                      linewidth = params$linewidth,
+                      alpha = params$alpha,
+                      linetype = params$linetype,
+                      tol = params$tol
+                    ),
+                    params$extra
+                  )
+                )
+              }))
+            }
+            ann_list$crosshair_params <- NULL
+            if (ncol(ann_list) == 0L) ann_list <- ann_list[0, , drop = FALSE]
+            if (!is.null(ch_ann)) {
+              ann_list <- dplyr::bind_rows(ann_list, ch_ann)
+            }
+          }
+
           if ("orientation_params" %in% names(ann_list)) {
             has_ori <- which(!vapply(ann_list$orientation_params, is.null, logical(1)))
             ori_ann <- NULL
@@ -481,8 +516,9 @@ ggbrain_plot <- R6::R6Class(
             if (!is.null(ori_ann)) {
               ann_list <- dplyr::bind_rows(ann_list, ori_ann)
             }
-            all_annotations[[i]]$annotate_settings[[1]] <- ann_list
           }
+
+          all_annotations[[i]]$annotate_settings[[1]] <- ann_list
         }
 
         ggbrain_panel$new(

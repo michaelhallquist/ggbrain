@@ -24,6 +24,7 @@ ggbrain_slices <- R6::R6Class(
     pvt_layer_names = NULL, # names of layers/images within each slice
     pvt_contrast_definitions = NULL,
     pvt_orientation_labels = NULL,
+    pvt_slice_grid = NULL,
 
     # helper function to combine slice image and contrast data
     # TODO: sort out how to avoid calculating this twice for labels and numeric values
@@ -122,6 +123,11 @@ ggbrain_slices <- R6::R6Class(
     orientation_labels = function(value) {
       if (missing(value)) private$pvt_orientation_labels
       else stop("Cannot assign orientation_labels")
+    },
+    #' @field slice_grid list mapping display coords back to voxel/world space for each slice
+    slice_grid = function(value) {
+      if (missing(value)) private$pvt_slice_grid
+      else stop("Cannot assign slice_grid")
     }
   ),
   public = list(
@@ -153,6 +159,11 @@ ggbrain_slices <- R6::R6Class(
           }
         }
         slice_df$orientation_labels <- NULL
+        df_names <- names(slice_df)
+      }
+      private$pvt_slice_grid <- if ("slice_grid" %in% df_names) slice_df$slice_grid else empty_list
+      if ("slice_grid" %in% df_names) {
+        slice_df$slice_grid <- NULL
         df_names <- names(slice_df)
       }
       private$pvt_coord_input <- if ("coord_input" %in% df_names) slice_df$coord_input else empty_list
@@ -304,7 +315,8 @@ ggbrain_slices <- R6::R6Class(
         slice_data=private$pvt_slice_data,
         slice_labels=private$pvt_slice_labels,
         slice_matrix=private$pvt_slice_matrix,
-        orientation_labels=rep(list(private$pvt_orientation_labels), nslices)
+        orientation_labels=rep(list(private$pvt_orientation_labels), nslices),
+        slice_grid = private$pvt_slice_grid
       )
 
       attr(tb, "layer_names") <- private$pvt_layer_names

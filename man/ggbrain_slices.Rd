@@ -33,6 +33,8 @@ that slice and the list elements within are each a given image}
 \item{\code{layer_names}}{a character vector of layer names within each slice}
 
 \item{\code{orientation_labels}}{axis labels inherited from the source images}
+
+\item{\code{slice_grid}}{list mapping display coords back to voxel/world space for each slice}
 }
 \if{html}{\out{</div>}}
 }

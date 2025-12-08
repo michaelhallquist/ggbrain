@@ -1,4 +1,4 @@
-# ggbrain 1.0 (3Dec2025)
+# ggbrain 1.0 (7Dec2025)
 
 * feature: added `cluster_slices()` function that allows user to choose slices based on connected clusters in a given image
 * feature: added `geom_brain_clusterized()`, which allows users to display connected clusters instead of continuous values 
@@ -6,6 +6,7 @@
   users to upsample images to finer resolution (e.g., show 2.5mm data at 1mm) or downsample for faster rendering
   and smaller file sizes. Supports nearest neighbor, linear, cubic (default), and lanczos interpolation methods.
 * feature: added `annotate_orientation()` function to add anatomical orientation labels to plots
+* feature: added `annotate_crosshairs()` function to add requested cross-hairs to relevant panels
 * feature: Improve speed of `find_threads` by only decrementing neighbor counts for pixels identified from the initial full scan.
 * feature: hardened tests of input images to check their voxel sizes
 * feature: Text colors on plots default to a color that contrasts with the background (allowing dark-on-light or light-on-dark plots)
@@ -18,6 +19,7 @@
 * bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
 * bugfix: Use bisided scale for all slices when `unify=TRUE` but only some slices have positive and negative values
 * bugfix: Use square data for outlines to avoid warnings about misalignment
+* bugfix: Always apply filter expressions passed with `images()`, not just for labeled images
 * tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
 
 # ggbrain 0.9.1 (22Aug2025)
