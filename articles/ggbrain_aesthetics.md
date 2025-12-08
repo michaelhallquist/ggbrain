@@ -388,6 +388,33 @@ plot(gg_orient)
 
 ![](ggbrain_aesthetics_files/figure-html/orientation_annotations-1.png)
 
+### Crosshair annotations
+
+Use
+[`annotate_crosshairs()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_crosshairs.md)
+to drop crosshairs at specific world (xyz) coordinates. If the
+coordinate along the slicing axis is `NA`, the crosshair is shown on
+every slice for which the remaining axes match (within the nearest
+in-plane voxel). The `tol` argument (in mm) controls how closely a
+coordinate must match a slice along the slicing axis (default: 1 mm).
+
+``` r
+gg_cross <- ggbrain(bg_color = "gray90", text_color = "black") +
+  images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
+  slices(c("z = 20", "z = 40")) +
+  geom_brain(definition = "underlay") +
+  geom_brain(
+    definition = "overlay",
+    fill_scale = scale_fill_bisided(),
+    remove_specks = 15
+  ) +
+  annotate_crosshairs(data.frame(x = 0, y = 0, z = NA), color = "white", linewidth = 0.6)
+
+plot(gg_cross)
+```
+
+![](ggbrain_aesthetics_files/figure-html/crosshair_annotations-1.png)
+
 ## Creating reusable plot components
 
 When creating multiple related plots, it’s efficient to define common

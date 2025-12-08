@@ -45,11 +45,12 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.0" id="ggbrain-10-3dec2025">ggbrain 1.0 (3Dec2025)<a class="anchor" aria-label="anchor" href="#ggbrain-10-3dec2025"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.0" id="ggbrain-10-7dec2025">ggbrain 1.0 (7Dec2025)<a class="anchor" aria-label="anchor" href="#ggbrain-10-7dec2025"></a></h2>
 <ul><li>feature: added <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> function that allows user to choose slices based on connected clusters in a given image</li>
 <li>feature: added <code><a href="../reference/geom_brain_clusterized.html">geom_brain_clusterized()</a></code>, which allows users to display connected clusters instead of continuous values</li>
 <li>feature: added <code><a href="../reference/target_resolution.html">target_resolution()</a></code> function to resample slices to a different resolution for display. This allows users to upsample images to finer resolution (e.g., show 2.5mm data at 1mm) or downsample for faster rendering and smaller file sizes. Supports nearest neighbor, linear, cubic (default), and lanczos interpolation methods.</li>
 <li>feature: added <code><a href="../reference/annotate_orientation.html">annotate_orientation()</a></code> function to add anatomical orientation labels to plots</li>
+<li>feature: added <code><a href="../reference/annotate_crosshairs.html">annotate_crosshairs()</a></code> function to add requested cross-hairs to relevant panels</li>
 <li>feature: Improve speed of <code>find_threads</code> by only decrementing neighbor counts for pixels identified from the initial full scan.</li>
 <li>feature: hardened tests of input images to check their voxel sizes</li>
 <li>feature: Text colors on plots default to a color that contrasts with the background (allowing dark-on-light or light-on-dark plots)</li>
@@ -62,6 +63,7 @@
 <li>bugfix: Correct invalid 1-based indexing assumption in <code>nearest_pts</code> used for filling holes.</li>
 <li>bugfix: Use bisided scale for all slices when <code>unify=TRUE</code> but only some slices have positive and negative values</li>
 <li>bugfix: Use square data for outlines to avoid warnings about misalignment</li>
+<li>bugfix: Always apply filter expressions passed with <code><a href="../reference/images.html">images()</a></code>, not just for labeled images</li>
 <li>tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for <code>refine_image</code> call count and hole filling</li>
 </ul></div>
     <div class="section level2">

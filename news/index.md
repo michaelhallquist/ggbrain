@@ -1,6 +1,6 @@
 # Changelog
 
-## ggbrain 1.0 (3Dec2025)
+## ggbrain 1.0 (7Dec2025)
 
 - feature: added
   [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
@@ -20,6 +20,9 @@
 - feature: added
   [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
   function to add anatomical orientation labels to plots
+- feature: added
+  [`annotate_crosshairs()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_crosshairs.md)
+  function to add requested cross-hairs to relevant panels
 - feature: Improve speed of `find_threads` by only decrementing neighbor
   counts for pixels identified from the initial full scan.
 - feature: hardened tests of input images to check their voxel sizes
@@ -44,6 +47,9 @@
   some slices have positive and negative values
 - bugfix: Use square data for outlines to avoid warnings about
   misalignment
+- bugfix: Always apply filter expressions passed with
+  [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md),
+  not just for labeled images
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling

@@ -6,6 +6,9 @@
   : Adds the coordinate labels to each panel based on the location of
   the slice along the slicing axis (e.g., z = 15)
 
+- [`annotate_crosshairs()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_crosshairs.md)
+  : Annotate crosshairs at user-specified world (xyz) coordinates
+
 - [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
   : Annotate orientation labels (L/R/A/P/S/I) on each panel using NIfTI
   header info

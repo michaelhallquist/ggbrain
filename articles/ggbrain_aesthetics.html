@@ -68,7 +68,7 @@
                         <h4 data-toc-skip class="author">Michael
 Hallquist</h4>
             
-            <h4 data-toc-skip class="date">2025-12-07</h4>
+            <h4 data-toc-skip class="date">2025-12-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/michaelhallquist/ggbrain/blob/main/vignettes/ggbrain_aesthetics.Rmd" class="external-link"><code>vignettes/ggbrain_aesthetics.Rmd</code></a></small>
       <div class="d-none name"><code>ggbrain_aesthetics.Rmd</code></div>
@@ -444,6 +444,30 @@ orientation labels (L/R, A/P, S/I):</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_orient</span><span class="op">)</span></span></code></pre></div>
 <p><img src="ggbrain_aesthetics_files/figure-html/orientation_annotations-1.png" class="r-plt" width="768"></p>
 </div>
+<div class="section level3">
+<h3 id="crosshair-annotations">Crosshair annotations<a class="anchor" aria-label="anchor" href="#crosshair-annotations"></a>
+</h3>
+<p>Use <code><a href="../reference/annotate_crosshairs.html">annotate_crosshairs()</a></code> to drop crosshairs at specific
+world (xyz) coordinates. If the coordinate along the slicing axis is
+<code>NA</code>, the crosshair is shown on every slice for which the
+remaining axes match (within the nearest in-plane voxel). The
+<code>tol</code> argument (in mm) controls how closely a coordinate must
+match a slice along the slicing axis (default: 1 mm).</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gg_cross</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 20"</span>, <span class="st">"z = 40"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    definition <span class="op">=</span> <span class="st">"overlay"</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    remove_specks <span class="op">=</span> <span class="fl">15</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_crosshairs.html">annotate_crosshairs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="fl">0</span>, z <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_cross</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_aesthetics_files/figure-html/crosshair_annotations-1.png" class="r-plt" width="768"></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="creating-reusable-plot-components">Creating reusable plot components<a class="anchor" aria-label="anchor" href="#creating-reusable-plot-components"></a>
@@ -451,7 +475,7 @@ orientation labels (L/R, A/P, S/I):</p>
 <p>When creating multiple related plots, it’s efficient to define common
 components that can be reused. This is similar to creating a ‘theme’ for
 your brain plots:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define common plot elements</span></span>
 <span><span class="va">common_parts</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -473,7 +497,7 @@ use patchwork operators to arrange them.</p>
 <div class="section level3">
 <h3 id="basic-patchwork-combinations">Basic patchwork combinations<a class="anchor" aria-label="anchor" href="#basic-patchwork-combinations"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create two different brain plots</span></span>
 <span><span class="va">gg_axial</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Axial View"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -507,7 +531,7 @@ use patchwork operators to arrange them.</p>
 </h3>
 <p>When combining multiple plots with similar color scales, you can
 extract and share a common legend:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create plots without legends</span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, title <span class="op">=</span> <span class="st">"Entropy Change"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">echange_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -546,7 +570,7 @@ extract and share a common legend:</p>
 <p>To save your plots with consistent styling, use <code>ggsave()</code>
 or base R graphics devices. The <code>bg</code> argument ensures the
 background color extends to the full output device:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Using ggsave (recommended)</span></span>
 <span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"my_brain_plot.png"</span>, <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span>, dpi <span class="op">=</span> <span class="fl">300</span>, bg <span class="op">=</span> <span class="st">"gray90"</span><span class="op">)</span></span>
 <span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"my_brain_plot.pdf"</span>, <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
@@ -566,7 +590,7 @@ background color extends to the full output device:</p>
 <p>You can filter an image to display only certain regions using the
 <code>filter</code> argument in <code><a href="../reference/images.html">images()</a></code>. This is useful
 when you want to focus on specific ROIs or networks:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get specific parcel values for Premotor regions</span></span>
 <span><span class="va">premotor_parcels</span> <span class="op">&lt;-</span> <span class="va">dan_labels</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">dan_group</span> <span class="op">==</span> <span class="st">"Premotor"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
@@ -603,7 +627,7 @@ when you want to focus on specific ROIs or networks:</p>
 </h2>
 <p>Use <code><a href="../reference/target_resolution.html">target_resolution()</a></code> to upsample your display for
 smoother, higher-resolution figures:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Without upsampling (native 2mm resolution)</span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray90"</span>, text_color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_2mm</span>, overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -633,10 +657,10 @@ smoother, higher-resolution figures:</p>
 <p>Users could also consider resampling images externally using tools
 like AFNI’s <code>3dresample</code> before loading into
 <code>ggbrain</code>. This will yield similar results to te</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="ex">3dresample</span> <span class="at">-input</span> functional_overlay_3mm.nii.gz <span class="dt">\</span></span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="at">-prefix</span> functional_overlay_1mm.nii.gz <span class="dt">\</span></span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="at">-master</span> anatomical_template_1mm.nii.gz <span class="dt">\</span></span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="at">-rmode</span> NN</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="ex">3dresample</span> <span class="at">-input</span> functional_overlay_3mm.nii.gz <span class="dt">\</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="at">-prefix</span> functional_overlay_1mm.nii.gz <span class="dt">\</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="at">-master</span> anatomical_template_1mm.nii.gz <span class="dt">\</span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="at">-rmode</span> NN</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="the-hierarchy-of-a-ggbrain-plot">The hierarchy of a ggbrain plot<a class="anchor" aria-label="anchor" href="#the-hierarchy-of-a-ggbrain-plot"></a>

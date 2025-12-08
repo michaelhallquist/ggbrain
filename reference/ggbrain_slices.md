@@ -49,6 +49,10 @@ Michael Hallquist
 
   axis labels inherited from the source images
 
+- `slice_grid`:
+
+  list mapping display coords back to voxel/world space for each slice
+
 ## Methods
 
 ### Public methods
