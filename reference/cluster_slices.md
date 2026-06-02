@@ -21,7 +21,8 @@ cluster_slices(
   outline_color = NULL,
   outline_size = 1L,
   outline_scale = NULL,
-  outline_show_legend = NULL
+  outline_show_legend = NULL,
+  sided = c("bisided", "two_sided")
 )
 ```
 
@@ -100,6 +101,13 @@ cluster_slices(
 
   Logical. Whether to show a legend for cluster outlines. If `NULL`
   (default), a legend is shown when multiple clusters exist.
+
+- sided:
+
+  Sidedness for clustering thresholded images. `"bisided"` (default)
+  clusters positive and negative surviving voxels separately, matching
+  AFNI's `3dClusterize -bisided` behavior. `"two_sided"` allows all
+  surviving voxels to connect regardless of sign.
 
 ## Value
 

@@ -16,7 +16,8 @@ compute_cluster_slices(
   outline_color = NULL,
   outline_size = 1L,
   outline_scale = NULL,
-  outline_show_legend = NULL
+  outline_show_legend = NULL,
+  sided = c("bisided", "two_sided")
 )
 ```
 
@@ -45,6 +46,11 @@ compute_cluster_slices(
 - nn:
 
   Neighborhood connectivity (1, 2, or 3)
+
+- sided:
+
+  Sidedness for clustering thresholded images. See
+  [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md).
 
 ## Value
 

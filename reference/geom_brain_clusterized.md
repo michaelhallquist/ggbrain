@@ -17,7 +17,8 @@ geom_brain_clusterized(
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL
+  trim_threads = NULL,
+  sided = c("bisided", "two_sided")
 )
 ```
 
@@ -65,6 +66,13 @@ geom_brain_clusterized(
 
   optional image refinements passed to
   [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+
+- sided:
+
+  Sidedness for clustering thresholded images. `"bisided"` (default)
+  clusters positive and negative surviving voxels separately, matching
+  AFNI's `3dClusterize -bisided` behavior. `"two_sided"` allows all
+  surviving voxels to connect regardless of sign.
 
 ## Value
 

@@ -13,8 +13,8 @@
     }
   };
 </script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to ggbrain">
 </head>
@@ -329,7 +329,7 @@ largest 3D clusters. Use <code><a href="../reference/cluster_slices.html">cluste
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 3]"</span>, name <span class="op">=</span> <span class="st">"Activation"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="691.2"></p>
 <p>Key points:</p>
 <ul>
 <li>
@@ -448,7 +448,7 @@ with their numeric values:</p>
 result.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" alt="" width="691.2"></p>
 </div>
 <div class="section level4">
 <h4 id="defining-subset-layers">Defining subset layers<a class="anchor" aria-label="anchor" href="#defining-subset-layers"></a>
@@ -464,7 +464,7 @@ so that the absolute (z) statistic is above 2.5:</p>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="691.2"></p>
 <p>Note how ‘overlay’ is treated as an R object that is subset using
 square brackets. The subsetting expression inside the brackets uses
 standard R syntax and can reference other images currently in the
@@ -476,7 +476,7 @@ the underlay is greater than 10:</p>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[underlay &gt; 10]"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png" class="r-plt" alt="" width="691.2"></p>
 <p>Finally, note that one can combine subsetting expressions using
 logical operators <code>&amp;</code> and <code>|</code> , as in standard
 R syntax for vector operations. For example, here’s how you could
@@ -491,7 +491,7 @@ include pixels where <code>abs(overlay) &gt; 2.5</code> and
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png" class="r-plt" alt="" width="691.2"></p>
 </div>
 <div class="section level4">
 <h4 id="defining-a-contrast-layer">Defining a contrast layer<a class="anchor" aria-label="anchor" href="#defining-a-contrast-layer"></a>
@@ -520,7 +520,7 @@ function.</p>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"diff"</span>, fill_scale <span class="op">=</span> <span class="fu"><a href="../reference/scale_fill_bisided.html">scale_fill_bisided</a></span><span class="op">(</span>symmetric <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png" class="r-plt" alt="" width="691.2"></p>
 <p>An equivalent plot would be achieved by including the definition
 inline:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
@@ -541,7 +541,7 @@ signed PEs (i.e., positive difference in the z-statistic &gt; 3).</p>
 <span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"diff[diff &gt; 3]"</span>, fill_scale <span class="op">=</span> <span class="fu">scale_fill_distiller</span><span class="op">(</span><span class="st">"PE &gt; absPE"</span>, palette<span class="op">=</span><span class="st">"Reds"</span><span class="op">)</span>, show_legend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" alt="" width="691.2"></p>
 </div>
 </div>
 <div class="section level3">
@@ -574,7 +574,7 @@ of the feedback phase of the reinforcement learning trial.</p>
 <span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"onset[abs(onset) &gt; 3]"</span>, size <span class="op">=</span> <span class="fl">1</span>, outline <span class="op">=</span> <span class="st">"cyan"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_obj</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png" class="r-plt" width="691.2"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png" class="r-plt" alt="" width="691.2"></p>
 </div>
 <div class="section level3">
 <h3 id="clusterized-categorical-layers">Clusterized categorical layers<a class="anchor" aria-label="anchor" href="#clusterized-categorical-layers"></a>
@@ -661,7 +661,7 @@ Likewise, you can modify the overall theme information using the
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># add a different theme to all panels and add an overall title</span></span>
 <span><span class="va">gg_obj</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title<span class="op">=</span><span class="st">"Overall title"</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-27-1.png" class="r-plt" width="576"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-27-1.png" class="r-plt" alt="" width="576"></p>
 <p>Note that you don’t necessarily need to use <code><a href="../reference/render.html">render()</a></code> at
 all. When you call <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on a ggbrain object, the render
 happens automatically behind the scenes, as you’ve seen above. But if
@@ -678,7 +678,7 @@ you want to modify the plot using ggplot or patchwork functions such as
 <span></span>
 <span><span class="co"># display the rendered plot with an overall title</span></span>
 <span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="va">brain_plot</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Overall"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" width="576"></p>
+<p><img src="ggbrain_introduction_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="576"></p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># or you can also simply store the rendered plot into a separate object</span></span>
 <span><span class="va">rendered_gg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="va">brain_plot</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Overall"</span><span class="op">)</span></span></code></pre></div>

@@ -24,6 +24,7 @@ capabilities. The locations of the images on your machine are listed
 below.
 
 ``` r
+
 print(c(underlay_2mm, feedback_onset_2mm, echange_overlay_2mm, pe_overlay_2mm, abspe_overlay_2mm))
 ```
 
@@ -39,6 +40,7 @@ You can install the latest public version of the `ggbrain` package using
 [`install.packages()`](https://rdrr.io/r/utils/install.packages.html):
 
 ``` r
+
 install.packages("ggbrain")
 ```
 
@@ -47,6 +49,7 @@ features and bugfixes, though it may also have new bugs or include works
 in progress.
 
 ``` r
+
 devtools::install_github("michaelhallquist/ggbrain")
 ```
 
@@ -56,6 +59,7 @@ One can create an empty ggbrain object using the `ggbrain` function.
 This is akin to creating an empty ggplot object using `ggplot()`.
 
 ``` r
+
 gg_obj <- ggbrain()
 ```
 
@@ -63,6 +67,7 @@ At this point, trying to plot the `ggbrain` yields a warning given that
 no data or geometric layers have been added.
 
 ``` r
+
 plot(gg_obj)
 ```
 
@@ -107,6 +112,7 @@ operations. If you do not provide a name, you will see a warning:
       if 'underlay' and 'overlay' are requested.
 
 ``` r
+
 gg_obj <- gg_obj + images(c(underlay = underlay_2mm))
 ```
 
@@ -120,6 +126,7 @@ underneath functional activations.
 You can add many images at once by providing a named vector:
 
 ``` r
+
 gg_obj <- ggbrain() + 
   images(c(underlay = underlay_2mm, echange = echange_overlay_2mm))
 ```
@@ -128,6 +135,7 @@ Or you can add many images in independent `images` steps. Note that the
 order of addition is not important.
 
 ``` r
+
 gg_obj <- ggbrain() +
   images(c(underlay = underlay_2mm)) +
   images(c(echange = echange_overlay_2mm))
@@ -165,6 +173,7 @@ You can add one or more slices using
 by passing a character vector of positions.
 
 ``` r
+
 gg_obj <- gg_obj + slices(c("x = 10", "y = 50", "z = 15"))
 ```
 
@@ -181,6 +190,7 @@ along the axis between 0% and 100%. These percentiles are computed based
 on the slices that are not entirely empty (i.e., not all zero).
 
 ``` r
+
 gg_obj <- gg_obj + slices(c("x = 25%", "y = 50%", "z = 90%"))
 ```
 
@@ -205,6 +215,7 @@ slices include:
   this panel that customizes its appearance.
 
 ``` r
+
 gg_obj <- gg_obj +
   slices(
     c("x = 25%", "x = 50%"),
@@ -237,6 +248,7 @@ The code below adds 10 axial slices between the 10th and 90th
 percentiles.
 
 ``` r
+
 gg_obj <- gg_obj + slices(montage("axial", 10, min = 0.1, max = 0.8))
 ```
 
@@ -244,6 +256,7 @@ This code adds 5 sagittal slices between the x = -10 and x = 10
 (millimeters, in image coordinates).
 
 ``` r
+
 gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10))
 ```
 
@@ -259,6 +272,7 @@ within
 in place of manual coordinates:
 
 ``` r
+
 t1      <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
@@ -384,6 +398,7 @@ For example, here I want to render the underlay and overlay layers with
 their numeric values:
 
 ``` r
+
 # define a reusable object that has the same images and slices
 gg_base <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = echange_overlay_2mm)) +
@@ -391,6 +406,7 @@ gg_base <- ggbrain(bg_color = "gray80", text_color = "black") +
 ```
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "underlay", fill_scale = scale_fill_gradient(low = "grey8", high = "grey62"), show_legend = FALSE) +
   geom_brain(definition = "overlay", fill_scale = scale_fill_bisided(), show_legend = TRUE)
@@ -400,6 +416,7 @@ Now that we have `geom_*` layers in our `ggbrain` object, we can finally
 plot our figure to see the result.
 
 ``` r
+
 plot(gg_obj)
 ```
 
@@ -417,6 +434,7 @@ thresholding the overlay layer so that the absolute (z) statistic is
 above 2.5:
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "overlay[abs(overlay) > 2.5]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
 
@@ -432,6 +450,7 @@ For example, you could display overlay values only where the underlay is
 greater than 10:
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "overlay[underlay > 10]", fill_scale = scale_fill_bisided(), show_legend = TRUE)
@@ -447,6 +466,7 @@ For example, here’s how you could include pixels where
 `abs(overlay) > 2.5` and `underlay > 20`:
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "underlay") +
   geom_brain(
@@ -479,6 +499,7 @@ field of `geom_brain` or `geom_outline`. Or, they can be added to the
 function.
 
 ``` r
+
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
@@ -494,6 +515,7 @@ plot(gg_obj)
 An equivalent plot would be achieved by including the definition inline:
 
 ``` r
+
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
@@ -508,6 +530,7 @@ strongly in favor of signed PEs (i.e., positive difference in the
 z-statistic \> 3).
 
 ``` r
+
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
@@ -546,6 +569,7 @@ that are sensitive to the onset of the feedback phase of the
 reinforcement learning trial.
 
 ``` r
+
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_2mm, onset = feedback_onset_2mm)) +
@@ -570,6 +594,7 @@ automatically (that is done with
 as noted above)
 
 ``` r
+
 gg <- ggbrain() +
   images(c(underlay = t1, overlay = overlay)) +
   slices("z=0") +
@@ -616,6 +641,7 @@ The key message here is: place ggbrain-specific additions *before*
 and ggplot-specific additions *afterwards*.
 
 ``` r
+
 # without a render step
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
@@ -629,6 +655,7 @@ class(gg_obj)
     ## [1] "ggb" "R6"
 
 ``` r
+
 # note the different class after render
 gg_obj <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
@@ -652,6 +679,7 @@ Likewise, you can modify the overall theme information using the
 [here](https://patchwork.data-imaginist.com/articles/guides/assembly.html#modifying-patches).
 
 ``` r
+
 # add a different theme to all panels and add an overall title
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 ```
@@ -669,6 +697,7 @@ functions such as `plot_annotation` or `theme`, you need to first
 the plot so that the object is converted to a `patchwork`.
 
 ``` r
+
 brain_plot <- ggbrain() +
   slices(c("x = -2", "x=2", "y = 40", "z = 15")) +
   images(c(underlay = underlay_2mm, onset = feedback_onset_2mm)) +
@@ -682,6 +711,7 @@ render(brain_plot) + plot_annotation(title = "Overall")
 ![](ggbrain_introduction_files/figure-html/unnamed-chunk-28-1.png)
 
 ``` r
+
 # or you can also simply store the rendered plot into a separate object
 rendered_gg <- render(brain_plot) + plot_annotation(title = "Overall")
 ```
@@ -711,11 +741,13 @@ complain that the plot is not a ggplot object. We can just pass a
 rendered version like so:
 
 ``` r
+
 td <- tempdir()
 ggsave(filename=file.path(td, "my_brain_plot.pdf"), render(brain_plot), width=15, height=10)
 ```
 
 ``` r
+
 pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10)
 plot(brain_plot)
 invisible(dev.off())
@@ -734,6 +766,7 @@ which automatically uses the background color of the plot to extend to
 the output device/file.
 
 ``` r
+
 pdf(file.path(td, "my_brain_plot_2.pdf"), width=10, height=10, bg="gray80")
 plot(gg_obj)
 invisible(dev.off())

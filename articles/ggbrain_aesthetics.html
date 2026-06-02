@@ -13,8 +13,8 @@
     }
   };
 </script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Aesthetic refinements of ggbrain plots">
 </head>
@@ -68,7 +68,7 @@
                         <h4 data-toc-skip class="author">Michael
 Hallquist</h4>
             
-            <h4 data-toc-skip class="date">2025-12-08</h4>
+            <h4 data-toc-skip class="date">2026-06-02</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/michaelhallquist/ggbrain/blob/main/vignettes/ggbrain_aesthetics.Rmd" class="external-link"><code>vignettes/ggbrain_aesthetics.Rmd</code></a></small>
       <div class="d-none name"><code>ggbrain_aesthetics.Rmd</code></div>
@@ -144,7 +144,7 @@ image.</p>
 <span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"With remove_specks = 20"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/remove_specks_comparison-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/remove_specks_comparison-1.png" class="r-plt" alt="" width="768"></p>
 <p>Note that removing specks can, at the extreme, misrepresent the data,
 so use this feature judiciously.</p>
 </div>
@@ -169,7 +169,7 @@ imputation.</p>
 <span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"With fill_holes = 100"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/fill_holes_comparison-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/fill_holes_comparison-1.png" class="r-plt" alt="" width="768"></p>
 <p>For integer-valued or categorical images, the mode of the neighboring
 voxels is used for imputation rather than the mean.</p>
 </div>
@@ -193,7 +193,7 @@ pixels that can occur at the edges of clusters.</p>
 <span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"With trim_threads = TRUE"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/trim_threads_comparison-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/trim_threads_comparison-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="combining-image-cleaning-operations">Combining image cleaning operations<a class="anchor" aria-label="anchor" href="#combining-image-cleaning-operations"></a>
@@ -211,7 +211,7 @@ operations:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_clean</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/combined_cleaning-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/combined_cleaning-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 </div>
 <div class="section level2">
@@ -234,7 +234,7 @@ customize the color mapping:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_viridis</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/custom_scales-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/custom_scales-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="bisided-color-scales">Bisided color scales<a class="anchor" aria-label="anchor" href="#bisided-color-scales"></a>
@@ -259,7 +259,7 @@ separate color scales:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_bisided</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/bisided_scale-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/bisided_scale-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 </div>
 <div class="section level2">
@@ -307,7 +307,7 @@ mapping:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_dan</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/categorical_labels-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/categorical_labels-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="combining-fills-with-outlines">Combining fills with outlines<a class="anchor" aria-label="anchor" href="#combining-fills-with-outlines"></a>
@@ -344,7 +344,7 @@ network and outline individual parcels:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_outlined</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/fills_with_outlines-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/fills_with_outlines-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 </div>
 <div class="section level2">
@@ -398,7 +398,7 @@ extremely useful for labeling multiple regions:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_labeled</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/region_labels-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/region_labels-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 </div>
 <div class="section level2">
@@ -422,7 +422,7 @@ labels to each panel:</p>
 <span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">1</span>, color <span class="op">=</span> <span class="st">"black"</span>, x <span class="op">=</span> <span class="st">"right"</span>, y <span class="op">=</span> <span class="st">"bottom"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_coords</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/coordinate_annotations-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/coordinate_annotations-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="orientation-annotations">Orientation annotations<a class="anchor" aria-label="anchor" href="#orientation-annotations"></a>
@@ -442,7 +442,7 @@ orientation labels (L/R, A/P, S/I):</p>
 <span>  <span class="fu"><a href="../reference/annotate_orientation.html">annotate_orientation</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">4</span>, color <span class="op">=</span> <span class="st">"gray20"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_orient</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/orientation_annotations-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/orientation_annotations-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level3">
 <h3 id="crosshair-annotations">Crosshair annotations<a class="anchor" aria-label="anchor" href="#crosshair-annotations"></a>
@@ -466,7 +466,7 @@ match a slice along the slicing axis (default: 1 mm).</p>
 <span>  <span class="fu"><a href="../reference/annotate_crosshairs.html">annotate_crosshairs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">0</span>, y <span class="op">=</span> <span class="fl">0</span>, z <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_cross</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/crosshair_annotations-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/crosshair_annotations-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 </div>
 <div class="section level2">
@@ -524,7 +524,7 @@ use patchwork operators to arrange them.</p>
 <span>  <span class="fu">theme</span><span class="op">(</span>plot.tag <span class="op">=</span> <span class="fu">element_text</span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span>, size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">combined</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/patchwork_basic-1.png" class="r-plt" width="960"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/patchwork_basic-1.png" class="r-plt" alt="" width="960"></p>
 </div>
 <div class="section level3">
 <h3 id="advanced-layout-with-shared-legend">Advanced layout with shared legend<a class="anchor" aria-label="anchor" href="#advanced-layout-with-shared-legend"></a>
@@ -561,7 +561,7 @@ extract and share a common legend:</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">final_plot</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/advanced_patchwork-1.png" class="r-plt" width="1152"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/advanced_patchwork-1.png" class="r-plt" alt="" width="1152"></p>
 </div>
 </div>
 <div class="section level2">
@@ -620,7 +620,7 @@ when you want to focus on specific ROIs or networks:</p>
 <span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">1</span>, color <span class="op">=</span> <span class="st">"black"</span>, x <span class="op">=</span> <span class="st">"right"</span>, y <span class="op">=</span> <span class="st">"bottom"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gg_premotor</span><span class="op">)</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/filtered_display-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/filtered_display-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="target-resolution-for-higher-quality-displays">Target resolution for higher quality displays<a class="anchor" aria-label="anchor" href="#target-resolution-for-higher-quality-displays"></a>
@@ -646,7 +646,7 @@ smoother, higher-resolution figures:</p>
 <span>  <span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Upsampled to 1mm with cubic interpolation"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="ggbrain_aesthetics_files/figure-html/target_resolution-1.png" class="r-plt" width="768"></p>
+<p><img src="ggbrain_aesthetics_files/figure-html/target_resolution-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="other-considerations">Other considerations<a class="anchor" aria-label="anchor" href="#other-considerations"></a>

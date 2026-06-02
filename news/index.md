@@ -50,6 +50,8 @@
 - bugfix: Always apply filter expressions passed with
   [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md),
   not just for labeled images
+- bugfix: Do not default to bisided scale for underlay when in contains
+  negative values
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling

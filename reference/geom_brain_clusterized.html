@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Clusterize a contrast/image and display clusters as categorical fill — geom_brain_clusterized"><meta name="description" content="Clusterize a contrast/image and display clusters as categorical fill"><meta property="og:description" content="Clusterize a contrast/image and display clusters as categorical fill"></head><body>
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Clusterize a contrast/image and display clusters as categorical fill — geom_brain_clusterized"><meta name="description" content="Clusterize a contrast/image and display clusters as categorical fill"><meta property="og:description" content="Clusterize a contrast/image and display clusters as categorical fill"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -63,7 +63,8 @@
 <span>  blur_edge <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_holes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_specks <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sided <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bisided"</span>, <span class="st">"two_sided"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -106,6 +107,13 @@ Supported values: "number" (cluster index), "voxels" (voxel count), "size" (mm^3
 
 <dt id="arg-blur-edge-fill-holes-remove-specks-trim-threads">blur_edge, fill_holes, remove_specks, trim_threads<a class="anchor" aria-label="anchor" href="#arg-blur-edge-fill-holes-remove-specks-trim-threads"></a></dt>
 <dd><p>optional image refinements passed to <code><a href="geom_brain.html">geom_brain()</a></code></p></dd>
+
+
+<dt id="arg-sided">sided<a class="anchor" aria-label="anchor" href="#arg-sided"></a></dt>
+<dd><p>Sidedness for clustering thresholded images. <code>"bisided"</code> (default)
+clusters positive and negative surviving voxels separately, matching AFNI's
+<code>3dClusterize -bisided</code> behavior. <code>"two_sided"</code> allows all surviving voxels
+to connect regardless of sign.</p></dd>
 
 </dl></div>
     <div class="section level2">

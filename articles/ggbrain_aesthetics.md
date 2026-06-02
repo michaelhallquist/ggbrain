@@ -11,6 +11,7 @@ plots using `patchwork`.
 The package includes several images for demonstration purposes:
 
 ``` r
+
 # MNI 2009c anatomical underlay
 underlay_2mm <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
@@ -52,6 +53,7 @@ example, `remove_specks = 20` would remove any clusters smaller than 20
 pixels in size from each slice on the rendered image.
 
 ``` r
+
 base_plot <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
   slices(c("z = 4", "z = 20")) +
@@ -85,6 +87,7 @@ should be filled on the rendered slices using nearest neighbor
 imputation.
 
 ``` r
+
 # Without filling holes
 p1 <- base_plot +
   geom_brain(definition = "overlay", fill_scale = scale_fill_distiller("z", palette = "Reds")) +
@@ -112,6 +115,7 @@ This helps clean up thin “threads” or isolated pixels that can occur at
 the edges of clusters.
 
 ``` r
+
 # Without trimming
 p1 <- base_plot +
   geom_brain(definition = "overlay", fill_scale = scale_fill_distiller("z", palette = "Reds")) +
@@ -134,6 +138,7 @@ For the best visual results, you can combine all three cleaning
 operations:
 
 ``` r
+
 gg_clean <- base_plot +
   geom_brain(
     definition = "overlay", 
@@ -156,6 +161,7 @@ You can use any ggplot2 `scale_fill_*` function to customize the color
 mapping:
 
 ``` r
+
 gg_viridis <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = echange_overlay_2mm)) +
   slices(c("x = 0", "y = 0", "z = 30")) +
@@ -179,6 +185,7 @@ errors), use
 to create separate color scales:
 
 ``` r
+
 gg_bisided <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
   slices(c("x = 0", "y = 0", "z = 30")) +
@@ -208,6 +215,7 @@ color to label columns rather than numeric values. This requires adding
 labels to your image and specifying the appropriate aesthetic mapping:
 
 ``` r
+
 # Create a subset of labels for Dorsal Attention Network
 dan_labels <- schaefer_labels %>%
   filter(network == "DorsAttn") %>%
@@ -253,6 +261,7 @@ highlight different groupings. For example, you might fill regions by
 network and outline individual parcels:
 
 ``` r
+
 gg_outlined <- ggbrain(bg_color = "gray90", text_color = "black") +
   images(c(underlay = underlay_2mm)) +
   images(c(dan_atlas = schaefer200_atlas_2mm), labels = dan_labels) +
@@ -295,6 +304,7 @@ function adds text labels to regions, using `ggrepel` to prevent
 overlapping. This is extremely useful for labeling multiple regions:
 
 ``` r
+
 # Add custom short labels for display
 dan_labels_short <- dan_labels %>%
   mutate(
@@ -349,6 +359,7 @@ Use
 to add slice coordinate labels to each panel:
 
 ``` r
+
 gg_coords <- ggbrain(bg_color = "gray90", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
   slices(c("x = 0", "y = 0", "z = 30")) +
@@ -372,6 +383,7 @@ Use
 to add neurological orientation labels (L/R, A/P, S/I):
 
 ``` r
+
 gg_orient <- ggbrain(bg_color = "gray90", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
   slices(c("x = 0", "y = 0", "z = 30")) +
@@ -399,6 +411,7 @@ in-plane voxel). The `tol` argument (in mm) controls how closely a
 coordinate must match a slice along the slicing axis (default: 1 mm).
 
 ``` r
+
 gg_cross <- ggbrain(bg_color = "gray90", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
   slices(c("z = 20", "z = 40")) +
@@ -422,6 +435,7 @@ components that can be reused. This is similar to creating a ‘theme’ for
 your brain plots:
 
 ``` r
+
 # Define common plot elements
 common_parts <- 
   images(c(underlay = underlay_2mm)) +
@@ -445,6 +459,7 @@ operators to arrange them.
 ### Basic patchwork combinations
 
 ``` r
+
 # Create two different brain plots
 gg_axial <- ggbrain(bg_color = "gray90", text_color = "black", title = "Axial View") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
@@ -481,6 +496,7 @@ When combining multiple plots with similar color scales, you can extract
 and share a common legend:
 
 ``` r
+
 # Create plots without legends
 p1 <- ggbrain(bg_color = "gray90", text_color = "black", title = "Entropy Change") +
   images(c(underlay = underlay_2mm, overlay = echange_overlay_2mm)) +
@@ -521,6 +537,7 @@ graphics devices. The `bg` argument ensures the background color extends
 to the full output device:
 
 ``` r
+
 # Using ggsave (recommended)
 ggsave("my_brain_plot.png", render(gg_labeled), width = 10, height = 6, dpi = 300, bg = "gray90")
 ggsave("my_brain_plot.pdf", render(gg_labeled), width = 10, height = 6)
@@ -543,6 +560,7 @@ You can filter an image to display only certain regions using the
 This is useful when you want to focus on specific ROIs or networks:
 
 ``` r
+
 # Get specific parcel values for Premotor regions
 premotor_parcels <- dan_labels %>%
   filter(dan_group == "Premotor") %>%
@@ -583,6 +601,7 @@ Use
 to upsample your display for smoother, higher-resolution figures:
 
 ``` r
+
 # Without upsampling (native 2mm resolution)
 p1 <- ggbrain(bg_color = "gray90", text_color = "black") +
   images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +

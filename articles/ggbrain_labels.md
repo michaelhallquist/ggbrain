@@ -22,6 +22,7 @@ This version of the atlas contains 200 cortical parcels (in the paper,
 they show 100-1000 parcels).
 
 ``` r
+
 schaefer_img <- readNifti(schaefer200_atlas_file)
 length(unique(as.vector(schaefer_img)))
 ```
@@ -34,6 +35,7 @@ introduction](https://michaelhallquist.github.io/ggbrain/articles/ggbrain_introd
 document.
 
 ``` r
+
 gg_obj <- ggbrain() +
   images(c(underlay = underlay_file, atlas = schaefer200_atlas_file)) +
   slices(c("z = 30", "z=40")) +
@@ -55,6 +57,7 @@ called `value`. And thus, for `geom_brain` and `geom_outline` objects,
 the default aesthetic mapping is `aes(fill=value)`.
 
 ``` r
+
 gg_obj <- ggbrain() +
   images(c(underlay = underlay_file, atlas = schaefer200_atlas_file)) +
   slices(c("z = 30", "z=40")) +
@@ -75,6 +78,7 @@ number of parcels. For example, perhaps we’re interested in just the
 first 20.
 
 ``` r
+
 gg_obj <- ggbrain() +
   images(c(underlay = underlay_file, atlas = schaefer200_atlas_file)) +
   slices(c("z = 30", "z=40")) +
@@ -121,14 +125,14 @@ may wish to display on the plot. The CSV also contains a columns called
 `network` that refers to the network mapping to the Yeo 2011 7-network
 parcellation.
 
-| roi_num | hemi |   x |   y |   z | network | MNI_Glasser_HCP_v1.0         | Brainnetome_1.0 | CA_ML_18_MNI                  | schaefer_region | custom_label |
-|--------:|:-----|----:|----:|----:|:--------|:-----------------------------|:----------------|:------------------------------|:----------------|:-------------|
-|       1 | L    | -24 | -53 |  -9 | Vis     | L_VentroMedial_Visual_Area_2 | rLinG_left      | Left Lingual Gyrus            | 1               | NA           |
-|       2 | L    | -24 | -76 | -13 | Vis     | L_Eighth_Visual_Area         | A37mv_left      | Left Fusiform Gyrus           | 2               | NA           |
-|       3 | L    | -43 | -70 |  -9 | Vis     | L_Area_PH                    | A37lv_left      | Left Inferior Occipital Gyrus | 3               | MT/MST       |
-|       4 | L    | -10 | -66 |  -5 | Vis     | L_Third_Visual_Area          | rLinG_left      | Left Lingual Gyrus            | 4               | NA           |
-|       5 | L    | -25 | -94 | -11 | Vis     | L_Third_Visual_Area          | iOccG_left      | Left Inferior Occipital Gyrus | 5               | NA           |
-|       6 | L    | -14 | -44 |  -3 | Vis     | L_PreSubiculum               | A23v_left       | Left Lingual Gyrus            | 6               | NA           |
+| roi_num | hemi | x | y | z | network | MNI_Glasser_HCP_v1.0 | Brainnetome_1.0 | CA_ML_18_MNI | schaefer_region | custom_label |
+|---:|:---|---:|---:|---:|:---|:---|:---|:---|:---|:---|
+| 1 | L | -24 | -53 | -9 | Vis | L_VentroMedial_Visual_Area_2 | rLinG_left | Left Lingual Gyrus | 1 | NA |
+| 2 | L | -24 | -76 | -13 | Vis | L_Eighth_Visual_Area | A37mv_left | Left Fusiform Gyrus | 2 | NA |
+| 3 | L | -43 | -70 | -9 | Vis | L_Area_PH | A37lv_left | Left Inferior Occipital Gyrus | 3 | MT/MST |
+| 4 | L | -10 | -66 | -5 | Vis | L_Third_Visual_Area | rLinG_left | Left Lingual Gyrus | 4 | NA |
+| 5 | L | -25 | -94 | -11 | Vis | L_Third_Visual_Area | iOccG_left | Left Inferior Occipital Gyrus | 5 | NA |
+| 6 | L | -14 | -44 | -3 | Vis | L_PreSubiculum | A23v_left | Left Lingual Gyrus | 6 | NA |
 
 The structure of this `data.frame` is relatively flexible. The primary
 requirement is that it contain a column called `value` that maps to the
@@ -138,6 +142,7 @@ mask. So, we need to rename it to `value` for `ggbrain` to accept it as
 a lookup table for labeling.
 
 ``` r
+
 schaefer200_atlas_labels <- schaefer200_atlas_labels %>%
   dplyr::rename(value = roi_num)
 ```
@@ -149,6 +154,7 @@ us access to additional columns that we can use for labeling.
 We use the `labels` argument with the `images` function.
 
 ``` r
+
 gg_base <- ggbrain() +
   images(c(underlay = underlay_file)) +
   images(c(atlas = schaefer200_atlas_file), labels=schaefer200_atlas_labels) +
@@ -184,6 +190,7 @@ How about we use the labels from the Eickhoff-Zilles macro labels from
 N27?
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "atlas[atlas < 20]", name = "Eickhoff-Zilles Label", 
              mapping = aes(fill = CA_ML_18_MNI), fill_scale = scale_fill_hue()) +
@@ -199,6 +206,7 @@ plot to three labels here. Why did this happen? The labels for the four
 regions were not unique in the lookup atlas.
 
 ``` r
+
 schaefer200_atlas_labels %>% filter(value %in% c(12, 13, 14, 18)) %>% select(value, CA_ML_18_MNI)
 ```
 
@@ -217,6 +225,7 @@ Yeo 7 networks assignments for the nodes on these two slices?
 parcels on these slices get to play.)
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "atlas", name = "Yeo 7 Assignment", 
              mapping = aes(fill = network))
@@ -237,6 +246,7 @@ Yeo2011_7Networks_ColorLUT.txt file from
 [Freesurfer](https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation_Yeo2011).
 
 ``` r
+
 yeo_colors <- read.table(system.file("extdata", "Yeo2011_7Networks_ColorLUT.txt", package = "ggbrain")) %>%
   setNames(c("index", "name", "r", "g", "b", "zero")) %>% slice(-1)
 
@@ -263,6 +273,7 @@ achieved by adding a `geom_outline` layer for networks alongside a
 `geom_brain` layer for regions.
 
 ``` r
+
 gg_obj <- gg_base +
   geom_brain(definition = "DAN Region := atlas[atlas.network == 'DorsAttn']", 
              mapping=aes(fill=CA_ML_18_MNI), show_legend = TRUE) +
@@ -292,6 +303,7 @@ premotor (including frontal eye fields), and middle temporal visual area
 (MT+).
 
 ``` r
+
 # first, divide relevant DAN parcels into groups
 dan_labels <- schaefer200_atlas_labels %>%
   filter(network=="DorsAttn") %>%
@@ -333,6 +345,7 @@ provide x and y positions on the panel, as well the slice to which the
 annotation should be added.
 
 ``` r
+
 ann <- abspe_gg +
   annotate_slice(x=20, y=20, slice_index=1, geom="text", label="slice1", color="gray40", size=11, hjust=0) +
   annotate_slice(x=20, y=40, slice_index=2, geom="text", label="slice2", color="gray40", size=11, hjust=0)
@@ -353,6 +366,7 @@ coordinates and “top” and “bottom” for y coordinates. The shorthand of
 “middle” also works in x and y.
 
 ``` r
+
 ann <- abspe_gg +
   annotate_slice(x="left", y="top", slice_index=1, geom="text", label="slice1", color="gray40", size=11, hjust=0, vjust=1) +
   annotate_slice(x="right", y="bottom", slice_index=2, geom="text", label="slice2", color="gray40", size=11, hjust=1, vjust=0)
@@ -366,6 +380,7 @@ Finally, we can use quantiles/percentiles along each axis to position
 things in relative space.
 
 ``` r
+
 ann <- abspe_gg +
   annotate_slice(x="q30", y="q60", slice_index=1, geom="text", label="slice1", color="gray40", size=11, hjust=0, vjust=1) +
   annotate_slice(x="q35", y="q70", slice_index=2, geom="text", label="slice2", color="gray40", size=11, hjust=0.5, vjust=0)
@@ -380,6 +395,7 @@ used to add other geometric shapes such as rectangles or points. For
 example, we could highlight the occipital region here.
 
 ``` r
+
 ann <- abspe_gg +
   annotate_slice(xmin="q0", xmax="q38", ymin="q25", ymax="q59", slice_index=1, geom="rect", 
                  color="blue", fill="transparent", linewidth=1.5)
@@ -414,6 +430,7 @@ Premotor. These labels already exist in our `schaefer200_atlas_labels`
 data.frame. Let’s use the MNI_Glasser_HCP_v1.0 labels.
 
 ``` r
+
 ann <- abspe_gg +
   geom_region_label(image="atlas", label_column="MNI_Glasser_HCP_v1.0", size=3, color="black")
 # 
@@ -441,6 +458,7 @@ visualization than the long labels.
     ## [6] "|L_Frontal_Eye_Fields                 |lFEF         |"
 
 ``` r
+
 ann <- abspe_gg +
   geom_region_label(image="atlas", label_column="custom_label", size=3, color="black")
 # 
