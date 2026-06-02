@@ -26,6 +26,26 @@ test_that("cluster_slices outline uses base image header and preserves cluster i
   expect_equal(outline_ids, seq_len(nrow(res$cluster_data)))
 })
 
+test_that("underlay keeps grayscale scale when selected slices contain tiny negative values", {
+  arr <- array(1, dim = c(5, 5, 5))
+  arr[1, 1, 5] <- -0.001
+
+  tf <- tempfile(fileext = ".nii.gz")
+  on.exit(unlink(tf), add = TRUE)
+  RNifti::writeNifti(arr, tf)
+
+  gg_obj <- ggbrain() +
+    images(c(underlay = tf)) +
+    slices("z = 100%") +
+    geom_brain("underlay")
+
+  patch <- gg_obj$render()
+  fill_scales <- patch$scales$scales
+
+  expect_false(any(vapply(fill_scales, inherits, logical(1), "ScaleBisided")))
+  expect_equal(fill_scales[[1]]$palette(c(0, 1)), c("#141414", "#EBEBEB"))
+})
+
 test_that("cluster_slices outline renders with multiple cluster ids across slices", {
   underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
   overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
@@ -194,6 +214,64 @@ test_that("compute_cluster_slices warns when fewer clusters than requested", {
 
   expect_equal(nrow(res$cluster_data), 1L)
   expect_true(is.integer(res$labeled_volume))
+})
+
+test_that("cluster_slices defaults to bisided clustering", {
+  arr <- array(0, dim = c(5, 5, 5))
+  arr[2:4, 3, 3] <- c(3.1, -3.2, 3.3)
+
+  tf <- tempfile(fileext = ".nii.gz")
+  on.exit(unlink(tf), add = TRUE)
+  RNifti::writeNifti(arr, tf)
+
+  res <- compute_cluster_slices(
+    images = c(overlay = tf),
+    definition = "overlay[abs(overlay) > 2.5]",
+    nclusters = 3,
+    min_clust_size = 1,
+    plane = "sagittal",
+    nn = 1,
+    outline = TRUE,
+    outline_color = NULL,
+    outline_size = 1L,
+    outline_scale = NULL,
+    outline_show_legend = NULL
+  )
+
+  expect_equal(nrow(res$cluster_data), 3L)
+  expect_equal(sort(res$cluster_data$size), c(1L, 1L, 1L))
+  side_counts <- table(res$cluster_data$side)
+  expect_equal(as.integer(side_counts[c("negative", "positive")]), c(1L, 2L))
+  expect_equal(length(unique(as.vector(res$labeled_volume[2:4, 3, 3]))), 3L)
+})
+
+test_that("two_sided clustering preserves historical sign-agnostic connections", {
+  arr <- array(0, dim = c(5, 5, 5))
+  arr[2:4, 3, 3] <- c(3.1, -3.2, 3.3)
+
+  tf <- tempfile(fileext = ".nii.gz")
+  on.exit(unlink(tf), add = TRUE)
+  RNifti::writeNifti(arr, tf)
+
+  res <- compute_cluster_slices(
+    images = c(overlay = tf),
+    definition = "overlay[abs(overlay) > 2.5]",
+    nclusters = 1,
+    min_clust_size = 1,
+    plane = "sagittal",
+    nn = 1,
+    sided = "two_sided",
+    outline = TRUE,
+    outline_color = NULL,
+    outline_size = 1L,
+    outline_scale = NULL,
+    outline_show_legend = NULL
+  )
+
+  expect_equal(nrow(res$cluster_data), 1L)
+  expect_equal(res$cluster_data$size, 3L)
+  expect_equal(res$cluster_data$side, "two_sided")
+  expect_equal(unique(as.vector(res$labeled_volume[2:4, 3, 3])), 1L)
 })
 
 test_that("apply_definition_3d supports cross-image conditions", {

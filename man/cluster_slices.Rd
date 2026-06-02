@@ -16,7 +16,8 @@ cluster_slices(
   outline_color = NULL,
   outline_size = 1L,
   outline_scale = NULL,
-  outline_show_legend = NULL
+  outline_show_legend = NULL,
+  sided = c("bisided", "two_sided")
 )
 }
 \arguments{
@@ -61,6 +62,11 @@ cluster outline colors. Mutually exclusive with \code{outline_color}.}
 
 \item{outline_show_legend}{Logical. Whether to show a legend for cluster outlines. If
 \code{NULL} (default), a legend is shown when multiple clusters exist.}
+
+\item{sided}{Sidedness for clustering thresholded images. \code{"bisided"} (default)
+clusters positive and negative surviving voxels separately, matching AFNI's
+\code{3dClusterize -bisided} behavior. \code{"two_sided"} allows all surviving voxels
+to connect regardless of sign.}
 }
 \value{
 If \code{images} is provided along with \code{definition}, returns a character vector

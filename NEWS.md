@@ -20,6 +20,7 @@
 * bugfix: Use bisided scale for all slices when `unify=TRUE` but only some slices have positive and negative values
 * bugfix: Use square data for outlines to avoid warnings about misalignment
 * bugfix: Always apply filter expressions passed with `images()`, not just for labeled images
+* bugfix: Do not default to bisided scale for underlay when in contains negative values
 * tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
 
 # ggbrain 0.9.1 (22Aug2025)

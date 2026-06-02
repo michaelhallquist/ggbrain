@@ -15,7 +15,8 @@ compute_cluster_slices(
   outline_color = NULL,
   outline_size = 1L,
   outline_scale = NULL,
-  outline_show_legend = NULL
+  outline_show_legend = NULL,
+  sided = c("bisided", "two_sided")
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ compute_cluster_slices(
 \item{plane}{The plane for slice selection}
 
 \item{nn}{Neighborhood connectivity (1, 2, or 3)}
+
+\item{sided}{Sidedness for clustering thresholded images. See \code{cluster_slices()}.}
 }
 \value{
 A list with elements: coordinates (character vector of slice coords) and

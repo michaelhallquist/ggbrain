@@ -26,6 +26,10 @@
 #'     \item \code{nn=3}: 26-connectivity (faces, edges, and corners touching)
 #'   }
 #'   Default: 3 (most inclusive)
+#' @param sided Sidedness for clustering thresholded images. \code{"bisided"} (default)
+#'   clusters positive and negative surviving voxels separately, matching AFNI's
+#'   \code{3dClusterize -bisided} behavior. \code{"two_sided"} allows all surviving voxels
+#'   to connect regardless of sign.
 #' @param outline Logical. If \code{TRUE}, a cluster outline mask is generated and automatically
 #'   added as a \code{geom_outline()} layer during rendering. Default: \code{FALSE}
 #' @param outline_color A single color string for all cluster outlines. If \code{NULL} (default),
@@ -98,7 +102,8 @@
 cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
                            nclusters = 10, min_clust_size = 1, plane = "axial", nn = 3,
                            outline = FALSE, outline_color = NULL, outline_size = 1L,
-                           outline_scale = NULL, outline_show_legend = NULL) {
+                           outline_scale = NULL, outline_show_legend = NULL,
+                           sided = c("bisided", "two_sided")) {
   # Validate mutually exclusive arguments
   if (!is.null(layer) && !is.null(definition)) {
     stop("Specify either 'layer' or 'definition', not both.")
@@ -114,6 +119,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
   checkmate::assert_choice(plane, c("axial", "sagittal", "coronal", "x", "y", "z"))
   plane <- switch(plane, x = "sagittal", y = "coronal", z = "axial", plane)
   checkmate::assert_choice(nn, c(1L, 2L, 3L))
+  sided <- normalize_cluster_sided(sided)
   checkmate::assert_logical(outline, len = 1L)
   checkmate::assert_integerish(outline_size, lower = 1L, len = 1L)
   checkmate::assert_character(outline_color, any.missing = FALSE, null.ok = TRUE)
@@ -134,7 +140,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
     # We have everything needed - compute slice locations now
     ret <- compute_cluster_slices(images, definition, nclusters, min_clust_size, plane, nn,
       outline = outline, outline_color = outline_color, outline_size = outline_size,
-      outline_scale = outline_scale, outline_show_legend = outline_show_legend)
+      outline_scale = outline_scale, outline_show_legend = outline_show_legend, sided = sided)
   } else {
     # Return a deferred specification to be resolved during render()
     ret <- structure(
@@ -145,6 +151,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
         min_clust_size = min_clust_size,
         plane = plane,
         nn = nn,
+        sided = sided,
         outline = outline,
         outline_color = outline_color,
         outline_size = outline_size,
@@ -167,6 +174,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
 #' @param min_clust_size Minimum cluster size in voxels
 #' @param plane The plane for slice selection
 #' @param nn Neighborhood connectivity (1, 2, or 3)
+#' @param sided Sidedness for clustering thresholded images. See \code{cluster_slices()}.
 #' @return A list with elements: coordinates (character vector of slice coords) and
 #'   cluster_data (data.frame with cluster details). When outlines are requested, the list
 #'   also includes \code{labeled_volume} (cluster ids restricted to the top clusters),
@@ -174,7 +182,10 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
 #'   \code{outline_size} (integer), and \code{outline_show_legend} (logical).
 #' @keywords internal
 compute_cluster_slices <- function(images, definition, nclusters, min_clust_size, plane, nn,
-  outline = FALSE, outline_color = NULL, outline_size = 1L, outline_scale = NULL, outline_show_legend = NULL) {
+  outline = FALSE, outline_color = NULL, outline_size = 1L, outline_scale = NULL, outline_show_legend = NULL,
+  sided = c("bisided", "two_sided")) {
+  sided <- normalize_cluster_sided(sided)
+
   # 1. Get the ggbrain_images object
   if (inherits(images, "character")) {
     img_obj <- ggbrain_images$new(images)
@@ -203,7 +214,16 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
   }
 
   # 3. Find 3D connected components and their properties
-  cluster_info <- find_3d_clusters(masked_vol, min_size = min_clust_size, nn = nn, return_labels = outline)
+  if (identical(sided, "bisided")) {
+    base_values <- as.array(img_obj$get_images(base_img, drop = TRUE))
+    cluster_info <- find_bisided_3d_clusters(
+      masked_vol, base_values, min_size = min_clust_size, nn = nn,
+      return_labels = outline, zero_tol = img_obj$zero_tol
+    )
+  } else {
+    cluster_info <- find_3d_clusters(masked_vol, min_size = min_clust_size, nn = nn, return_labels = outline)
+    cluster_info$side <- "two_sided"
+  }
   labeled_volume <- attr(cluster_info, "labeled_volume")
 
   if (nrow(cluster_info) == 0) {
@@ -212,6 +232,7 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
       coordinates = character(0),
       cluster_data = data.frame(
         cluster_id = integer(0), size = integer(0), cluster_index = integer(0),
+        side = character(0),
         com_i = numeric(0), com_j = numeric(0), com_k = numeric(0),
         com_x = numeric(0), com_y = numeric(0), com_z = numeric(0),
         slice_coord = character(0), outline_color = character(0), stringsAsFactors = FALSE
@@ -304,6 +325,17 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
     outline_scale = outline_scale,
     outline_show_legend = outline_show_legend
   ))
+}
+
+
+normalize_cluster_sided <- function(sided) {
+  if (length(sided) > 1L) sided <- sided[[1L]]
+  sided <- match.arg(sided, c("bisided", "bi_sided", "bi-sided", "two_sided", "two-sided", "2sided", "2-sided"))
+  if (sided %in% c("bisided", "bi_sided", "bi-sided")) {
+    "bisided"
+  } else {
+    "two_sided"
+  }
 }
 
 
@@ -473,6 +505,75 @@ find_3d_clusters <- function(mask, min_size = 1, nn = 3, return_labels = FALSE) 
     attr(cluster_df, "labeled_volume") <- labeled
   }
 
+  return(cluster_df)
+}
+
+
+#' Find 3D connected components separately by positive and negative sign
+#'
+#' @param mask A 3D logical array (TRUE for voxels of interest)
+#' @param values A 3D numeric array used to separate positive and negative tails
+#' @param min_size Minimum cluster size to retain
+#' @param nn Neighborhood connectivity (1=6-conn, 2=18-conn, 3=26-conn)
+#' @param return_labels If TRUE, attaches the labeled volume (after size filtering) as an attribute
+#'   named \code{labeled_volume}.
+#' @param zero_tol Tolerance for treating voxel values as zero
+#' @return A data.frame with columns: cluster_id, side, size, com_i, com_j, com_k
+#' @keywords internal
+find_bisided_3d_clusters <- function(mask, values, min_size = 1, nn = 3, return_labels = FALSE, zero_tol = 1e-6) {
+  checkmate::assert_array(mask)
+  checkmate::assert_array(values)
+  checkmate::assert_logical(as.vector(mask))
+  if (!identical(dim(mask), dim(values))) {
+    stop("mask and values must have the same dimensions")
+  }
+
+  dims <- dim(mask)
+  labeled <- array(0L, dim = dims)
+  next_id <- 1L
+  cluster_parts <- list()
+
+  side_masks <- list(
+    positive = mask & values > zero_tol,
+    negative = mask & values < -zero_tol
+  )
+
+  for (side_name in names(side_masks)) {
+    side_info <- find_3d_clusters(side_masks[[side_name]], min_size = min_size, nn = nn, return_labels = return_labels)
+    if (nrow(side_info) == 0L) next
+
+    old_ids <- side_info$cluster_id
+    new_ids <- seq.int(next_id, length.out = nrow(side_info))
+
+    if (isTRUE(return_labels)) {
+      side_labeled <- attr(side_info, "labeled_volume")
+      for (ii in seq_along(old_ids)) {
+        labeled[side_labeled == old_ids[ii]] <- new_ids[ii]
+      }
+    }
+
+    side_info$cluster_id <- new_ids
+    side_info$side <- side_name
+    cluster_parts <- c(cluster_parts, list(side_info))
+    next_id <- next_id + nrow(side_info)
+  }
+
+  if (length(cluster_parts) == 0L) {
+    cluster_df <- data.frame(
+      cluster_id = integer(0),
+      size = integer(0),
+      com_i = numeric(0),
+      com_j = numeric(0),
+      com_k = numeric(0),
+      side = character(0)
+    )
+    if (isTRUE(return_labels)) attr(cluster_df, "labeled_volume") <- labeled
+    return(cluster_df)
+  }
+
+  cluster_df <- do.call(rbind, cluster_parts)
+  cluster_df <- cluster_df[, c("cluster_id", "size", "com_i", "com_j", "com_k", "side")]
+  if (isTRUE(return_labels)) attr(cluster_df, "labeled_volume") <- labeled
   return(cluster_df)
 }
 
@@ -733,6 +834,7 @@ resolve_cluster_slices <- function(spec, images, layers = NULL) {
     min_clust_size = spec$min_clust_size,
     plane = spec$plane,
     nn = spec$nn,
+    sided = spec$sided %||% "bisided",
     outline = outline_flag,
     outline_color = spec$outline_color,
     outline_size = spec$outline_size,

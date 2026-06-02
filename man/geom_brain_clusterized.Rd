@@ -16,7 +16,8 @@ geom_brain_clusterized(
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL
+  trim_threads = NULL,
+  sided = c("bisided", "two_sided")
 )
 }
 \arguments{
@@ -38,6 +39,11 @@ geom_brain_clusterized(
 Supported values: "number" (cluster index), "voxels" (voxel count), "size" (mm^3 volume). Order is respected.}
 
 \item{blur_edge, fill_holes, remove_specks, trim_threads}{optional image refinements passed to \code{geom_brain()}}
+
+\item{sided}{Sidedness for clustering thresholded images. \code{"bisided"} (default)
+clusters positive and negative surviving voxels separately, matching AFNI's
+\code{3dClusterize -bisided} behavior. \code{"two_sided"} allows all surviving voxels
+to connect regardless of sign.}
 }
 \value{
 a \code{ggb} object that adds the clusterized layer

@@ -360,6 +360,10 @@ geom_outline <- function(definition = NULL, name = NULL, outline = NULL, outline
 #' @param nclusters maximum number of clusters to retain (largest by size). Default: 10
 #' @param min_clust_size minimum cluster size in voxels. Default: 1
 #' @param nn Neighborhood connectivity for defining clusters (1 = 6-connectivity, 2 = 18, 3 = 26). Default: 3
+#' @param sided Sidedness for clustering thresholded images. \code{"bisided"} (default)
+#'   clusters positive and negative surviving voxels separately, matching AFNI's
+#'   \code{3dClusterize -bisided} behavior. \code{"two_sided"} allows all surviving voxels
+#'   to connect regardless of sign.
 #' @param fill_scale a ggplot2 discrete scale_fill_* object to use for mapping cluster ids. If NULL, an automatic palette is used.
 #' @param show_legend logical; whether to show the cluster legend. Default: TRUE
 #' @param blur_edge,fill_holes,remove_specks,trim_threads optional image refinements passed to `geom_brain()`
@@ -380,12 +384,14 @@ geom_brain_clusterized <- function(definition,
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL) {
+  trim_threads = NULL,
+  sided = c("bisided", "two_sided")) {
 
   checkmate::assert_string(definition)
   checkmate::assert_count(nclusters, positive = TRUE)
   checkmate::assert_count(min_clust_size, positive = TRUE)
   checkmate::assert_choice(nn, c(1L, 2L, 3L))
+  sided <- normalize_cluster_sided(sided)
   checkmate::assert_class(fill_scale, "Scale", null.ok = TRUE)
   checkmate::assert_logical(show_legend, len = 1L)
   checkmate::assert_subset(cluster_info, c("number", "voxels", "size"))
@@ -398,6 +404,7 @@ geom_brain_clusterized <- function(definition,
     nclusters = nclusters,
     min_clust_size = min_clust_size,
     nn = nn,
+    sided = sided,
     outline = FALSE
   )
 

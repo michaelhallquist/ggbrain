@@ -309,6 +309,8 @@ ggbrain_plot <- R6::R6Class(
           l_obj <- layers[[li]]
           if (isTRUE(l_obj$unify_scales) &&
               !isTRUE(l_obj$categorical_fill) &&
+              !identical(l_obj$source, "underlay") &&
+              !identical(l_obj$definition, "underlay") &&
               is.null(l_obj$fill_scale)) {
 
             rng <- img_ranges %>% dplyr::filter(layer == !!l_obj$source)
