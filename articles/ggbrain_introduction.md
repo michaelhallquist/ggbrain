@@ -503,7 +503,7 @@ function.
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
-  define("diff := pe - abspe") +
+  define(diff := pe - abspe) +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "diff", fill_scale = scale_fill_bisided(symmetric = FALSE), show_legend = TRUE)
 
@@ -534,7 +534,7 @@ z-statistic \> 3).
 gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
   images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
   slices(c("x = 10", "y = 50", "z = 15")) +
-  define("diff := pe - abspe") +
+  define(diff := pe - abspe) +
   geom_brain(definition = "underlay") +
   geom_brain(definition = "diff[diff > 3]", fill_scale = scale_fill_distiller("PE > absPE", palette="Reds"), show_legend = TRUE)
 
@@ -542,6 +542,61 @@ plot(gg_obj)
 ```
 
 ![](ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png)
+
+#### Conjunction analysis
+
+Use `case_when()` to define a categorical conjunction map. Each clause
+has the form `logical expression ~ "category"`. As with
+[`dplyr::case_when()`](https://dplyr.tidyverse.org/reference/case-and-replace-when.html),
+clauses are evaluated from left to right and the first matching category
+takes precedence. Quoted category names can contain spaces and
+punctuation. Voxels that do not match any clause remain `NA`; use a
+final `TRUE ~ "Other"` clause to assign a fallback category.
+
+``` r
+
+gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
+  images(c(underlay = underlay_2mm, pe = pe_overlay_2mm, abspe = abspe_overlay_2mm)) +
+  slices(c("x = 10", "y = 50", "z = 15")) +
+  define(pe_conjunction := case_when(
+    pe > 3 & abspe > 3 ~ "Both",
+    pe > 3 ~ "Signed PE",
+    abspe > 3 ~ "Absolute PE"
+  )) +
+  geom_brain(definition = "underlay") +
+  geom_brain(
+    definition = "pe_conjunction",
+    fill_scale = scale_fill_brewer("Threshold category", palette = "Set2")
+  )
+
+plot(gg_obj)
+```
+
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png)
+
+Internally, the conjunction retains integer codes in its `value` column
+so that image-processing operations continue to work. The category names
+(`Both`, `Signed PE`, and `Absolute PE` above) are stored as factor
+levels and are used automatically for the fill mapping. Consequently,
+discrete scales such as `scale_fill_brewer()` and `scale_fill_manual()`
+can be supplied directly. If no fill scale is supplied, `ggbrain`
+chooses its default categorical palette.
+
+The original semicolon syntax remains supported:
+
+``` r
+
+define(paste(
+  "pe_conjunction :=",
+  "both = pe > 3 & abspe > 3;",
+  "signed_pe = pe > 3;",
+  "absolute_pe = abspe > 3"
+))
+```
+
+The semicolon form follows the same first-match precedence as
+`case_when()`. Place more specific conditions before broader conditions
+when categories can overlap.
 
 ### Add outlines
 
@@ -579,7 +634,7 @@ gg_obj <- ggbrain() +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-26-1.png)
 
 ### Clusterized categorical layers
 
@@ -684,7 +739,7 @@ Likewise, you can modify the overall theme information using the
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-27-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-29-1.png)
 
 Note that you don’t necessarily need to use
 [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
@@ -708,7 +763,7 @@ brain_plot <- ggbrain() +
 render(brain_plot) + plot_annotation(title = "Overall")
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-28-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-30-1.png)
 
 ``` r
 

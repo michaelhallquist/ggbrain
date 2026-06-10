@@ -77,6 +77,16 @@ is exactly zero. In general, leave this as <code>NA_real_</code> unless you know
 
 </dl></div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Categorical conjunctions can be written using
+<code>case_when(&lt;logical expression&gt; ~ "&lt;label&gt;", ...)</code>, where the first
+matching clause takes precedence. Unmatched values remain missing; a final
+<code>TRUE ~ "Other"</code> clause can provide a fallback. The legacy semicolon-separated
+<code>&lt;label&gt; = &lt;logical expression&gt;</code> syntax is also supported. Both forms
+use first-match precedence, retain integer codes in <code>value</code> for image
+processing, and return the user labels as factor levels in <code>label</code>.</p>
+    </div>
+    <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p>Michael Hallquist</p>
     </div>

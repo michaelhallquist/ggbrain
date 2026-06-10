@@ -29,7 +29,7 @@ R package for creating plots of brains using ggplot.
   2D binary image
 
 - [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
-  : Adds contrast definitions to the ggbrain plot
+  : Define derived image contrasts
 
 - [`fill_from_edge`](https://michaelhallquist.github.io/ggbrain/reference/fill_from_edge.md)
   : This function finds holes by flood filling TRUE into a 2D binary

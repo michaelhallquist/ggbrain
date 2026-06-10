@@ -46,7 +46,12 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0" id="ggbrain-10-7dec2025">ggbrain 1.0 (7Dec2025)<a class="anchor" aria-label="anchor" href="#ggbrain-10-7dec2025"></a></h2>
-<ul><li>feature: added <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> function that allows user to choose slices based on connected clusters in a given image</li>
+<ul><li>feature: <code><a href="../reference/define.html">define()</a></code> now supports unquoted definitions such as <code>define(diff := img1 - img2)</code>
+</li>
+<li>feature: conjunctions can use <code>case_when(condition ~ "label", ...)</code> with first-match precedence</li>
+<li>change: legacy semicolon conjunctions now also use first-match precedence; place specific conditions first</li>
+<li>bugfix: conjunction labels are preserved as factor levels and automatically use categorical fill scales</li>
+<li>feature: added <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> function that allows user to choose slices based on connected clusters in a given image</li>
 <li>feature: added <code><a href="../reference/geom_brain_clusterized.html">geom_brain_clusterized()</a></code>, which allows users to display connected clusters instead of continuous values</li>
 <li>feature: added <code><a href="../reference/target_resolution.html">target_resolution()</a></code> function to resample slices to a different resolution for display. This allows users to upsample images to finer resolution (e.g., show 2.5mm data at 1mm) or downsample for faster rendering and smaller file sizes. Supports nearest neighbor, linear, cubic (default), and lanczos interpolation methods.</li>
 <li>feature: added <code><a href="../reference/annotate_orientation.html">annotate_orientation()</a></code> function to add anatomical orientation labels to plots</li>

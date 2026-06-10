@@ -2,6 +2,16 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- feature:
+  [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+  now supports unquoted definitions such as
+  `define(diff := img1 - img2)`
+- feature: conjunctions can use `case_when(condition ~ "label", ...)`
+  with first-match precedence
+- change: legacy semicolon conjunctions now also use first-match
+  precedence; place specific conditions first
+- bugfix: conjunction labels are preserved as factor levels and
+  automatically use categorical fill scales
 - feature: added
   [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
   function that allows user to choose slices based on connected clusters
