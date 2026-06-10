@@ -18,6 +18,10 @@
 // [[Rcpp::export]]
 
 arma::mat nn_impute(const arma::mat& in_mat, int neighbors = 4, int radius = 8, std::string aggfun = "mean", bool ignore_zeros = true) {
+  if (aggfun != "mean" && aggfun != "median" && aggfun != "mode") {
+    Rcpp::stop("Unable to interpret aggfun '" + aggfun + "'");
+  }
+
   // find NAs to interpolate
   mat out_mat = in_mat;
   //Rcout << "About to find non finite" << std::endl;
@@ -41,8 +45,6 @@ arma::mat nn_impute(const arma::mat& in_mat, int neighbors = 4, int radius = 8, 
       out_mat(na_indices(i)) = median(pts);
     } else if (aggfun == "mode") {
       out_mat(na_indices(i)) = integer_mode(conv_to<ivec>::from(pts)); // force conversion to integers
-    } else {
-      Rcpp::stop("Unable to interpret aggfun '" + aggfun + "'");
     }
   }
   

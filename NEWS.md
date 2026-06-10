@@ -21,6 +21,7 @@
 * bugfix: correct row/column swap in the eastward check of count_neighbors.
 * bugfix: switched `flood_fill` to stack-based approach to avoid overflow due to recursion.
 * bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
+* bugfix: Refactor `nearest_pts` to exclude missing, non-finite, ignored-zero, and target pixels before selecting neighbors. This prevents invalid values from entering `nn_impute` when fewer than the requested number of valid neighbors are available and improves performance, especially for sparse images.
 * bugfix: Use bisided scale for all slices when `unify=TRUE` but only some slices have positive and negative values
 * bugfix: Use square data for outlines to avoid warnings about misalignment
 * bugfix: Always apply filter expressions passed with `images()`, not just for labeled images

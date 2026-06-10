@@ -311,7 +311,7 @@ ggbrain_slices <- R6::R6Class(
         coord_label=private$pvt_coord_label,
         plane=private$pvt_plane,
         slice_index=private$pvt_slice_index,
-        slice_number=private$pvt_plane,
+        slice_number=private$pvt_slice_number,
         slice_data=private$pvt_slice_data,
         slice_labels=private$pvt_slice_labels,
         slice_matrix=private$pvt_slice_matrix,

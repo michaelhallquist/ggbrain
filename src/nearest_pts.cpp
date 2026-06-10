@@ -19,66 +19,58 @@
 arma::vec nearest_pts(int x, int y, const arma::mat& in_mat, int neighbors = 4, int radius = 8, bool ignore_zeros = true) {
   // x and y are already 0-based indices (e.g., from arma::ind2sub)
   int xs = in_mat.n_rows; // size of x (rows)
-  int ys = in_mat.n_cols; // sizy of y (cols)
+  int ys = in_mat.n_cols; // size of y (cols)
+
+  if (neighbors < 1) {
+    Rcpp::stop("neighbors must be at least 1");
+  }
+  if (radius < 0) {
+    Rcpp::stop("radius must be non-negative");
+  }
+  if (x < 0 || x >= xs || y < 0 || y >= ys) {
+    Rcpp::stop("x and y must index a location within in_mat");
+  }
 
   int min_x = std::max(0, x - radius);
   int max_x = std::min(xs - 1, x + radius);
   int min_y = std::max(0, y - radius);
   int max_y = std::min(ys - 1, y + radius);
-  //Rcout << "min_x: " << min_x << ", max_x: " << max_x << ", min_y: " << min_y << ", max_y: " << max_y << std::endl;
 
-  arma::mat search = in_mat.submat(min_x, min_y, max_x, max_y);
-  arma::mat dists(search.n_rows*search.n_cols, 3);
-  arma::rowvec rd(3);
-  int r = 0;
+  int max_candidates = (max_x - min_x + 1) * (max_y - min_y + 1) - 1;
+  if (max_candidates == 0) {
+    return arma::vec();
+  }
 
-  for (int i = 0; i < search.n_rows; i++) {
-    //Rcout << "i: " << i << std::endl;
-    rd(0) = i;
-    for (int j = 0; j < search.n_cols; j++) {
-      //Rcout << "j: " << j << std::endl;
-      rd(1) = j;
+  arma::vec values(max_candidates);
+  arma::vec distances(max_candidates);
+  arma::uword n_valid = 0;
 
-      if ((min_x + i) == x && (min_y + j) == y) {
-        rd(2) = datum::inf; // set infinite distance to self coordinate to remove it from consideration
-      } else if (std::isnan(search(i,j))) {
-        rd(2) = datum::inf; // set to infinite distance so that it sorts to the bottom
-      } else if (ignore_zeros && std::abs(search(i,j)) < 1e-4) {
-        rd(2) = datum::inf; // set to infinite distance if a zero is found since that is not seen as a valid data point
-      } else {
-        rd(2) = sqrt(pow(x-(min_x+i), 2) + pow(y-(min_y+j), 2)); // compute euclidean distance
+  for (int i = min_x; i <= max_x; i++) {
+    for (int j = min_y; j <= max_y; j++) {
+      if (i == x && j == y) {
+        continue;
       }
 
-      dists.row(r) = rd;
-      r++;
+      double value = in_mat(i, j);
+      if (!std::isfinite(value) || (ignore_zeros && std::abs(value) < 1e-4)) {
+        continue;
+      }
+
+      double dx = x - i;
+      double dy = y - j;
+      values(n_valid) = value;
+      distances(n_valid) = dx * dx + dy * dy;
+      n_valid++;
     }
   }
 
-  //Rcout << "About to sort matrix" << std::endl;
-
-  // sort distance matrix from nearest to furthest
-  dists = sort_mat(dists, 2);
-  //print_mat(dists);
-
-  // Clamp neighbors to the number of available rows to avoid out-of-bounds access
-  int n_avail = dists.n_rows;
-  int n_keep = std::min(neighbors, n_avail);
-  
-  // If no rows available, return empty vector
-  if (n_keep == 0) {
+  if (n_valid == 0) {
     return arma::vec();
   }
-  
-  arma::mat keep = dists.rows(0, n_keep - 1);
-  //print_mat(keep);
 
-  // lookup positions of closesnt neighbors within the search matrix
-  // sub2ind requires 2 rows, with first being the row for .elem and the second being the column
-  arma::umat locs = arma::conv_to<arma::umat>::from(keep.cols(0, 1)).t();
-  arma::uvec ret = sub2ind(size(search), locs);
-
-  // return the values at the nearest non-NA locations
-  return(search.elem(ret));
+  arma::uvec order = arma::sort_index(distances.head(n_valid));
+  arma::uword n_keep = std::min(static_cast<arma::uword>(neighbors), n_valid);
+  return values.elem(order.head(n_keep));
 }
 
 // You can include R code blocks in C++ files processed with sourceCpp
