@@ -1,3 +1,30 @@
+# Build categorical conjunction output using shared first-match precedence.
+build_conjunction <- function(clauses, data) {
+  category_labels <- vapply(clauses, `[[`, character(1L), "val")
+  if (anyDuplicated(category_labels)) {
+    stop("Conjunction labels must be unique")
+  }
+
+  is_logical <- vapply(clauses, function(clause) is.logical(clause$df$value), logical(1L))
+  if (any(!is_logical)) {
+    stop("Each conjunction condition must evaluate to TRUE or FALSE")
+  }
+
+  comb_df <- data.frame(data[, c("dim1", "dim2")], value = NA_integer_, label = NA_character_)
+  for (clause in clauses) {
+    matched <- is.na(comb_df$value) & !is.na(clause$df$value) & clause$df$value
+    comb_df$value[matched] <- clause$num
+    comb_df$label[matched] <- clause$val
+  }
+  comb_df$label <- factor(comb_df$label, levels = category_labels)
+
+  attr(comb_df, "label_columns") <- "label"
+  attr(comb_df, "categorical_fill_column") <- "label"
+  attr(comb_df, "categorical_fill_levels") <- category_labels
+
+  comb_df
+}
+
 #' helper function to calculate contrasts of one or more images using a combination of
 #'   image arithmetic and logical subsetting
 #' @param expr a string or expression containing the image calculation to be performed
@@ -6,6 +33,13 @@
 #' @param default_val the value to be returned for any element of the contrast calculation that
 #'   does not pass through the arithmetic, either because of logical subsetting or because it
 #'   is exactly zero. In general, leave this as \code{NA_real_} unless you know what you're doing.
+#' @details Categorical conjunctions can be written using
+#'   \code{case_when(<logical expression> ~ "<label>", ...)}, where the first
+#'   matching clause takes precedence. Unmatched values remain missing; a final
+#'   \code{TRUE ~ "Other"} clause can provide a fallback. The legacy semicolon-separated
+#'   \code{<label> = <logical expression>} syntax is also supported. Both forms
+#'   use first-match precedence, retain integer codes in \code{value} for image
+#'   processing, and return the user labels as factor levels in \code{label}.
 #' @author Michael Hallquist
 #' @importFrom checkmate assert_data_frame assert_subset
 #' @importFrom dplyr across mutate
@@ -21,6 +55,54 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   }
 
   checkmate::assert_data_frame(data)
+
+  parsed_expr <- tryCatch(parse(text = expr), error = function(e) NULL)
+  is_case_when <- FALSE
+  if (!is.null(parsed_expr) && length(parsed_expr) == 1L && is.call(parsed_expr[[1L]])) {
+    call_head <- parsed_expr[[1L]][[1L]]
+    is_case_when <- identical(call_head, as.name("case_when")) ||
+      (is.call(call_head) &&
+        identical(call_head[[1L]], as.name("::")) &&
+        identical(call_head[[2L]], as.name("dplyr")) &&
+        identical(call_head[[3L]], as.name("case_when")))
+  }
+
+  if (isTRUE(is_case_when)) {
+    case_call <- parsed_expr[[1L]]
+    case_args <- as.list(case_call)[-1L]
+    arg_names <- names(case_args)
+    if (is.null(arg_names)) arg_names <- rep("", length(case_args))
+
+    unsupported <- nzchar(arg_names)
+    if (any(unsupported)) {
+      stop(
+        "Named case_when() arguments are not supported in conjunction definitions: ",
+        paste(arg_names[unsupported], collapse = ", "),
+        ". Use logical condition ~ \"label\" clauses."
+      )
+    }
+    if (length(case_args) == 0L) {
+      stop("case_when() conjunction definitions require at least one condition ~ \"label\" clause")
+    }
+
+    c_list <- lapply(seq_along(case_args), function(e) {
+      clause <- case_args[[e]]
+      if (!is.call(clause) || !identical(clause[[1L]], as.name("~")) || length(clause) != 3L) {
+        stop("Each case_when() conjunction clause must use logical condition ~ \"label\" syntax")
+      }
+
+      label <- clause[[3L]]
+      if (!is.character(label) || length(label) != 1L || is.na(label) || !nzchar(label)) {
+        stop("Each case_when() conjunction label must be a non-empty quoted character string")
+      }
+
+      condition <- paste(deparse(clause[[2L]], width.cutoff = 500L), collapse = " ")
+      df <- contrast_parser(condition, data = data, default_val = default_val)
+      list(num = e, val = label, df = df)
+    })
+
+    return(build_conjunction(c_list, data))
+  }
 
   # check for compound contrast, use recursive evaluation
   if (grepl(";", expr, fixed=TRUE)) {
@@ -43,18 +125,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
       return(ret)
     })
 
-    # iteratively set elements of the resulting value vector so that the later
-    # parts of the compound expression, if TRUE, overwrite earlier parts
-    comb_df <- data.frame(data[, c("dim1", "dim2")], value = NA_integer_, label = NA_character_)
-    for (cc in c_list) {
-      comb_df$value[cc$df$value == TRUE] <- cc$num
-      comb_df$label[cc$df$value == TRUE] <- as.character(cc$val)
-    }
-
-    # need to tag label columns for this to be picked up downstream in ggbrain_slices$get_uvals (get unique values)
-    attr(comb_df, "label_columns") <- "label"
-
-    return(comb_df)
+    return(build_conjunction(c_list, data))
 
     # iteratively join these data.frames together (clunkier)
     #c_df <- Reduce(function(x, y) inner_join(x, y, by = c("dim1", "dim2")), c_list)
@@ -226,7 +297,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
 # res <- contrast_parser("dsf * abc", data)
 
 # compound logical expressions (conjunction)
-# res <- contrast_parser("1 = bin1 == 1L; 2 = bin2 == 1L; 3 = bin1 == 1L & bin2 == 1L", data)
+# res <- contrast_parser("3 = bin1 == 1L & bin2 == 1L; 1 = bin1 == 1L; 2 = bin2 == 1L", data)
 
 
 

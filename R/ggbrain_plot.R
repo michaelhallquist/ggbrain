@@ -268,6 +268,26 @@ ggbrain_plot <- R6::R6Class(
       # each slice forms a ggbrain_panel
       slice_df <- private$pvt_slices$as_tibble()
 
+      # Compound logical contrasts retain numeric codes in value, but expose the
+      # user-provided category names through a factor column. Use that column for
+      # the default fill mapping while respecting any non-default user mapping.
+      if (nrow(slice_df) > 0L) {
+        first_slice <- slice_df$slice_data[[1L]]
+        for (li in seq_along(layers)) {
+          l_obj <- layers[[li]]
+          source_data <- first_slice[[l_obj$source]]
+          cat_col <- attr(source_data, "categorical_fill_column")
+          fill_mapping <- l_obj$mapping$fill
+
+          if (checkmate::test_string(cat_col) &&
+              cat_col %in% names(source_data) &&
+              !is.null(fill_mapping) &&
+              identical(rlang::as_label(fill_mapping), "value")) {
+            l_obj$mapping <- ggplot2::aes(fill = !!rlang::sym(cat_col))
+          }
+        }
+      }
+
       # each slice can have formatting settings for its panel
       panel_settings <- private$pvt_panel_settings
 
@@ -366,7 +386,10 @@ ggbrain_plot <- R6::R6Class(
                 inherits(layer_data[[f_col]], c("character", "factor", "ordered")))
 
             if (isTRUE(is_cat) && !is.null(f_col)) {
-              if (nrow(img_uvals) > 0 && all(c("layer", ".label_col", "uvals") %in% names(img_uvals))) {
+              declared_levels <- attr(layer_data, "categorical_fill_levels")
+              if (!is.null(declared_levels)) {
+                f_levels <- declared_levels
+              } else if (nrow(img_uvals) > 0 && all(c("layer", ".label_col", "uvals") %in% names(img_uvals))) {
                 f_levels <- img_uvals %>%
                   dplyr::filter(layer == !!l_obj$source & .label_col == !!f_col) %>%
                   dplyr::pull(uvals)

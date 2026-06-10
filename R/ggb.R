@@ -186,8 +186,9 @@ ggb <- R6::R6Class(
     },
 
     # Compute layer sources and inline contrasts from layer definitions
-    compute_layer_sources = function(layer_defs, img, cluster_layer_names) {
-      is_contrast <- !layer_defs %in% img$get_image_names()
+    compute_layer_sources = function(layer_defs, img, cluster_layer_names, defined_contrast_names = character(0)) {
+      available_sources <- c(img$get_image_names(), defined_contrast_names)
+      is_contrast <- !layer_defs %in% available_sources
       is_contrast[layer_defs %in% cluster_layer_names] <- FALSE
       layer_sources <- rep(NA_character_, length(layer_defs))
       layer_sources[!is_contrast] <- layer_defs[!is_contrast]
@@ -530,7 +531,12 @@ ggb <- R6::R6Class(
       cluster_layer_names <- vapply(self$ggb_cluster_slices, function(s) {
         if (!is.null(s$cluster_layer_name)) s$cluster_layer_name else NA_character_
       }, character(1))
-      layer_info <- private$compute_layer_sources(layer_defs, img, cluster_layer_names)
+      layer_info <- private$compute_layer_sources(
+        layer_defs,
+        img,
+        cluster_layer_names,
+        defined_contrast_names = names(self$ggb_contrasts)
+      )
       layer_sources <- layer_info$layer_sources
       inline_contrasts <- layer_info$inline_contrasts
       if (length(inline_contrasts) > 0L) slc$compute_contrasts(inline_contrasts)

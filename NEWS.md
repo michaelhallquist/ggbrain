@@ -1,5 +1,9 @@
 # ggbrain 1.0 (7Dec2025)
 
+* feature: `define()` now supports unquoted definitions such as `define(diff := img1 - img2)`
+* feature: conjunctions can use `case_when(condition ~ "label", ...)` with first-match precedence
+* change: legacy semicolon conjunctions now also use first-match precedence; place specific conditions first
+* bugfix: conjunction labels are preserved as factor levels and automatically use categorical fill scales
 * feature: added `cluster_slices()` function that allows user to choose slices based on connected clusters in a given image
 * feature: added `geom_brain_clusterized()`, which allows users to display connected clusters instead of continuous values 
 * feature: added `target_resolution()` function to resample slices to a different resolution for display. This allows

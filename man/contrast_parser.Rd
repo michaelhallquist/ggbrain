@@ -21,6 +21,15 @@ is exactly zero. In general, leave this as \code{NA_real_} unless you know what 
 helper function to calculate contrasts of one or more images using a combination of
 image arithmetic and logical subsetting
 }
+\details{
+Categorical conjunctions can be written using
+\code{case_when(<logical expression> ~ "<label>", ...)}, where the first
+matching clause takes precedence. Unmatched values remain missing; a final
+\code{TRUE ~ "Other"} clause can provide a fallback. The legacy semicolon-separated
+\code{<label> = <logical expression>} syntax is also supported. Both forms
+use first-match precedence, retain integer codes in \code{value} for image
+processing, and return the user labels as factor levels in \code{label}.
+}
 \author{
 Michael Hallquist
 }
