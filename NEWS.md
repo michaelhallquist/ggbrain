@@ -22,6 +22,12 @@
 * bugfix: switched `flood_fill` to stack-based approach to avoid overflow due to recursion.
 * bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
 * bugfix: Refactor `nearest_pts` to exclude missing, non-finite, ignored-zero, and target pixels before selecting neighbors. This prevents invalid values from entering `nn_impute` when fewer than the requested number of valid neighbors are available and improves performance, especially for sparse images.
+* bugfix: Make repeated `render()` calls idempotent for cluster-derived slices and layers. Generated cluster slices, clusterized layers, and outline layers are now kept in render-local state instead of being appended to the stored `ggb_slices` and `ggb_layers` specification.
+* bugfix: Keep `ggbrain_images` metadata and nonzero-range caches synchronized after image addition, filtering, thresholding, and removal. Nested image filters are now applied correctly, and removing images also removes their names, labels, and other associated metadata.
+* bugfix: Import `ggplot2::geom_text()` and `ggplot2::geom_label()` so region text and label layers render without requiring users to attach ggplot2.
+* bugfix: Correct convenience argument handling for `ggbrain(..., slices=)` and for applying `labels` or `filter` when `images()` receives an existing `ggbrain_images` object.
+* bugfix: Deep-clone layer and region-label fragments when attaching them to a plot, preventing reused fragments from sharing mutable R6 state. Region-label slice data are now assigned to render-local clones rather than the stored plot specification.
+* bugfix: Clear labels associated with old image data when an image is replaced under an existing name. Object-to-object additions install labels from the replacement object when provided.
 * bugfix: Use bisided scale for all slices when `unify=TRUE` but only some slices have positive and negative values
 * bugfix: Use square data for outlines to avoid warnings about misalignment
 * bugfix: Always apply filter expressions passed with `images()`, not just for labeled images

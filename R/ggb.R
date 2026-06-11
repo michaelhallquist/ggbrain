@@ -10,24 +10,37 @@ ggb <- R6::R6Class(
     # Resolve any deferred cluster_slices specifications before slicing
     resolve_cluster_specs = function(img) {
       outline_imgs <- character(0) # track any auto-generated outline images to refresh slices later
+      render_slices <- self$ggb_slices
+      render_layers <- if (is.null(self$ggb_layers)) {
+        NULL
+      } else {
+        lapply(self$ggb_layers, function(layer) layer$clone(deep = TRUE))
+      }
+      cluster_data <- list()
 
       if (is.null(self$ggb_cluster_slices) || length(self$ggb_cluster_slices) == 0L) {
-        return(list(img = img, outline_imgs = outline_imgs))
+        return(list(
+          img = img,
+          slices = render_slices,
+          layers = render_layers,
+          cluster_data = cluster_data,
+          outline_imgs = outline_imgs
+        ))
       }
 
       for (spec in self$ggb_cluster_slices) {
-        cluster_result <- resolve_cluster_slices(spec, img, self$ggb_layers)
+        cluster_result <- resolve_cluster_slices(spec, img, render_layers)
         if (length(cluster_result$coordinates) > 0 && !identical(spec$action, "clusterized")) {
           # Convert to the list format expected by ggb_slices
           cluster_slice_list <- lapply(cluster_result$coordinates, function(coord) list(coordinate = coord))
-          self$ggb_slices <- c(self$ggb_slices, cluster_slice_list)
+          render_slices <- c(render_slices, cluster_slice_list)
         }
         # Annotate cluster provenance and store for later retrieval
         cluster_df <- cluster_result$cluster_data
         cluster_df$type <- if (identical(spec$action, "clusterized")) "display" else "slicing"
         cluster_df$cluster_source <- if (!is.null(spec$layer)) spec$layer else spec$definition
         cluster_df$cluster_layer <- if (!is.null(spec$cluster_layer_name)) spec$cluster_layer_name else NA_character_
-        self$ggb_cluster_data <- c(self$ggb_cluster_data, list(cluster_df))
+        cluster_data <- c(cluster_data, list(cluster_df))
 
         # If this spec is for a clusterized fill layer, add the labeled volume and wire fill scale
         if (identical(spec$action, "clusterized") && !is.null(cluster_result$labeled_volume)) {
@@ -42,23 +55,23 @@ ggb <- R6::R6Class(
           img$add_array_as_image(cluster_result$labeled_volume, name = cluster_img_name)
 
           # Update the placeholder layer to point to the new cluster image and scale
-          if (!is.null(self$ggb_layers) && length(self$ggb_layers) > 0L) {
-            cl_idx <- which(vapply(self$ggb_layers, function(ll) identical(ll$name, spec$cluster_layer_name), logical(1)))
-            if (length(cl_idx) == 0L) cl_idx <- length(self$ggb_layers) # fallback
+          if (!is.null(render_layers) && length(render_layers) > 0L) {
+            cl_idx <- which(vapply(render_layers, function(ll) identical(ll$name, spec$cluster_layer_name), logical(1)))
+            if (length(cl_idx) == 0L) cl_idx <- length(render_layers) # fallback
             cl_idx <- cl_idx[[1L]]
-            self$ggb_layers[[cl_idx]]$name <- cluster_img_name
-            self$ggb_layers[[cl_idx]]$definition <- cluster_img_name
-            self$ggb_layers[[cl_idx]]$source <- cluster_img_name
+            render_layers[[cl_idx]]$name <- cluster_img_name
+            render_layers[[cl_idx]]$definition <- cluster_img_name
+            render_layers[[cl_idx]]$source <- cluster_img_name
 
             # If user supplied a fill_scale, use it; otherwise build a discrete scale from palette
             if (!is.null(spec$cluster_fill_scale)) {
-              self$ggb_layers[[cl_idx]]$fill_scale <- spec$cluster_fill_scale
+              render_layers[[cl_idx]]$fill_scale <- spec$cluster_fill_scale$clone()
             } else {
               cluster_vals <- cluster_result$labeled_volume[!is.na(cluster_result$labeled_volume)]
               uids <- sort(unique(cluster_vals))
               pal <- grDevices::hcl.colors(length(uids), palette = "Dark 3")
               names(pal) <- as.character(uids)
-              self$ggb_layers[[cl_idx]]$fill_scale <- ggplot2::scale_fill_manual(
+              render_layers[[cl_idx]]$fill_scale <- ggplot2::scale_fill_manual(
                 values = pal, limits = names(pal), na.translate = FALSE, drop = FALSE
               )
             }
@@ -66,7 +79,7 @@ ggb <- R6::R6Class(
             # attach custom labels if requested and scale has no labels yet
             if (!is.null(spec$cluster_label_fields) && length(spec$cluster_label_fields) > 0L) {
               lab_fields <- spec$cluster_label_fields
-              scale_obj <- self$ggb_layers[[cl_idx]]$fill_scale
+              scale_obj <- render_layers[[cl_idx]]$fill_scale
               has_labels <- !is.null(scale_obj$labels) && !inherits(scale_obj$labels, "waiver")
               if (!has_labels) {
                 hdr <- img$get_headers(img_names = spec$cluster_source, drop = TRUE)
@@ -95,16 +108,16 @@ ggb <- R6::R6Class(
                   paste0(parts[1L], ": ", paste(parts[-1L], collapse = ", "))
                 }
                 lab_vals <- vapply(valid_ids, label_fun, character(1))
-                self$ggb_layers[[cl_idx]]$fill_scale$labels <- lab_vals
-                if (is.null(self$ggb_layers[[cl_idx]]$fill_scale$limits)) {
-                  self$ggb_layers[[cl_idx]]$fill_scale$limits <- valid_ids
+                render_layers[[cl_idx]]$fill_scale$labels <- lab_vals
+                if (is.null(render_layers[[cl_idx]]$fill_scale$limits)) {
+                  render_layers[[cl_idx]]$fill_scale$limits <- valid_ids
                 }
               }
             }
 
-            self$ggb_layers[[cl_idx]]$mapping <- ggplot2::aes(fill = factor(value))
-            self$ggb_layers[[cl_idx]]$show_legend <- isTRUE(spec$cluster_show_legend)
-            self$ggb_layers[[cl_idx]]$unify_scales <- FALSE
+            render_layers[[cl_idx]]$mapping <- ggplot2::aes(fill = factor(value))
+            render_layers[[cl_idx]]$show_legend <- isTRUE(spec$cluster_show_legend)
+            render_layers[[cl_idx]]$unify_scales <- FALSE
           }
         }
 
@@ -135,7 +148,7 @@ ggb <- R6::R6Class(
           outline_color <- NULL
 
           if (!is.null(outline_scale_user)) {
-            outline_scale <- outline_scale_user
+            outline_scale <- outline_scale_user$clone()
             if (is.null(outline_scale$limits) || inherits(outline_scale$limits, "waiver") || is.function(outline_scale$limits)) {
               outline_scale$limits <- outline_ids
             }
@@ -167,11 +180,18 @@ ggb <- R6::R6Class(
             show_legend = show_legend_flag
           )
 
-          self$add_layers(list(outline_layer))
+          render_layers <- c(render_layers, list(outline_layer))
+          names(render_layers) <- vapply(render_layers, function(layer) layer$name, character(1L))
         }
       }
 
-      list(img = img, outline_imgs = outline_imgs)
+      list(
+        img = img,
+        slices = render_slices,
+        layers = render_layers,
+        cluster_data = cluster_data,
+        outline_imgs = outline_imgs
+      )
     },
 
     # Retrieve slices with target resolution settings, if present
@@ -208,10 +228,11 @@ ggb <- R6::R6Class(
       list(layer_sources = layer_sources, inline_contrasts = inline_contrasts)
     },
 
-    assign_layer_sources = function(layer_sources) {
+    assign_layer_sources = function(layer_sources, layers = self$ggb_layers) {
       for (ii in seq_along(layer_sources)) {
-        self$ggb_layers[[ii]]$source <- layer_sources[ii]
+        layers[[ii]]$source <- layer_sources[ii]
       }
+      layers
     }
   ),
   public=list(
@@ -314,6 +335,7 @@ ggb <- R6::R6Class(
       checkmate::assert_list(ilist)
       sapply(ilist, function(x) checkmate::assert_class(x, "ggbrain_layer"))
 
+      ilist <- lapply(ilist, function(x) x$clone(deep = TRUE))
       self$ggb_layers <- c(self$ggb_layers, ilist)
 
       names(self$ggb_layers) <- sapply(self$ggb_layers, "[[", "name")
@@ -490,6 +512,7 @@ ggb <- R6::R6Class(
       }
 
       sapply(labels, function(x) checkmate::assert_class(x, "ggbrain_label"))
+      labels <- lapply(labels, function(x) x$clone(deep = TRUE))
       self$ggb_region_labels <- c(self$ggb_region_labels, labels)
     },
 
@@ -504,19 +527,17 @@ ggb <- R6::R6Class(
         return(NULL)
       }
 
-      # reset cluster data and slices when render is called again
-      base_slices <- self$ggb_slices
-      self$ggb_cluster_data <- list()
-      self$ggb_slices <- base_slices
-
       img <- self$ggb_images$clone(deep = TRUE)
 
       res <- private$resolve_cluster_specs(img)
       img <- res$img
+      render_slices <- res$slices
+      render_layers <- res$layers
+      self$ggb_cluster_data <- res$cluster_data
       outline_imgs <- res$outline_imgs
 
-      if (!is.null(self$ggb_slices)) {
-        img$add_slices(sapply(self$ggb_slices, "[[", "coordinate"))
+      if (!is.null(render_slices)) {
+        img$add_slices(vapply(render_slices, `[[`, character(1L), "coordinate"))
       }
 
       if (!is.null(self$ggb_image_labels))  do.call(img$add_labels, self$ggb_image_labels)
@@ -527,7 +548,7 @@ ggb <- R6::R6Class(
       slc$compute_contrasts(self$ggb_contrasts)
 
       # image/contrast definitions for each layer
-      layer_defs <- trimws(sapply(self$ggb_layers, "[[", "definition"))
+      layer_defs <- trimws(vapply(render_layers, `[[`, character(1L), "definition"))
       cluster_layer_names <- vapply(self$ggb_cluster_slices, function(s) {
         if (!is.null(s$cluster_layer_name)) s$cluster_layer_name else NA_character_
       }, character(1))
@@ -542,18 +563,18 @@ ggb <- R6::R6Class(
       if (length(inline_contrasts) > 0L) slc$compute_contrasts(inline_contrasts)
 
       # populate source fields in layers so that the appropriate layer can be looked up from slices
-      private$assign_layer_sources(layer_sources)
+      render_layers <- private$assign_layer_sources(layer_sources, render_layers)
 
       # Align panel settings with the actual slices (after deduplication in get_slices)
       panel_settings <- lapply(slc$coord_input, function(ci) {
-        idx <- which(vapply(self$ggb_slices, function(x) isTRUE(x$coordinate == ci), logical(1)))
-        if (length(idx) == 0L) list() else self$ggb_slices[[idx[1L]]]
+        idx <- which(vapply(render_slices, function(x) isTRUE(x$coordinate == ci), logical(1)))
+        if (length(idx) == 0L) list() else render_slices[[idx[1L]]]
       })
 
       # need to line up layer names with data name in slice_data
       # populate ggbrain_plot object with compiled data
       self$ggb_plot$slices <- slc
-      self$ggb_plot$layers <- self$ggb_layers
+      self$ggb_plot$layers <- render_layers
       self$ggb_plot$panel_settings <- panel_settings
       self$ggb_plot$annotations <- self$ggb_annotations # pass through annotations
       self$ggb_plot$region_labels <- self$ggb_region_labels # pass through region labels

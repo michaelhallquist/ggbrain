@@ -2,7 +2,7 @@
 #' @importFrom checkmate assert_class
 #' @importFrom dplyr bind_rows
 #' @importFrom ggrepel geom_text_repel geom_label_repel
-#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 aes geom_text geom_label
 #' @importFrom rlang sym
 #' @importFrom R6 R6Class
 #' @return a `ggbrain_label` R6 class containing fields related to ggbrain plot labels

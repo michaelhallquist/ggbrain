@@ -4,7 +4,7 @@
 #'     in typical use of the package. Instead, look at images().
 #' @importFrom RNifti voxelToWorld readNifti niftiHeader
 #' @importFrom dplyr bind_rows group_by group_split distinct mutate select n anti_join
-#' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset test_atomic
+#' @importFrom checkmate assert_character assert_file_exists assert_logical assert_subset
 #' @importFrom tidyr unnest
 #' @importFrom tibble remove_rownames
 #' @importFrom tidyselect everything
@@ -28,6 +28,37 @@ ggbrain_images <- R6::R6Class(
     pvt_nz_range = NULL, # the range of slices in x, y, and z that contain non-zero voxels
     pvt_slices = NULL, # allows caching of slices for + approach
     pvt_contrasts = NULL, # allows caching of contrasts for + approach
+
+    refresh_image_invariants = function(recompute_nz = TRUE) {
+      private$pvt_img_names <- names(private$pvt_imgs)
+      if (length(private$pvt_img_names) == 0L) private$pvt_img_names <- NULL
+      private$pvt_img_volumes <- private$pvt_img_volumes[
+        intersect(names(private$pvt_img_volumes), private$pvt_img_names)
+      ]
+      private$pvt_img_labels <- private$pvt_img_labels[
+        intersect(names(private$pvt_img_labels), private$pvt_img_names)
+      ]
+
+      if (length(private$pvt_imgs) == 0L) {
+        private$pvt_dims <- NULL
+        private$pvt_pixdim <- NULL
+        private$pvt_affine <- NULL
+        private$pvt_nz_range <- NULL
+        return(invisible(NULL))
+      }
+
+      reference <- private$pvt_imgs[[1L]]
+      private$pvt_dims <- dim(reference)
+      private$pvt_pixdim <- RNifti::pixdim(reference)
+      private$pvt_affine <- RNifti::xform(reference)
+
+      if (isTRUE(recompute_nz)) {
+        private$pvt_nz_range <- NULL
+        private$pvt_nz_range <- self$get_nz_indices()
+      }
+
+      invisible(NULL)
+    },
 
     set_images = function(images = NULL, volumes = NULL) {
       if (is.null(images)) return(NULL) # skip out
@@ -131,10 +162,13 @@ ggbrain_images <- R6::R6Class(
       }
       private$pvt_affine <- affines[[1]]
 
+      replaced_names <- intersect(names(img_list), names(private$pvt_imgs))
+      if (length(replaced_names) > 0L) {
+        private$pvt_img_labels[replaced_names] <- NULL
+      }
       private$pvt_imgs[names(img_list)] <- img_list
       private$pvt_img_volumes[names(img_list)] <- volumes
-      private$pvt_img_names <- names(private$pvt_imgs)
-      private$pvt_nz_range <- self$get_nz_indices()
+      private$refresh_image_invariants()
     }
   ),
   active = list(
@@ -146,6 +180,7 @@ ggbrain_images <- R6::R6Class(
       } else {
         checkmate::assert_number(value, lower=0) # force positive number
         private$pvt_zero_tol <- value
+        private$refresh_image_invariants()
       }
     },
     #' @field slices a character vector of cached slice specifications to be used in $get_slices()
@@ -336,9 +371,12 @@ ggbrain_images <- R6::R6Class(
       nii_img <- RNifti::asNifti(arr, reference = reference)
       
       # Add to images list
+      if (name %in% names(private$pvt_imgs)) {
+        private$pvt_img_labels[name] <- NULL
+      }
       private$pvt_imgs[[name]] <- nii_img
-      private$pvt_img_names <- names(private$pvt_imgs)
       private$pvt_img_volumes[[name]] <- 1L
+      private$refresh_image_invariants()
       
       return(self)
     },
@@ -362,11 +400,15 @@ ggbrain_images <- R6::R6Class(
         # image to modify
         value <- private$pvt_imgs[[img_name]]
 
-        # supports a list at the image level, in which case multiple filters are applied to a single image
-        if (checkmate::test_atomic(class(filter[[ii]]))) {
-          f_ii <- list(filter[[ii]]) # create single element list
-        } else {
+        # A character vector denotes multiple expressions; a numeric vector is one value set.
+        if (checkmate::test_list(filter[[ii]])) {
           f_ii <- filter[[ii]]
+        } else if (checkmate::test_character(filter[[ii]])) {
+          f_ii <- as.list(filter[[ii]])
+        } else if (checkmate::test_numeric(filter[[ii]])) {
+          f_ii <- list(filter[[ii]])
+        } else {
+          stop("Each image filter must be a character expression, numeric vector, or list of filters.")
         }
 
         # each image can have multiple filters
@@ -374,15 +416,20 @@ ggbrain_images <- R6::R6Class(
           expr <- f_ii[[jj]]
 
           if (checkmate::test_character(expr)) {
-            value[eval(parse(text = paste("!(", expr, ")")))] <- 0
+            checkmate::assert_string(expr)
+            keep <- eval(parse(text = expr), envir = list(value = value))
+            checkmate::assert_logical(keep, len = length(value))
+            value[is.na(keep) | !keep] <- 0
           } else if (checkmate::test_numeric(expr)) {
             value[!value %in% expr] <- 0
+          } else {
+            stop("Each image filter must be a character expression or numeric vector.")
           }
-
         }
         private$pvt_imgs[[img_name]] <- value
       }
 
+      private$refresh_image_invariants()
       return(self)
     },
 
@@ -450,12 +497,14 @@ ggbrain_images <- R6::R6Class(
       if (length(good_imgs) > 0L) {
         message(glue::glue("Removing images: {paste(good_imgs, collapse=', ')}"))
         private$pvt_imgs[good_imgs] <- NULL
+        private$refresh_image_invariants()
       }
 
       if (length(bad_imgs) > 0L) {
         warning(glue::glue("Could not find these images to remove: {paste(bad_imgs, collapse=', ')}"))
       }
 
+      return(self)
     },
 
     #' @description winsorize the tails of a set of images to pull in extreme values
@@ -479,6 +528,7 @@ ggbrain_images <- R6::R6Class(
 
         return(img)
       })
+      private$refresh_image_invariants()
       return(self)
     },
 
@@ -488,6 +538,8 @@ ggbrain_images <- R6::R6Class(
     #'   If \code{NULL}, use the pvt_zero_tol field (default 1e-6).
     na_images = function(img_names, threshold = NULL) {
       if (is.null(img_names) || length(img_names) == 0L) return(self) #nothing to do
+      checkmate::assert_character(img_names)
+      checkmate::assert_subset(img_names, private$pvt_img_names)
       if (is.null(threshold)) {
         threshold <- private$pvt_zero_tol
       }
@@ -497,6 +549,8 @@ ggbrain_images <- R6::R6Class(
         return(img)
       })
 
+      private$refresh_image_invariants()
+      return(self)
     },
 
     #' @description print a summary of the ggbrain_images object
@@ -533,6 +587,12 @@ ggbrain_images <- R6::R6Class(
       img_any <- Reduce("|", img_nz)
 
       nz_pos <- which(img_any == TRUE, arr.ind = TRUE)
+      if (nrow(nz_pos) == 0L) {
+        return(
+          lapply(private$pvt_dims, function(n) c(1L, n)) %>%
+            setNames(c("i", "j", "k"))
+        )
+      }
 
       # get indices in i, j, k that are non-zero across the images of interest
       lapply(1:3, function(j) {

@@ -114,7 +114,7 @@ test_that("cluster_slices outline respects user-provided outline_scale", {
 
   gg_obj$render()
 
-  outline_layers <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_obj$ggb_layers)
+  outline_layers <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_obj$ggb_plot$layers)
   expect_true(length(outline_layers) >= 1L)
   ol <- outline_layers[[length(outline_layers)]]
 
@@ -141,7 +141,7 @@ test_that("cluster_slices outline honors outline_show_legend", {
     geom_brain("underlay") +
     geom_brain(definition = "overlay", name = "Activation")
   gg_off$render()
-  outline_layers_off <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_off$ggb_layers)
+  outline_layers_off <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_off$ggb_plot$layers)
   expect_false(outline_layers_off[[length(outline_layers_off)]]$show_legend)
 
   # force legend on even with single cluster
@@ -158,7 +158,7 @@ test_that("cluster_slices outline honors outline_show_legend", {
     geom_brain("underlay") +
     geom_brain(definition = "overlay", name = "Activation")
   gg_on$render()
-  outline_layers_on <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_on$ggb_layers)
+  outline_layers_on <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_on$ggb_plot$layers)
   expect_true(outline_layers_on[[length(outline_layers_on)]]$show_legend)
 })
 
@@ -182,7 +182,7 @@ test_that("cluster_slices outline with user scale keeps all cluster ids across s
 
   gg_obj$render()
 
-  outline_layers <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_obj$ggb_layers)
+  outline_layers <- Filter(function(l) inherits(l, "ggbrain_layer_outline"), gg_obj$ggb_plot$layers)
   ol <- outline_layers[[length(outline_layers)]]
 
   expect_equal(ol$fill_scale$limits, as.character(1:4))
@@ -336,4 +336,56 @@ test_that("outline layer errors when requested grouping column is missing", {
     suppressWarnings(layer$.__enclos_env__$private$get_plot_data()),
     "group_cols"
   )
+})
+
+test_that("repeated cluster slice renders do not mutate slices or layers", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+  overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
+
+  gg_obj <- ggbrain() +
+    images(c(underlay = underlay, overlay = overlay)) +
+    slices(cluster_slices(
+      definition = "overlay[abs(overlay) > 3]",
+      nclusters = 4,
+      min_clust_size = 40,
+      plane = "axial",
+      outline = TRUE
+    )) +
+    geom_brain("underlay") +
+    geom_brain("overlay")
+
+  specification_layer_names <- vapply(gg_obj$ggb_layers, `[[`, character(1L), "name")
+  specification_layer_defs <- vapply(gg_obj$ggb_layers, `[[`, character(1L), "definition")
+  expect_null(gg_obj$ggb_slices)
+
+  gg_obj$render()
+  first_coords <- gg_obj$ggb_plot$slices$coord_input
+  first_render_layers <- vapply(gg_obj$ggb_plot$layers, `[[`, character(1L), "name")
+  first_cluster_data <- gg_obj$get_cluster_data()
+
+  expect_null(gg_obj$ggb_slices)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "name"), specification_layer_names)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "definition"), specification_layer_defs)
+  expect_length(first_render_layers, length(specification_layer_names) + 1L)
+
+  gg_obj$render()
+
+  expect_identical(gg_obj$ggb_plot$slices$coord_input, first_coords)
+  expect_identical(vapply(gg_obj$ggb_plot$layers, `[[`, character(1L), "name"), first_render_layers)
+  expect_equal(gg_obj$get_cluster_data(), first_cluster_data)
+  expect_null(gg_obj$ggb_slices)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "name"), specification_layer_names)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "definition"), specification_layer_defs)
+
+  # Changes to the stored specification must be picked up by the next render.
+  gg_obj$ggb_layers[[2L]]$alpha <- 0.35
+  gg_obj$ggb_cluster_slices[[1L]]$outline_size <- 3L
+  gg_obj$render()
+
+  expect_equal(gg_obj$ggb_plot$layers[[2L]]$alpha, 0.35)
+  outline_layers <- Filter(
+    function(layer) inherits(layer, "ggbrain_layer_outline"),
+    gg_obj$ggb_plot$layers
+  )
+  expect_equal(outline_layers[[length(outline_layers)]]$size, 3L)
 })

@@ -20,7 +20,7 @@ ggbrain <- function(images = NULL, slices = NULL, title = NULL, bg_color="grey8"
   }
 
   if (!is.null(slices)) {
-    img_obj$reset_slices(slices)
+    img_obj$reset_slices()
     img_obj$add_slices(slices)
   }
 
@@ -57,7 +57,26 @@ add_labels <- function(...) {
 images <- function(images = NULL, volumes = NULL, labels = NULL, filter = NULL) {
   if (inherits(images, "ggbrain_images")) {
     img_obj <- images$clone(deep = TRUE) # work from copy
-    if (!is.null(labels)) img_obj$add_labels(labels)
+    img_names <- img_obj$get_image_names()
+
+    if (!is.null(labels)) {
+      if (checkmate::test_data_frame(labels) && length(img_names) == 1L) {
+        labels <- stats::setNames(list(labels), img_names)
+      }
+      checkmate::assert_list(labels, names = "unique")
+      checkmate::assert_subset(names(labels), img_names)
+      do.call(img_obj$add_labels, labels)
+    }
+
+    if (!is.null(filter)) {
+      if (!is.list(filter) && length(img_names) == 1L) {
+        filter <- stats::setNames(list(filter), img_names)
+      } else {
+        checkmate::assert_list(filter, names = "unique")
+        checkmate::assert_subset(names(filter), img_names)
+      }
+      img_obj$filter_images(filter)
+    }
   } else {
     img_obj <- ggbrain_images$new(images, volumes, labels, filter)
   }

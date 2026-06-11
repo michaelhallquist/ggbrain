@@ -25,12 +25,45 @@ test_that("geom_brain_clusterized adds categorical cluster layer without alterin
   expect_equal(length(gg_obj$ggb_plot$slices$coord_input), 1L)
 
   # Ensure clusterized layer exists with discrete scale
-  layers <- gg_obj$ggb_layers
+  layers <- gg_obj$ggb_plot$layers
   cl_layers <- Filter(function(l) inherits(l, "ggbrain_layer_brain") && l$name %in% c("clusterized", l$definition), layers)
   expect_true(length(cl_layers) >= 1L)
   cl <- cl_layers[[length(cl_layers)]]
   expect_true(cl$categorical_fill)
   expect_true(is.null(cl$fill_scale) || inherits(cl$fill_scale, "ScaleDiscrete"))
+})
+
+test_that("repeated clusterized renders retain the placeholder specification", {
+  underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
+  overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
+
+  gg_obj <- ggbrain() +
+    images(c(underlay = underlay, overlay = overlay)) +
+    slices("z=0") +
+    geom_brain("underlay") +
+    geom_brain_clusterized(
+      definition = "overlay[abs(overlay) > 3]",
+      name = "PE clusters",
+      nclusters = 4,
+      min_clust_size = 40
+    )
+
+  specification_names <- vapply(gg_obj$ggb_layers, `[[`, character(1L), "name")
+  specification_defs <- vapply(gg_obj$ggb_layers, `[[`, character(1L), "definition")
+
+  gg_obj$render()
+  first_render_names <- vapply(gg_obj$ggb_plot$layers, `[[`, character(1L), "name")
+  first_cluster_data <- gg_obj$get_cluster_data()
+
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "name"), specification_names)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "definition"), specification_defs)
+
+  gg_obj$render()
+
+  expect_identical(vapply(gg_obj$ggb_plot$layers, `[[`, character(1L), "name"), first_render_names)
+  expect_equal(gg_obj$get_cluster_data(), first_cluster_data)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "name"), specification_names)
+  expect_identical(vapply(gg_obj$ggb_layers, `[[`, character(1L), "definition"), specification_defs)
 })
 
 test_that("geom_brain_clusterized errors if definition image missing", {

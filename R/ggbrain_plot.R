@@ -450,6 +450,7 @@ ggbrain_plot <- R6::R6Class(
 
         if (!is.null(private$pvt_region_labels)) {
           slc_labels <- lapply(private$pvt_region_labels, function(ll) {
+            ll <- ll$clone(deep = TRUE)
             ll$data <- slice_df$slice_labels[[i]][[ll$image]]
             return(ll)
           })

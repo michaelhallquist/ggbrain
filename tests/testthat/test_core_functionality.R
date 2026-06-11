@@ -47,6 +47,35 @@ test_that("categorical labels stay unified across slices and render", {
   expect_true(length(levels(lay1$network)) >= 1)
 })
 
+test_that("region text and label geoms resolve from the package namespace", {
+  label_data <- data.frame(
+    dim1 = 1,
+    dim2 = 1,
+    n = 1L,
+    label = "Region"
+  )
+  base_plot <- ggplot2::ggplot()
+
+  text_layer <- ggbrain_label$new(
+    data = label_data,
+    geom = "text",
+    image = "atlas",
+    min_px = 1L
+  )
+  label_layer <- ggbrain_label$new(
+    data = label_data,
+    geom = "label",
+    image = "atlas",
+    min_px = 1L
+  )
+
+  text_plot <- text_layer$add_to_gg(base_plot)
+  label_plot <- label_layer$add_to_gg(base_plot)
+
+  expect_s3_class(text_plot$layers[[1L]]$geom, "GeomText")
+  expect_s3_class(label_plot$layers[[1L]]$geom, "GeomLabel")
+})
+
 test_that("annotate_orientation adds labels when orientation is available", {
   underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 
