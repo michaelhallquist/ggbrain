@@ -35,6 +35,10 @@
   function to add requested cross-hairs to relevant panels
 - feature: Improve speed of `find_threads` by only decrementing neighbor
   counts for pixels identified from the initial full scan.
+- feature: Move 3D connected-component labeling and cluster statistics
+  into a single native traversal. This removes nested per-voxel R loops
+  and repeated full-volume scans for each cluster while preserving 6-,
+  18-, and 26-connectivity results.
 - feature: hardened tests of input images to check their voxel sizes
 - feature: Text colors on plots default to a color that contrasts with
   the background (allowing dark-on-light or light-on-dark plots)

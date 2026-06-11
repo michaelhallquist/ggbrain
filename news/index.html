@@ -57,6 +57,7 @@
 <li>feature: added <code><a href="../reference/annotate_orientation.html">annotate_orientation()</a></code> function to add anatomical orientation labels to plots</li>
 <li>feature: added <code><a href="../reference/annotate_crosshairs.html">annotate_crosshairs()</a></code> function to add requested cross-hairs to relevant panels</li>
 <li>feature: Improve speed of <code>find_threads</code> by only decrementing neighbor counts for pixels identified from the initial full scan.</li>
+<li>feature: Move 3D connected-component labeling and cluster statistics into a single native traversal. This removes nested per-voxel R loops and repeated full-volume scans for each cluster while preserving 6-, 18-, and 26-connectivity results.</li>
 <li>feature: hardened tests of input images to check their voxel sizes</li>
 <li>feature: Text colors on plots default to a color that contrasts with the background (allowing dark-on-light or light-on-dark plots)</li>
 <li>bugfix: avoid double calls to <code>refine_image()</code> when unifying categorical scales by releveling before data assignment</li>
