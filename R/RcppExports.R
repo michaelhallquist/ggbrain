@@ -109,6 +109,20 @@ integer_mode <- function(v, demote_zeros) {
     .Call(`_ggbrain_integer_mode`, v, demote_zeros)
 }
 
+#' Label connected components in a 3D logical array
+#'
+#' @name label_3d_components_cpp
+#' @param mask A 3D logical array with TRUE for foreground voxels.
+#' @param nn Connectivity level: 1 for faces, 2 for faces and edges, or 3 for
+#'   faces, edges, and corners.
+#' @param min_size Minimum component size to include in the returned statistics.
+#' @param return_labels Whether to return the labeled volume.
+#' @return A list containing component statistics and, when requested, labels.
+#' @keywords internal
+label_3d_components_cpp <- function(mask, nn = 3L, min_size = 1L, return_labels = FALSE) {
+    .Call(`_ggbrain_label_3d_components_cpp`, mask, nn, min_size, return_labels)
+}
+
 #' Fast conversion of 2D mat to 3-column data.frame with dim1, dim2, value
 #'
 #' @name mat2df

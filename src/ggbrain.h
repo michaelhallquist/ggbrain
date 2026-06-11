@@ -20,5 +20,8 @@ int integer_mode(arma::ivec v, bool demote_zeros = true);
 arma::mat nn_impute(const arma::mat& in_mat, int neighbors, int radius, std::string aggfun, bool ignore_zeros);
 DataFrame mat2df(NumericMatrix mat, bool na_zeros);
 NumericMatrix df2mat(const DataFrame& df, Nullable<NumericVector> replace_na);
+Rcpp::List label_3d_components_cpp(
+  const Rcpp::LogicalVector& mask, int nn, int min_size, bool return_labels
+);
 
 #endif

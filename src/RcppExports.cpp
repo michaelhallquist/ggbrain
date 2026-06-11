@@ -87,6 +87,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// label_3d_components_cpp
+Rcpp::List label_3d_components_cpp(const Rcpp::LogicalVector& mask, int nn, int min_size, bool return_labels);
+RcppExport SEXP _ggbrain_label_3d_components_cpp(SEXP maskSEXP, SEXP nnSEXP, SEXP min_sizeSEXP, SEXP return_labelsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::LogicalVector& >::type mask(maskSEXP);
+    Rcpp::traits::input_parameter< int >::type nn(nnSEXP);
+    Rcpp::traits::input_parameter< int >::type min_size(min_sizeSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_labels(return_labelsSEXP);
+    rcpp_result_gen = Rcpp::wrap(label_3d_components_cpp(mask, nn, min_size, return_labels));
+    return rcpp_result_gen;
+END_RCPP
+}
 // mat2df
 DataFrame mat2df(NumericMatrix mat, bool na_zeros);
 RcppExport SEXP _ggbrain_mat2df(SEXP matSEXP, SEXP na_zerosSEXP) {
@@ -150,6 +164,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ggbrain_find_threads", (DL_FUNC) &_ggbrain_find_threads, 4},
     {"_ggbrain_flood_fill", (DL_FUNC) &_ggbrain_flood_fill, 5},
     {"_ggbrain_integer_mode", (DL_FUNC) &_ggbrain_integer_mode, 2},
+    {"_ggbrain_label_3d_components_cpp", (DL_FUNC) &_ggbrain_label_3d_components_cpp, 4},
     {"_ggbrain_mat2df", (DL_FUNC) &_ggbrain_mat2df, 2},
     {"_ggbrain_nearest_pts", (DL_FUNC) &_ggbrain_nearest_pts, 6},
     {"_ggbrain_nn_impute", (DL_FUNC) &_ggbrain_nn_impute, 5},

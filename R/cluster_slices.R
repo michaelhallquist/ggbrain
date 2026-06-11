@@ -442,68 +442,14 @@ find_3d_clusters <- function(mask, min_size = 1, nn = 3, return_labels = FALSE) 
     stop("mask must be a 3D array")
   }
 
-  # Use flood-fill based connected component labeling
-  labeled <- label_3d_components(mask, nn = nn)
-
-  # Get unique cluster labels (excluding 0 = background)
-  cluster_ids <- sort(unique(as.vector(labeled)))
-  cluster_ids <- cluster_ids[cluster_ids > 0]
-
-  if (length(cluster_ids) == 0) {
-    cluster_df <- data.frame(
-      cluster_id = integer(0),
-      size = integer(0),
-      com_i = numeric(0),
-      com_j = numeric(0),
-      com_k = numeric(0)
-    )
-    if (isTRUE(return_labels)) attr(cluster_df, "labeled_volume") <- labeled
-    return(cluster_df)
-  }
-
-  # Compute cluster statistics
-  cluster_stats <- lapply(cluster_ids, function(cid) {
-    voxels <- which(labeled == cid, arr.ind = TRUE)
-    size <- nrow(voxels)
-
-    if (size < min_size) {
-      return(NULL)
-    }
-
-    # Center of mass (mean of voxel indices)
-    com_i <- mean(voxels[, 1])
-    com_j <- mean(voxels[, 2])
-    com_k <- mean(voxels[, 3])
-
-    data.frame(
-      cluster_id = cid,
-      size = size,
-      com_i = com_i,
-      com_j = com_j,
-      com_k = com_k
-    )
-  })
-
-  cluster_df <- do.call(rbind, cluster_stats)
-
-  if (is.null(cluster_df) || nrow(cluster_df) == 0) {
-    cluster_df <- data.frame(
-      cluster_id = integer(0),
-      size = integer(0),
-      com_i = numeric(0),
-      com_j = numeric(0),
-      com_k = numeric(0)
-    )
-    if (isTRUE(return_labels)) attr(cluster_df, "labeled_volume") <- labeled
-    return(cluster_df)
-  }
-
-  # Remove any clusters below the minimum size from the labeled volume if requested
-  if (isTRUE(return_labels)) {
-    keep_ids <- cluster_df$cluster_id
-    labeled[!(labeled %in% keep_ids)] <- 0L
-    attr(cluster_df, "labeled_volume") <- labeled
-  }
+  result <- label_3d_components_cpp(
+    mask,
+    nn = nn,
+    min_size = min_size,
+    return_labels = return_labels
+  )
+  cluster_df <- result$clusters
+  if (isTRUE(return_labels)) attr(cluster_df, "labeled_volume") <- result$labels
 
   return(cluster_df)
 }
@@ -547,8 +493,11 @@ find_bisided_3d_clusters <- function(mask, values, min_size = 1, nn = 3, return_
 
     if (isTRUE(return_labels)) {
       side_labeled <- attr(side_info, "labeled_volume")
-      for (ii in seq_along(old_ids)) {
-        labeled[side_labeled == old_ids[ii]] <- new_ids[ii]
+      labeled_voxels <- side_labeled > 0L
+      if (any(labeled_voxels)) {
+        id_map <- integer(max(old_ids))
+        id_map[old_ids] <- new_ids
+        labeled[labeled_voxels] <- id_map[side_labeled[labeled_voxels]]
       }
     }
 
@@ -578,108 +527,20 @@ find_bisided_3d_clusters <- function(mask, values, min_size = 1, nn = 3, return_
 }
 
 
-#' 3D connected component labeling using two-pass algorithm with union-find
+#' Native 3D connected component labeling using iterative component traversal
 #'
 #' @param mask A 3D logical array
 #' @param nn Neighborhood connectivity (1=6-conn, 2=18-conn, 3=26-conn)
 #' @return A 3D integer array with cluster labels (0 = background)
 #' @keywords internal
 label_3d_components <- function(mask, nn = 3) {
-  dims <- dim(mask)
-  ni <- dims[1]
-  nj <- dims[2]
-  nk <- dims[3]
-
-  # Get neighbor offsets - only use "backward" neighbors for two-pass algorithm
-  # (neighbors with smaller indices that have already been processed)
-  offsets <- get_backward_neighbor_offsets(nn)
-
-  # Initialize label array and union-find structure
-  labels <- array(0L, dim = dims)
-  next_label <- 1L
-
-  # Union-find data structure (will grow as needed)
-  # parent[i] gives the parent of label i; root has parent[i] == i
-  parent <- integer(0)
-
-  # Helper functions for union-find
-  find_root <- function(x) {
-    while (parent[x] != x) {
-      parent[x] <<- parent[parent[x]]  # path compression
-      x <- parent[x]
-    }
-    x
-  }
-
-  union_labels <- function(a, b) {
-    root_a <- find_root(a)
-    root_b <- find_root(b)
-    if (root_a != root_b) {
-      # Union by making smaller root the parent
-      if (root_a < root_b) {
-        parent[root_b] <<- root_a
-      } else {
-        parent[root_a] <<- root_b
-      }
-    }
-  }
-
-  # First pass: assign provisional labels and record equivalences
-  for (k in seq_len(nk)) {
-    for (j in seq_len(nj)) {
-      for (i in seq_len(ni)) {
-        if (!mask[i, j, k]) next
-
-        # Check backward neighbors for existing labels
-        neighbor_labels <- integer(0)
-        for (oi in seq_len(nrow(offsets))) {
-          ni_new <- i + offsets[oi, 1]
-          nj_new <- j + offsets[oi, 2]
-          nk_new <- k + offsets[oi, 3]
-
-          if (ni_new >= 1 && ni_new <= ni &&
-              nj_new >= 1 && nj_new <= nj &&
-              nk_new >= 1 && nk_new <= nk &&
-              labels[ni_new, nj_new, nk_new] > 0L) {
-            neighbor_labels <- c(neighbor_labels, labels[ni_new, nj_new, nk_new])
-          }
-        }
-
-        if (length(neighbor_labels) == 0) {
-          # No labeled neighbors - create new label
-          labels[i, j, k] <- next_label
-          parent <- c(parent, next_label)  # parent[next_label] = next_label (root)
-          next_label <- next_label + 1L
-        } else {
-          # Use minimum neighbor label
-          min_label <- min(neighbor_labels)
-          labels[i, j, k] <- min_label
-
-          # Union all neighbor labels
-          for (nl in unique(neighbor_labels)) {
-            if (nl != min_label) {
-              union_labels(min_label, nl)
-            }
-          }
-        }
-      }
-    }
-  }
-
-  # Second pass: replace each label with its root
-  if (length(parent) > 0) {
-    # Create mapping from old labels to new consecutive labels
-    roots <- sapply(seq_along(parent), find_root)
-    unique_roots <- sort(unique(roots))
-    label_map <- integer(length(parent))
-    label_map[unique_roots] <- seq_along(unique_roots)
-
-    # Apply mapping to all labeled voxels
-    labeled_idx <- which(labels > 0)
-    labels[labeled_idx] <- label_map[roots[labels[labeled_idx]]]
-  }
-
-  return(labels)
+  result <- label_3d_components_cpp(
+    mask,
+    nn = nn,
+    min_size = 1L,
+    return_labels = TRUE
+  )
+  result$labels
 }
 
 
