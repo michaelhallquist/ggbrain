@@ -12,7 +12,6 @@
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/annotate_crosshairs.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/annotate_slice.html</loc></url>
-<url><loc>https://michaelhallquist.github.io/ggbrain/reference/apply_definition_3d.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/center_matrix.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/compute_cluster_slices.html</loc></url>
@@ -20,6 +19,7 @@
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/count_neighbors.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/define.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/df2mat.html</loc></url>
+<url><loc>https://michaelhallquist.github.io/ggbrain/reference/evaluate_definition_3d.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/fill_from_edge.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/find_3d_clusters.html</loc></url>
 <url><loc>https://michaelhallquist.github.io/ggbrain/reference/find_bisided_3d_clusters.html</loc></url>

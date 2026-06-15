@@ -5,7 +5,7 @@ Resolve a deferred cluster_slices_spec
 ## Usage
 
 ``` r
-resolve_cluster_slices(spec, images, layers = NULL)
+resolve_cluster_slices(spec, images, layers = NULL, contrasts = NULL)
 ```
 
 ## Arguments
@@ -21,6 +21,10 @@ resolve_cluster_slices(spec, images, layers = NULL)
 - layers:
 
   A list of ggbrain_layer objects (optional, for layer reference)
+
+- contrasts:
+
+  Optional named character contrast definitions.
 
 ## Value
 

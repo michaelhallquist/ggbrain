@@ -17,7 +17,8 @@ compute_cluster_slices(
   outline_size = 1L,
   outline_scale = NULL,
   outline_show_legend = NULL,
-  sided = c("bisided", "two_sided")
+  sided = c("bisided", "two_sided"),
+  contrasts = NULL
 )
 ```
 
@@ -51,6 +52,11 @@ compute_cluster_slices(
 
   Sidedness for clustering thresholded images. See
   [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md).
+
+- contrasts:
+
+  Optional named character strings containing numeric/logical contrast
+  expressions.
 
 ## Value
 

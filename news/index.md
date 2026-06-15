@@ -8,10 +8,6 @@
   `define(diff := img1 - img2)`
 - feature: conjunctions can use `case_when(condition ~ "label", ...)`
   with first-match precedence
-- change: legacy semicolon conjunctions now also use first-match
-  precedence; place specific conditions first
-- bugfix: conjunction labels are preserved as factor levels and
-  automatically use categorical fill scales
 - feature: added
   [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
   function that allows user to choose slices based on connected clusters
@@ -39,9 +35,10 @@
   into a single native traversal. This removes nested per-voxel R loops
   and repeated full-volume scans for each cluster while preserving 6-,
   18-, and 26-connectivity results.
-- feature: hardened tests of input images to check their voxel sizes
 - feature: Text colors on plots default to a color that contrasts with
   the background (allowing dark-on-light or light-on-dark plots)
+- breaking change: legacy semicolon conjunctions now also use
+  first-match precedence; place specific conditions first
 - bugfix: avoid double calls to `refine_image()` when unifying
   categorical scales by releveling before data assignment
 - bugfix: ensure `fill_holes` uses mode for categorical/labeled data
@@ -99,6 +96,17 @@
   not just for labeled images
 - bugfix: Do not default to bisided scale for underlay when in contains
   negative values
+- bugfix: conjunction labels are preserved as factor levels and
+  automatically use categorical fill scales
+- bugfix: allow
+  [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+  and
+  [`geom_brain_clusterized()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain_clusterized.md)
+  to evaluate arithmetic and logical contrasts over complete 3D images,
+  including contrasts added with
+  [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md).
+  Signed clustering now uses the calculated contrast values rather than
+  a single source image.
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling

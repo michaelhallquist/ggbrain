@@ -44,8 +44,12 @@ cluster_slices(
 
   A definition string (same syntax as geom_brain) specifying the
   image/contrast to use for clustering. Examples: `"overlay"`,
-  `"overlay[overlay > 2.5]"`, `"overlay[abs(overlay) > 2.5]"`. Mutually
-  exclusive with `layer`.
+  `"overlay[overlay > 2.5]"`, `"overlay[abs(overlay) > 2.5]"`, or
+  `"a - b"`. A named contrast created upstream with
+  [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+  can also be referenced when `cluster_slices()` is used within a
+  [`ggbrain()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain.md)
+  pipeline. Mutually exclusive with `layer`.
 
 - nclusters:
 
@@ -127,6 +131,23 @@ meeting the minimum size criterion, the center of mass is computed.
 Slices are then selected at the center of mass coordinates along the
 specified plane.
 
+Contrast definitions can be supplied in two ways:
+
+1.  Put the complete image, arithmetic, logical, or masking expression
+    directly in `definition`, such as `"(a - b)[abs(a - b) > 2]"`. This
+    inline pathway works for both immediate calls with `images` and
+    deferred calls inside a
+    [`ggbrain()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain.md)
+    pipeline.
+
+2.  Add a named contrast upstream with
+    [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md),
+    then reference that name in `definition`. For example, use
+    `define(difference := a - b)` followed by
+    `cluster_slices(definition = "difference")`. This pathway is
+    resolved during rendering and keeps the same named contrast
+    available to other layers such as `geom_brain("difference")`.
+
 When `outline = TRUE`, a thin outline mask is also generated for the
 selected clusters. This outline can be automatically added as a
 [`geom_outline()`](https://michaelhallquist.github.io/ggbrain/reference/geom_outline.md)
@@ -150,14 +171,13 @@ considered connected:
 
 ``` r
 if (FALSE) { # \dontrun{
-  # Using a definition string directly
+  # Pathway 1: put the complete expression directly in cluster_slices()
   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
   overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 
-  gg_obj <- ggbrain() +
+  inline_plot <- ggbrain() +
     images(c(underlay = t1, overlay = overlay)) +
     slices(cluster_slices(
-      images = c(overlay = overlay),
       definition = "overlay[abs(overlay) > 2.5]",
       nclusters = 5,
       min_clust_size = 50,
@@ -166,14 +186,15 @@ if (FALSE) { # \dontrun{
     geom_brain("underlay") +
     geom_brain(definition = "overlay[abs(overlay) > 2.5]")
 
-  # Or defer resolution until render time (images from ggbrain pipeline)
-  gg_obj <- ggbrain() +
+  # Pathway 2: define a reusable contrast upstream, then reference its name
+  defined_plot <- ggbrain() +
     images(c(underlay = t1, overlay = overlay)) +
+    define(active := overlay[abs(overlay) > 2.5]) +
     slices(cluster_slices(
-      definition = "overlay[abs(overlay) > 2.5]",
+      definition = "active",
       nclusters = 5
     )) +
     geom_brain("underlay") +
-    geom_brain(definition = "overlay[abs(overlay) > 2.5]")
+    geom_brain("active")
 } # }
 ```

@@ -269,7 +269,27 @@ largest 3D clusters. Use
 [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
 within
 [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
-in place of manual coordinates:
+in place of manual coordinates.
+
+There are two supported ways to supply a contrast to
+[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md):
+
+1.  Put the complete expression directly in `definition`. This inline
+    pathway works both inside a
+    [`ggbrain()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain.md)
+    pipeline and in an immediate call that supplies `images` directly.
+2.  Create a reusable named contrast upstream with
+    [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md),
+    then reference that name in `cluster_slices(definition = ...)`.
+    Because
+    [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+    belongs to the parent plot specification, the same contrast can also
+    be used by
+    [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+    and other downstream layers.
+
+The following example uses the first pathway, an inline masking
+expression:
 
 ``` r
 
@@ -298,10 +318,41 @@ plot(gg)
 
 ![](ggbrain_introduction_files/figure-html/unnamed-chunk-14-1.png)
 
+For the second pathway, move the expression into
+[`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+and refer to its name from both
+[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
+and
+[`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md):
+
+``` r
+
+gg <- ggbrain() +
+  images(c(underlay = t1, overlay = overlay)) +
+  define(active := overlay[abs(overlay) > 3]) +
+  slices(cluster_slices(
+    definition     = "active",
+    nclusters      = 4,
+    min_clust_size = 40,
+    plane          = "axial",
+    outline        = TRUE
+  )) +
+  geom_brain("underlay") +
+  geom_brain("active", name = "Activation")
+
+plot(gg)
+```
+
 Key points:
 
-- `definition` matches the overlay you want to cluster; the base image
-  must be added using
+- With the inline pathway, `definition` contains the complete image or
+  contrast expression, such as `"overlay[abs(overlay) > 3]"` or
+  `"(a - b)[abs(a - b) > 2]"`.
+- With the named pathway, call
+  [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+  upstream and pass that contrast name to
+  [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md).
+- Every source image referenced by either pathway must be added using
   [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md).
 - `outline = TRUE` adds a
   [`geom_outline()`](https://michaelhallquist.github.io/ggbrain/reference/geom_outline.md)
@@ -420,7 +471,7 @@ plot our figure to see the result.
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-17-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png)
 
 #### Defining subset layers
 
@@ -441,7 +492,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png)
 
 Note how ‘overlay’ is treated as an R object that is subset using square
 brackets. The subsetting expression inside the brackets uses standard R
@@ -458,7 +509,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png)
 
 Finally, note that one can combine subsetting expressions using logical
 operators `&` and `|` , as in standard R syntax for vector operations.
@@ -477,7 +528,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png)
 
 #### Defining a contrast layer
 
@@ -510,7 +561,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-22-1.png)
 
 An equivalent plot would be achieved by including the definition inline:
 
@@ -541,7 +592,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png)
 
 #### Conjunction analysis
 
@@ -572,7 +623,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-25-1.png)
 
 Internally, the conjunction retains integer codes in its `value` column
 so that image-processing operations continue to work. The category names
@@ -634,7 +685,7 @@ gg_obj <- ggbrain() +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-26-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-27-1.png)
 
 ### Clusterized categorical layers
 
@@ -739,7 +790,7 @@ Likewise, you can modify the overall theme information using the
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-29-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-30-1.png)
 
 Note that you don’t necessarily need to use
 [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
@@ -763,7 +814,7 @@ brain_plot <- ggbrain() +
 render(brain_plot) + plot_annotation(title = "Overall")
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-30-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-31-1.png)
 
 ``` r
 

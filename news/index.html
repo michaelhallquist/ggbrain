@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ggbrain</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,8 +49,6 @@
 <ul><li>feature: <code><a href="../reference/define.html">define()</a></code> now supports unquoted definitions such as <code>define(diff := img1 - img2)</code>
 </li>
 <li>feature: conjunctions can use <code>case_when(condition ~ "label", ...)</code> with first-match precedence</li>
-<li>change: legacy semicolon conjunctions now also use first-match precedence; place specific conditions first</li>
-<li>bugfix: conjunction labels are preserved as factor levels and automatically use categorical fill scales</li>
 <li>feature: added <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> function that allows user to choose slices based on connected clusters in a given image</li>
 <li>feature: added <code><a href="../reference/geom_brain_clusterized.html">geom_brain_clusterized()</a></code>, which allows users to display connected clusters instead of continuous values</li>
 <li>feature: added <code><a href="../reference/target_resolution.html">target_resolution()</a></code> function to resample slices to a different resolution for display. This allows users to upsample images to finer resolution (e.g., show 2.5mm data at 1mm) or downsample for faster rendering and smaller file sizes. Supports nearest neighbor, linear, cubic (default), and lanczos interpolation methods.</li>
@@ -58,8 +56,8 @@
 <li>feature: added <code><a href="../reference/annotate_crosshairs.html">annotate_crosshairs()</a></code> function to add requested cross-hairs to relevant panels</li>
 <li>feature: Improve speed of <code>find_threads</code> by only decrementing neighbor counts for pixels identified from the initial full scan.</li>
 <li>feature: Move 3D connected-component labeling and cluster statistics into a single native traversal. This removes nested per-voxel R loops and repeated full-volume scans for each cluster while preserving 6-, 18-, and 26-connectivity results.</li>
-<li>feature: hardened tests of input images to check their voxel sizes</li>
 <li>feature: Text colors on plots default to a color that contrasts with the background (allowing dark-on-light or light-on-dark plots)</li>
+<li>breaking change: legacy semicolon conjunctions now also use first-match precedence; place specific conditions first</li>
 <li>bugfix: avoid double calls to <code>refine_image()</code> when unifying categorical scales by releveling before data assignment</li>
 <li>bugfix: ensure <code>fill_holes</code> uses mode for categorical/labeled data (even with fixed outlines) and cap imputation radius for small slices</li>
 <li>bugfix: replace deprecated <code>aes_string()</code> with tidy-eval <code>aes()</code> mappings for rasters and labels</li>
@@ -78,6 +76,8 @@
 <li>bugfix: Use square data for outlines to avoid warnings about misalignment</li>
 <li>bugfix: Always apply filter expressions passed with <code><a href="../reference/images.html">images()</a></code>, not just for labeled images</li>
 <li>bugfix: Do not default to bisided scale for underlay when in contains negative values</li>
+<li>bugfix: conjunction labels are preserved as factor levels and automatically use categorical fill scales</li>
+<li>bugfix: allow <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> and <code><a href="../reference/geom_brain_clusterized.html">geom_brain_clusterized()</a></code> to evaluate arithmetic and logical contrasts over complete 3D images, including contrasts added with <code><a href="../reference/define.html">define()</a></code>. Signed clustering now uses the calculated contrast values rather than a single source image.</li>
 <li>tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for <code>refine_image</code> call count and hole filling</li>
 </ul></div>
     <div class="section level2">

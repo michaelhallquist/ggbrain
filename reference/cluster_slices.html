@@ -19,7 +19,7 @@ that display the most relevant activation clusters."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ggbrain</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,7 +95,9 @@ a deferred specification that is resolved during rendering when layer definition
 <dt id="arg-definition">definition<a class="anchor" aria-label="anchor" href="#arg-definition"></a></dt>
 <dd><p>A definition string (same syntax as geom_brain) specifying the image/contrast
 to use for clustering. Examples: <code>"overlay"</code>, <code>"overlay[overlay &gt; 2.5]"</code>,
-<code>"overlay[abs(overlay) &gt; 2.5]"</code>. Mutually exclusive with <code>layer</code>.</p></dd>
+<code>"overlay[abs(overlay) &gt; 2.5]"</code>, or <code>"a - b"</code>. A named contrast created
+upstream with <code><a href="define.html">define()</a></code> can also be referenced when <code>cluster_slices()</code> is
+used within a <code><a href="ggbrain.html">ggbrain()</a></code> pipeline. Mutually exclusive with <code>layer</code>.</p></dd>
 
 
 <dt id="arg-nclusters">nclusters<a class="anchor" aria-label="anchor" href="#arg-nclusters"></a></dt>
@@ -165,7 +167,16 @@ during the ggbrain rendering pipeline.</p>
 to identify distinct clusters. For each cluster meeting the minimum size criterion,
 the center of mass is computed. Slices are then selected at the center of mass
 coordinates along the specified plane.</p>
-<p>When <code>outline = TRUE</code>, a thin outline mask is also generated for the selected clusters.
+<p>Contrast definitions can be supplied in two ways:</p><ol><li><p>Put the complete image, arithmetic, logical, or masking expression directly in
+<code>definition</code>, such as <code>"(a - b)[abs(a - b) &gt; 2]"</code>. This inline pathway
+works for both immediate calls with <code>images</code> and deferred calls inside a
+<code><a href="ggbrain.html">ggbrain()</a></code> pipeline.</p></li>
+<li><p>Add a named contrast upstream with <code><a href="define.html">define()</a></code>, then reference that name in
+<code>definition</code>. For example, use <code>define(difference := a - b)</code> followed by
+<code>cluster_slices(definition = "difference")</code>. This pathway is resolved during
+rendering and keeps the same named contrast available to other layers such as
+<code>geom_brain("difference")</code>.</p></li>
+</ol><p>When <code>outline = TRUE</code>, a thin outline mask is also generated for the selected clusters.
 This outline can be automatically added as a <code><a href="geom_outline.html">geom_outline()</a></code> layer during rendering so
 that clusters are highlighted on each slice. By default, distinct colors are assigned to each
 cluster using a categorical palette, but a single <code>outline_color</code> or a custom vector of
@@ -180,14 +191,13 @@ connected:</p><ul><li><p><code>nn=1</code> (6-connectivity): Only voxels sharing
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span>  <span class="co"># Using a definition string directly</span></span></span>
+<span class="r-in"><span>  <span class="co"># Pathway 1: put the complete expression directly in cluster_slices()</span></span></span>
 <span class="r-in"><span>  <span class="va">t1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">overlay</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pe_ptfce_fwep_0.05_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>  <span class="va">inline_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">t1</span>, overlay <span class="op">=</span> <span class="va">overlay</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="slices.html">slices</a></span><span class="op">(</span><span class="fu">cluster_slices</span><span class="op">(</span></span></span>
-<span class="r-in"><span>      images <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>overlay <span class="op">=</span> <span class="va">overlay</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>      definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span>,</span></span>
 <span class="r-in"><span>      nclusters <span class="op">=</span> <span class="fl">5</span>,</span></span>
 <span class="r-in"><span>      min_clust_size <span class="op">=</span> <span class="fl">50</span>,</span></span>
@@ -196,15 +206,16 @@ connected:</p><ul><li><p><code>nn=1</code> (6-connectivity): Only voxels sharing
 <span class="r-in"><span>    <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Or defer resolution until render time (images from ggbrain pipeline)</span></span></span>
-<span class="r-in"><span>  <span class="va">gg_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>  <span class="co"># Pathway 2: define a reusable contrast upstream, then reference its name</span></span></span>
+<span class="r-in"><span>  <span class="va">defined_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="ggbrain.html">ggbrain</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">t1</span>, overlay <span class="op">=</span> <span class="va">overlay</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="define.html">define</a></span><span class="op">(</span><span class="va">active</span> <span class="op">:=</span> <span class="va">overlay</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">overlay</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">2.5</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="slices.html">slices</a></span><span class="op">(</span><span class="fu">cluster_slices</span><span class="op">(</span></span></span>
-<span class="r-in"><span>      definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span>,</span></span>
+<span class="r-in"><span>      definition <span class="op">=</span> <span class="st">"active"</span>,</span></span>
 <span class="r-in"><span>      nclusters <span class="op">=</span> <span class="fl">5</span></span></span>
 <span class="r-in"><span>    <span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>    <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span>definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 2.5]"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"active"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

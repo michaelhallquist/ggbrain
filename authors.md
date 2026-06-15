@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/michaelhallquist/ggbrain/blob/main/DESCRIPTION)
 
 Hallquist M (2026). *ggbrain: Create Images of Volumetric Brain Data in
-NIfTI Format Using 'ggplot2' Syntax*. R package version 0.9.2,
+NIfTI Format Using 'ggplot2' Syntax*. R package version 1.0,
 <https://michaelhallquist.github.io/ggbrain/>.
 
     @Manual{,
       title = {ggbrain: Create Images of Volumetric Brain Data in NIfTI Format Using 'ggplot2' Syntax},
       author = {Michael Hallquist},
       year = {2026},
-      note = {R package version 0.9.2},
+      note = {R package version 1.0},
       url = {https://michaelhallquist.github.io/ggbrain/},
     }
