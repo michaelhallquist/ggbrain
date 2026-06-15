@@ -17,6 +17,9 @@
 # Output files from R CMD check
 /*.Rcheck/
 
+# Default graphics device output from noninteractive R sessions
+Rplots.pdf
+
 # RStudio files
 .Rproj.user/
 

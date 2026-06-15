@@ -2,8 +2,6 @@
 
 * feature: `define()` now supports unquoted definitions such as `define(diff := img1 - img2)`
 * feature: conjunctions can use `case_when(condition ~ "label", ...)` with first-match precedence
-* change: legacy semicolon conjunctions now also use first-match precedence; place specific conditions first
-* bugfix: conjunction labels are preserved as factor levels and automatically use categorical fill scales
 * feature: added `cluster_slices()` function that allows user to choose slices based on connected clusters in a given image
 * feature: added `geom_brain_clusterized()`, which allows users to display connected clusters instead of continuous values 
 * feature: added `target_resolution()` function to resample slices to a different resolution for display. This allows
@@ -12,9 +10,10 @@
 * feature: added `annotate_orientation()` function to add anatomical orientation labels to plots
 * feature: added `annotate_crosshairs()` function to add requested cross-hairs to relevant panels
 * feature: Improve speed of `find_threads` by only decrementing neighbor counts for pixels identified from the initial full scan.
-* feature: Move 3D connected-component labeling and cluster statistics into a single native traversal. This removes nested per-voxel R loops and repeated full-volume scans for each cluster while preserving 6-, 18-, and 26-connectivity results.
-* feature: hardened tests of input images to check their voxel sizes
+* feature: Move 3D connected-component labeling and cluster statistics into a single native traversal. This removes nested per-voxel R loops
+  and repeated full-volume scans for each cluster while preserving 6-, 18-, and 26-connectivity results.
 * feature: Text colors on plots default to a color that contrasts with the background (allowing dark-on-light or light-on-dark plots)
+* breaking change: legacy semicolon conjunctions now also use first-match precedence; place specific conditions first
 * bugfix: avoid double calls to `refine_image()` when unifying categorical scales by releveling before data assignment
 * bugfix: ensure `fill_holes` uses mode for categorical/labeled data (even with fixed outlines) and cap imputation radius for small slices
 * bugfix: replace deprecated `aes_string()` with tidy-eval `aes()` mappings for rasters and labels
@@ -22,9 +21,12 @@
 * bugfix: correct row/column swap in the eastward check of count_neighbors.
 * bugfix: switched `flood_fill` to stack-based approach to avoid overflow due to recursion.
 * bugfix: Correct invalid 1-based indexing assumption in `nearest_pts` used for filling holes.
-* bugfix: Refactor `nearest_pts` to exclude missing, non-finite, ignored-zero, and target pixels before selecting neighbors. This prevents invalid values from entering `nn_impute` when fewer than the requested number of valid neighbors are available and improves performance, especially for sparse images.
-* bugfix: Make repeated `render()` calls idempotent for cluster-derived slices and layers. Generated cluster slices, clusterized layers, and outline layers are now kept in render-local state instead of being appended to the stored `ggb_slices` and `ggb_layers` specification.
-* bugfix: Keep `ggbrain_images` metadata and nonzero-range caches synchronized after image addition, filtering, thresholding, and removal. Nested image filters are now applied correctly, and removing images also removes their names, labels, and other associated metadata.
+* bugfix: Refactor `nearest_pts` to exclude missing, non-finite, ignored-zero, and target pixels before selecting neighbors. This prevents invalid values from entering
+  `nn_impute` when fewer than the requested number of valid neighbors are available and improves performance, especially for sparse images.
+* bugfix: Make repeated `render()` calls idempotent for cluster-derived slices and layers. Generated cluster slices, clusterized layers, and outline layers are now
+  kept in render-local state instead of being appended to the stored `ggb_slices` and `ggb_layers` specification.
+* bugfix: Keep `ggbrain_images` metadata and nonzero-range caches synchronized after image addition, filtering, thresholding, and removal. Nested image filters are
+  now applied correctly, and removing images also removes their names, labels, and other associated metadata.
 * bugfix: Import `ggplot2::geom_text()` and `ggplot2::geom_label()` so region text and label layers render without requiring users to attach ggplot2.
 * bugfix: Correct convenience argument handling for `ggbrain(..., slices=)` and for applying `labels` or `filter` when `images()` receives an existing `ggbrain_images` object.
 * bugfix: Deep-clone layer and region-label fragments when attaching them to a plot, preventing reused fragments from sharing mutable R6 state. Region-label slice data are now assigned to render-local clones rather than the stored plot specification.
@@ -33,6 +35,9 @@
 * bugfix: Use square data for outlines to avoid warnings about misalignment
 * bugfix: Always apply filter expressions passed with `images()`, not just for labeled images
 * bugfix: Do not default to bisided scale for underlay when in contains negative values
+* bugfix: conjunction labels are preserved as factor levels and automatically use categorical fill scales
+* bugfix: allow `cluster_slices()` and `geom_brain_clusterized()` to evaluate arithmetic and logical contrasts over complete 3D images,
+  including contrasts added with `define()`. Signed clustering now uses the calculated contrast values rather than a single source image.
 * tests: add core vignette-style integration tests covering rendering, outlines, and labeled atlas slices; add tests for `refine_image` call count and hole filling
 
 # ggbrain 0.9.1 (22Aug2025)

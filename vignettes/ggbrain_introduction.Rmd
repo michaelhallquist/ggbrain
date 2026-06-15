@@ -188,7 +188,14 @@ gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10
 
 ### Automatically locating clusters and outlines
 
-When you have a statistical overlay, `cluster_slices()` can pick informative slice locations based on the centers of mass of the largest 3D clusters. Use `cluster_slices()` within `slices()` in place of manual coordinates:
+When you have a statistical overlay, `cluster_slices()` can pick informative slice locations based on the centers of mass of the largest 3D clusters. Use `cluster_slices()` within `slices()` in place of manual coordinates.
+
+There are two supported ways to supply a contrast to `cluster_slices()`:
+
+1. Put the complete expression directly in `definition`. This inline pathway works both inside a `ggbrain()` pipeline and in an immediate call that supplies `images` directly.
+2. Create a reusable named contrast upstream with `define()`, then reference that name in `cluster_slices(definition = ...)`. Because `define()` belongs to the parent plot specification, the same contrast can also be used by `geom_brain()` and other downstream layers.
+
+The following example uses the first pathway, an inline masking expression:
 
 ```{r fig.width=7.2, fig.height=5.4}
 t1      <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
@@ -214,9 +221,30 @@ gg <- ggbrain() +
 plot(gg)
 ```
 
+For the second pathway, move the expression into `define()` and refer to its name from both `cluster_slices()` and `geom_brain()`:
+
+```{r, eval=FALSE}
+gg <- ggbrain() +
+  images(c(underlay = t1, overlay = overlay)) +
+  define(active := overlay[abs(overlay) > 3]) +
+  slices(cluster_slices(
+    definition     = "active",
+    nclusters      = 4,
+    min_clust_size = 40,
+    plane          = "axial",
+    outline        = TRUE
+  )) +
+  geom_brain("underlay") +
+  geom_brain("active", name = "Activation")
+
+plot(gg)
+```
+
 Key points:
 
-- `definition` matches the overlay you want to cluster; the base image must be added using `images()`.
+- With the inline pathway, `definition` contains the complete image or contrast expression, such as `"overlay[abs(overlay) > 3]"` or `"(a - b)[abs(a - b) > 2]"`.
+- With the named pathway, call `define()` upstream and pass that contrast name to `cluster_slices()`.
+- Every source image referenced by either pathway must be added using `images()`.
 - `outline = TRUE` adds a `geom_outline()` layer using the cluster IDs as categorical values. Provide `outline_scale` for a custom palette/legend, or `outline_color` (single value) for a fixed outline. Set `outline_show_legend` to force or suppress the outline legend.
 
 ## Add brain overlay layers

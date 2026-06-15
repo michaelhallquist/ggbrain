@@ -274,7 +274,7 @@ test_that("two_sided clustering preserves historical sign-agnostic connections",
   expect_equal(unique(as.vector(res$labeled_volume[2:4, 3, 3])), 1L)
 })
 
-test_that("apply_definition_3d supports cross-image conditions", {
+test_that("cluster slicing supports cross-image conditions", {
   base_arr <- array(1, dim = c(3, 3, 3))
   overlay_arr <- array(rep(c(-2, 2), length.out = 27), dim = c(3, 3, 3))
 

@@ -12,7 +12,9 @@
 #'   a deferred specification that is resolved during rendering when layer definitions are available.
 #' @param definition A definition string (same syntax as geom_brain) specifying the image/contrast
 #'   to use for clustering. Examples: \code{"overlay"}, \code{"overlay[overlay > 2.5]"},
-#'   \code{"overlay[abs(overlay) > 2.5]"}. Mutually exclusive with \code{layer}.
+#'   \code{"overlay[abs(overlay) > 2.5]"}, or \code{"a - b"}. A named contrast created
+#'   upstream with \code{define()} can also be referenced when \code{cluster_slices()} is
+#'   used within a \code{ggbrain()} pipeline. Mutually exclusive with \code{layer}.
 #' @param nclusters Maximum number of clusters to return slices for. Clusters are sorted by
 #'   size (descending), and the top \code{nclusters} are selected. Default: 10
 #' @param min_clust_size Minimum cluster size in voxels. Clusters smaller than this are ignored. Default: 1
@@ -53,6 +55,19 @@
 #'   the center of mass is computed. Slices are then selected at the center of mass
 #'   coordinates along the specified plane.
 #'
+#'   Contrast definitions can be supplied in two ways:
+#'   \enumerate{
+#'     \item Put the complete image, arithmetic, logical, or masking expression directly in
+#'       \code{definition}, such as \code{"(a - b)[abs(a - b) > 2]"}. This inline pathway
+#'       works for both immediate calls with \code{images} and deferred calls inside a
+#'       \code{ggbrain()} pipeline.
+#'     \item Add a named contrast upstream with \code{define()}, then reference that name in
+#'       \code{definition}. For example, use \code{define(difference := a - b)} followed by
+#'       \code{cluster_slices(definition = "difference")}. This pathway is resolved during
+#'       rendering and keeps the same named contrast available to other layers such as
+#'       \code{geom_brain("difference")}.
+#'   }
+#'
 #'   When \code{outline = TRUE}, a thin outline mask is also generated for the selected clusters.
 #'   This outline can be automatically added as a \code{geom_outline()} layer during rendering so
 #'   that clusters are highlighted on each slice. By default, distinct colors are assigned to each
@@ -70,14 +85,13 @@
 #'
 #' @examples
 #' \dontrun{
-#'   # Using a definition string directly
+#'   # Pathway 1: put the complete expression directly in cluster_slices()
 #'   t1 <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")
 #'   overlay <- system.file("extdata", "pe_ptfce_fwep_0.05_2mm.nii.gz", package = "ggbrain")
 #'
-#'   gg_obj <- ggbrain() +
+#'   inline_plot <- ggbrain() +
 #'     images(c(underlay = t1, overlay = overlay)) +
 #'     slices(cluster_slices(
-#'       images = c(overlay = overlay),
 #'       definition = "overlay[abs(overlay) > 2.5]",
 #'       nclusters = 5,
 #'       min_clust_size = 50,
@@ -86,15 +100,16 @@
 #'     geom_brain("underlay") +
 #'     geom_brain(definition = "overlay[abs(overlay) > 2.5]")
 #'
-#'   # Or defer resolution until render time (images from ggbrain pipeline)
-#'   gg_obj <- ggbrain() +
+#'   # Pathway 2: define a reusable contrast upstream, then reference its name
+#'   defined_plot <- ggbrain() +
 #'     images(c(underlay = t1, overlay = overlay)) +
+#'     define(active := overlay[abs(overlay) > 2.5]) +
 #'     slices(cluster_slices(
-#'       definition = "overlay[abs(overlay) > 2.5]",
+#'       definition = "active",
 #'       nclusters = 5
 #'     )) +
 #'     geom_brain("underlay") +
-#'     geom_brain(definition = "overlay[abs(overlay) > 2.5]")
+#'     geom_brain("active")
 #' }
 #'
 #' @importFrom checkmate assert_count assert_choice assert_string assert_class
@@ -175,6 +190,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
 #' @param plane The plane for slice selection
 #' @param nn Neighborhood connectivity (1, 2, or 3)
 #' @param sided Sidedness for clustering thresholded images. See \code{cluster_slices()}.
+#' @param contrasts Optional named character strings containing numeric/logical contrast expressions.
 #' @return A list with elements: coordinates (character vector of slice coords) and
 #'   cluster_data (data.frame with cluster details). When outlines are requested, the list
 #'   also includes \code{labeled_volume} (cluster ids restricted to the top clusters),
@@ -183,7 +199,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
 #' @keywords internal
 compute_cluster_slices <- function(images, definition, nclusters, min_clust_size, plane, nn,
   outline = FALSE, outline_color = NULL, outline_size = 1L, outline_scale = NULL, outline_show_legend = NULL,
-  sided = c("bisided", "two_sided")) {
+  sided = c("bisided", "two_sided"), contrasts = NULL) {
   sided <- normalize_cluster_sided(sided)
 
   # 1. Get the ggbrain_images object
@@ -195,29 +211,16 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
     stop("images must be a character vector of file paths or a ggbrain_images object")
   }
 
-  # 2. Apply the definition to get a 3D masked volume
-  masked_vol <- apply_definition_3d(img_obj, definition)
-
-  # Determine which image header should be used for voxel->world transforms
-  # Prefer the base image referenced in the definition (text before any [subset]).
-  definition_trim <- trimws(definition)
-  base_img <- if (grepl("\\[", definition_trim)) {
-    trimws(sub("\\s*\\[.*", "", definition_trim))
-  } else {
-    definition_trim
-  }
-  img_names <- img_obj$get_image_names()
-  if (!base_img %in% img_names) {
-    stop(glue::glue(
-      "Image '{base_img}' not found in provided images. Available images: {paste(img_names, collapse = ', ')}"
-    ))
-  }
+  # 2. Evaluate the image/contrast definition over complete 3D volumes.
+  evaluated <- evaluate_definition_3d(img_obj, definition, contrasts = contrasts)
+  masked_vol <- evaluated$mask
+  contrast_values <- evaluated$values
+  reference_image <- evaluated$reference_image
 
   # 3. Find 3D connected components and their properties
   if (identical(sided, "bisided")) {
-    base_values <- as.array(img_obj$get_images(base_img, drop = TRUE))
     cluster_info <- find_bisided_3d_clusters(
-      masked_vol, base_values, min_size = min_clust_size, nn = nn,
+      masked_vol, contrast_values, min_size = min_clust_size, nn = nn,
       return_labels = outline, zero_tol = img_obj$zero_tol
     )
   } else {
@@ -239,7 +242,8 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
       ),
       labeled_volume = NULL,
       outline_palette = NULL,
-      outline_size = outline_size
+      outline_size = outline_size,
+      reference_image = reference_image
     ))
   }
 
@@ -254,13 +258,7 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
   }
 
   # 5. Get the NIfTI header for coordinate transformation
-  nii_head <- if (base_img %in% img_obj$get_image_names()) {
-    img_obj$get_headers(img_names = base_img, drop = TRUE)
-  } else {
-    # Fallback: use the first available header, ensuring a single niftiHeader object
-    hdr <- img_obj$get_headers(drop = TRUE)
-    if (is.list(hdr)) hdr[[1L]] else hdr
-  }
+  nii_head <- img_obj$get_headers(img_names = reference_image, drop = TRUE)
 
   # 6. Convert voxel coordinates to world coordinates
   # Center of mass in voxel space (1-indexed for R)
@@ -323,7 +321,8 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
     outline_palette = outline_palette,
     outline_size = outline_size,
     outline_scale = outline_scale,
-    outline_show_legend = outline_show_legend
+    outline_show_legend = outline_show_legend,
+    reference_image = reference_image
   ))
 }
 
@@ -336,91 +335,6 @@ normalize_cluster_sided <- function(sided) {
   } else {
     "two_sided"
   }
-}
-
-
-#' Apply a definition/contrast string to a 3D image volume
-#'
-#' @param img_obj A ggbrain_images object
-#' @param definition A definition string, e.g., a simple image name or a filtered expression
-#' @return A 3D array with the contrast applied (masked/thresholded volume)
-#' @keywords internal
-apply_definition_3d <- function(img_obj, definition) {
-  checkmate::assert_class(img_obj, "ggbrain_images")
-  checkmate::assert_string(definition)
-
-  # Parse the definition to extract image name and any subsetting
-  # Simple case: just an image name
-  img_names <- img_obj$get_image_names()
-
-  # Check if definition contains brackets (subsetting)
-  has_brackets <- grepl("\\[", definition)
-
-  if (!has_brackets) {
-    # Simple image reference
-    if (!definition %in% img_names) {
-      stop(glue::glue("Image '{definition}' not found. Available images: {paste(img_names, collapse=', ')}"))
-    }
-    vol <- img_obj$get_images(definition, drop = TRUE)
-    # Create binary mask for non-zero values
-    mask <- abs(as.array(vol)) > img_obj$zero_tol
-    return(mask)
-  }
-
-  # Complex definition with subsetting - need to parse and evaluate
-  # Extract the base image name (before the bracket)
-  base_img <- sub("\\s*\\[.*", "", definition)
-  base_img <- trimws(base_img)
-
-  if (!base_img %in% img_names) {
-    stop(glue::glue("Image '{base_img}' not found. Available images: {paste(img_names, collapse=', ')}"))
-  }
-
-  # Get the full 3D volume
-  vol <- as.array(img_obj$get_images(base_img, drop = TRUE))
-
-  # Extract the condition from brackets using perl regex for proper matching
-  bracket_match <- regmatches(definition, regexpr("\\[([^\\]]+)\\]", definition, perl = TRUE))
-  if (length(bracket_match) == 0 || bracket_match == "") {
-    stop("Could not parse bracket expression in definition")
-  }
-
-  condition <- gsub("^\\[|\\]$", "", bracket_match)
-
-  # Build evaluation environment with all referenced images (and value for backward compatibility)
-  expr <- parse(text = condition)
-  vars <- all.names(expr)
-  ref_imgs <- unique(intersect(vars, img_names))
-  eval_env <- list(value = vol)
-  eval_env[[base_img]] <- vol
-  for (nm in ref_imgs) {
-    arr <- as.array(img_obj$get_images(nm, drop = TRUE))
-    eval_env[[nm]] <- arr
-  }
-
-  mask <- tryCatch(
-    {
-      eval(expr, envir = eval_env)
-    },
-    error = function(e) {
-      stop(glue::glue("Error evaluating condition '{condition}': {e$message}"))
-    }
-  )
-
-  # Ensure result is an array of the correct shape
-  if (is.null(dim(mask)) && length(mask) == 1L) {
-    stop(glue::glue("Condition '{condition}' did not return an array; it must evaluate to a per-voxel logical/ numeric volume."))
-  }
-  if (!identical(dim(mask), dim(vol))) {
-    stop(glue::glue("Condition '{condition}' returned an array with dimensions {paste(dim(mask), collapse='x')} that do not match the base image ({paste(dim(vol), collapse='x')})."))
-  }
-
-  # Ensure result is logical
-  if (!is.logical(mask)) {
-    mask <- abs(mask) > img_obj$zero_tol
-  }
-
-  return(mask)
 }
 
 
@@ -658,9 +572,10 @@ is_cluster_slices_spec <- function(x) {
 #' @param spec A cluster_slices_spec object
 #' @param images A ggbrain_images object
 #' @param layers A list of ggbrain_layer objects (optional, for layer reference)
+#' @param contrasts Optional named character contrast definitions.
 #' @return A list with elements: coordinates (character vector) and cluster_data (data.frame)
 #' @keywords internal
-resolve_cluster_slices <- function(spec, images, layers = NULL) {
+resolve_cluster_slices <- function(spec, images, layers = NULL, contrasts = NULL) {
   checkmate::assert_class(spec, "cluster_slices_spec")
   checkmate::assert_class(images, "ggbrain_images")
 
@@ -700,6 +615,7 @@ resolve_cluster_slices <- function(spec, images, layers = NULL) {
     outline_color = spec$outline_color,
     outline_size = spec$outline_size,
     outline_scale = spec$outline_scale,
-    outline_show_legend = spec$outline_show_legend
+    outline_show_legend = spec$outline_show_legend,
+    contrasts = contrasts
   )
 }

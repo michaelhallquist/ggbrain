@@ -16,7 +16,8 @@ compute_cluster_slices(
   outline_size = 1L,
   outline_scale = NULL,
   outline_show_legend = NULL,
-  sided = c("bisided", "two_sided")
+  sided = c("bisided", "two_sided"),
+  contrasts = NULL
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ compute_cluster_slices(
 \item{nn}{Neighborhood connectivity (1, 2, or 3)}
 
 \item{sided}{Sidedness for clustering thresholded images. See \code{cluster_slices()}.}
+
+\item{contrasts}{Optional named character strings containing numeric/logical contrast expressions.}
 }
 \value{
 A list with elements: coordinates (character vector of slice coords) and

@@ -4,7 +4,7 @@
 \alias{resolve_cluster_slices}
 \title{Resolve a deferred cluster_slices_spec}
 \usage{
-resolve_cluster_slices(spec, images, layers = NULL)
+resolve_cluster_slices(spec, images, layers = NULL, contrasts = NULL)
 }
 \arguments{
 \item{spec}{A cluster_slices_spec object}
@@ -12,6 +12,8 @@ resolve_cluster_slices(spec, images, layers = NULL)
 \item{images}{A ggbrain_images object}
 
 \item{layers}{A list of ggbrain_layer objects (optional, for layer reference)}
+
+\item{contrasts}{Optional named character contrast definitions.}
 }
 \value{
 A list with elements: coordinates (character vector) and cluster_data (data.frame)

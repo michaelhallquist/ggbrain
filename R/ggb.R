@@ -29,7 +29,12 @@ ggb <- R6::R6Class(
       }
 
       for (spec in self$ggb_cluster_slices) {
-        cluster_result <- resolve_cluster_slices(spec, img, render_layers)
+        cluster_result <- resolve_cluster_slices(
+          spec,
+          img,
+          render_layers,
+          contrasts = self$ggb_contrasts
+        )
         if (length(cluster_result$coordinates) > 0 && !identical(spec$action, "clusterized")) {
           # Convert to the list format expected by ggb_slices
           cluster_slice_list <- lapply(cluster_result$coordinates, function(coord) list(coordinate = coord))
@@ -82,7 +87,7 @@ ggb <- R6::R6Class(
               scale_obj <- render_layers[[cl_idx]]$fill_scale
               has_labels <- !is.null(scale_obj$labels) && !inherits(scale_obj$labels, "waiver")
               if (!has_labels) {
-                hdr <- img$get_headers(img_names = spec$cluster_source, drop = TRUE)
+                hdr <- img$get_headers(img_names = cluster_result$reference_image, drop = TRUE)
                 pixdim <- as.numeric(hdr$pixdim[2:4])
                 lims <- scale_obj$limits
                 ids <- if (!is.null(lims) && !is.function(lims) && length(lims) > 0L) {

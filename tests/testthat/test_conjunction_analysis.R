@@ -1,3 +1,9 @@
+expect_silent_patchwork_grob <- function(patch) {
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_silent(patchwork::patchworkGrob(patch))
+}
+
 test_that("semicolon conjunctions use first-match precedence and preserve labels", {
   dat <- data.frame(
     dim1 = 1:4,
@@ -120,7 +126,7 @@ test_that("conjunction layers use categorical fill scales and user labels", {
     )
 
   patch <- gg_obj$render()
-  expect_silent(patchwork::patchworkGrob(patch))
+  expect_silent_patchwork_grob(patch)
 
   panels <- gg_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels
   conjunction_layers <- lapply(panels, function(panel) {
@@ -149,7 +155,7 @@ test_that("conjunction layers use categorical fill scales and user labels", {
     geom_brain("default_conjunction := z_category = a == 1 & b == 0; a_category = b == 1")
 
   default_patch <- default_obj$render()
-  expect_silent(patchwork::patchworkGrob(default_patch))
+  expect_silent_patchwork_grob(default_patch)
   default_layer <- default_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels[[1]]$
     get_layers()[[1L]]
 
@@ -195,7 +201,7 @@ test_that("case_when conjunctions render with discrete palettes", {
     )
 
   patch <- gg_obj$render()
-  expect_silent(patchwork::patchworkGrob(patch))
+  expect_silent_patchwork_grob(patch)
 
   layer <- gg_obj$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels[[1]]$
     get_layers()[[1L]]
