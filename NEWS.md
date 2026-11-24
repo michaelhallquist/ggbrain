@@ -1,5 +1,9 @@
 # ggbrain 1.0 (7Dec2025)
 
+* `annotate_coordinates()` can put slice labels in per-panel captions. In-panel text gets edge padding and inward alignment at the default corner.
+* Annotation position `"middle"` uses the midpoint of the slice grid, so overlays with unevenly distributed rows do not shift it.
+* Annotation position `"q1"` now means the 1st percentile. Use `"q1.0"` or `"q100"` for the 100th percentile.
+
 * feature: `define()` now supports unquoted definitions such as `define(diff := img1 - img2)`
 * feature: conjunctions can use `case_when(condition ~ "label", ...)` with first-match precedence
 * feature: added `cluster_slices()` function that allows user to choose slices based on connected clusters in a given image

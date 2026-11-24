@@ -21,10 +21,11 @@ Adds custom annotations to a single panel on the ggbrain plot
 \details{
 For annotation coordinates such as \code{x}, \code{y}, or \code{xmin}, you may pass in a number. In this case, the value specifies the pixel
 position along the relevant axis (e.g., \code{x=26}). In addition, convenience values of 'left', 'right', and 'middle' can be used
-for the x axis, and 'top', 'bottom', and 'middle' for the y axis.
+for the x axis, and 'top', 'bottom', and 'middle' for the y axis. 'middle' uses the midpoint of the coordinate range.
 
-Finally, or \code{'q[1-100]'} can be used to look up the quantile-based positions along the relevant axis. For example,
-\code{x="q25"} would position the annotation at the 25\% mark along the x axis.
+Use \code{"q1"} through \code{"q100"} for percentile positions along the relevant axis. For example,
+\code{x = "q25"} uses the 25th percentile. Decimal fractions also work, so \code{"q0.25"} is
+equivalent to \code{"q25"} and \code{"q1.0"} is equivalent to \code{"q100"}.
 
 N.B. This function only adds a single annotation on a single panel!
 }

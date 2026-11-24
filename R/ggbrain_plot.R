@@ -475,9 +475,7 @@ ggbrain_plot <- R6::R6Class(
         if (is.null(pan_i$base_size)) pan_i$base_size <- private$pvt_base_size
 
         # add crosshair and orientation annotations if requested
-        if (!is.null(all_annotations[[i]]$annotate_settings)) {
-          ann_list <- all_annotations[[i]]$annotate_settings[[1]]
-
+        annotations <- lapply(all_annotations[[i]]$annotate_settings, function(ann_list) {
           if ("crosshair_params" %in% names(ann_list)) {
             has_ch <- which(!vapply(ann_list$crosshair_params, is.null, logical(1)))
             ch_ann <- NULL
@@ -544,8 +542,8 @@ ggbrain_plot <- R6::R6Class(
             }
           }
 
-          all_annotations[[i]]$annotate_settings[[1]] <- ann_list
-        }
+          ann_list
+        })
 
         ggbrain_panel$new(
           layers = slc_layers,
@@ -557,7 +555,7 @@ ggbrain_plot <- R6::R6Class(
           xlab = pan_i$xlab,
           ylab = pan_i$ylab,
           theme_custom = pan_i$theme_custom,
-          annotations = all_annotations[[i]]$annotate_settings, # get slice-relevant annotations as list of tibbles
+          annotations = if (length(annotations)) annotations else NULL,
           region_labels = slc_labels
         )
       })

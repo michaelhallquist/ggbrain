@@ -4,22 +4,35 @@
 \alias{annotate_coordinates}
 \title{Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)}
 \usage{
-annotate_coordinates(x = "right", y = "bottom", ...)
+annotate_coordinates(x = "right", y = "bottom", ..., placement = c("panel", "caption"))
 }
 \arguments{
-\item{x}{the x position of the coordinate label. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
-In addition, convenience values of \code{"left"}, \code{"right"}, or \code{"q[1-100]"} can be used to look up the left-most,
-right-most, or quantile-based positions along the x axis.}
+\item{x}{For panel placement, the x position of the coordinate label. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
+Use \code{"left"}, \code{"right"}, or \code{"middle"} for the left edge, right edge, or midpoint of the coordinate range,
+or \code{"q[1-100]"} for a quantile-based position along the x axis.}
 
-\item{y}{the y position of the coordinate label. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
-In addition, convenience values of 'top', \code{"bottom"}, or \code{"q[1-100]"} can be used to look up the top-most, bottom-most,
-or quantile-based positions along the y axis.}
+\item{y}{For panel placement, the y position of the coordinate label. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
+Use \code{"top"}, \code{"bottom"}, or \code{"middle"} for the top edge, bottom edge, or midpoint of the coordinate range,
+or \code{"q[1-100]"} for a quantile-based position along the y axis.}
 
-\item{...}{any other arguments to ggplot2::annotate, which will be passed through to each panel}
+\item{...}{For panel placement, additional arguments passed to \code{\link[ggplot2:annotate]{ggplot2::annotate()}}.
+For captions, styling options are \code{color} (or \code{colour}), \code{size} (in mm, as for panel text),
+\code{family}, \code{fontface}, \code{hjust}, and \code{lineheight}. \code{slice_index} can restrict either placement to a slice.}
+
+\item{placement}{\code{"panel"} (default) draws the label in the image panel. \code{"caption"}
+puts a right-aligned caption below each image panel and ignores \code{x} and \code{y}.}
 }
 \value{
 a \code{ggb} object with the action 'add_annotations', used in a \code{ggbrain} addition chain
 }
 \description{
 Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)
+}
+\details{
+With panel placement, \code{y = "top"} and \code{y = "bottom"} reserve a band of
+background for text or label annotations. \code{x = "left"} and \code{x = "right"} inset
+the label and supply inward horizontal justification by default. Use a caption
+for narrow panels or large text, where the panel band may be too small.
+
+For quantile positions, \code{"q1"} means 1\% and \code{"q1.0"} means 100\% (equivalent to \code{"q100"}).
 }

@@ -551,10 +551,11 @@ geom_region_label_repel <- function(image, label_column = "label", min_px=1L, ..
 #' @details 
 #'   For annotation coordinates such as `x`, `y`, or `xmin`, you may pass in a number. In this case, the value specifies the pixel
 #'     position along the relevant axis (e.g., `x=26`). In addition, convenience values of 'left', 'right', and 'middle' can be used
-#'     for the x axis, and 'top', 'bottom', and 'middle' for the y axis.
+#'     for the x axis, and 'top', 'bottom', and 'middle' for the y axis. 'middle' uses the midpoint of the coordinate range.
 #' 
-#'   Finally, or \code{'q[1-100]'} can be used to look up the quantile-based positions along the relevant axis. For example,
-#'     `x="q25"` would position the annotation at the 25% mark along the x axis.
+#'   Use `"q1"` through `"q100"` for percentile positions along the relevant axis. For example,
+#'   `x = "q25"` uses the 25th percentile. Decimal fractions also work, so `"q0.25"` is
+#'   equivalent to `"q25"` and `"q1.0"` is equivalent to `"q100"`.
 #' 
 #'   N.B. This function only adds a single annotation on a single panel!
 #' @return a `ggb` object with the relevant annotations field and an action of "add_annotations"
@@ -565,17 +566,35 @@ annotate_slice <- function(slice_index=NULL, ...) {
 }
 
 #' Adds the coordinate labels to each panel based on the location of the slice along the slicing axis (e.g., z = 15)
-#' @param x the x position of the coordinate label. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
-#'   In addition, convenience values of \code{"left"}, \code{"right"}, or \code{"q[1-100]"} can be used to look up the left-most,
-#'   right-most, or quantile-based positions along the x axis.
-#' @param y the y position of the coordinate label. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
-#'   In addition, convenience values of 'top', \code{"bottom"}, or \code{"q[1-100]"} can be used to look up the top-most, bottom-most,
-#'   or quantile-based positions along the y axis.
-#' @param ... any other arguments to ggplot2::annotate, which will be passed through to each panel
+#' @param x For panel placement, the x position of the coordinate label. If numeric, it is assumed to be the pixel position along the x axis (e.g., 26).
+#'   Use `"left"`, `"right"`, or `"middle"` for the left edge, right edge, or midpoint of the coordinate range,
+#'   or `"q[1-100]"` for a quantile-based position along the x axis.
+#' @param y For panel placement, the y position of the coordinate label. If numeric, it is assumed to be the pixel position along the y axis (e.g., 26).
+#'   Use `"top"`, `"bottom"`, or `"middle"` for the top edge, bottom edge, or midpoint of the coordinate range,
+#'   or `"q[1-100]"` for a quantile-based position along the y axis.
+#' @param ... For panel placement, additional arguments passed to [ggplot2::annotate()].
+#'   For captions, styling options are `color` (or `colour`), `size` (in mm, as for panel text),
+#'   `family`, `fontface`, `hjust`, and `lineheight`. `slice_index` can restrict either placement to a slice.
+#' @param placement `"panel"` (default) draws the label in the image panel. `"caption"`
+#'   puts a right-aligned caption below each image panel and ignores `x` and `y`.
+#' @details With panel placement, `y = "top"` and `y = "bottom"` reserve a band of
+#'   background for text or label annotations. `x = "left"` and `x = "right"` inset
+#'   the label and supply inward horizontal justification by default. Use a caption
+#'   for narrow panels or large text, where the panel band may be too small.
+#'
+#'   For quantile positions, `"q1"` means 1% and `"q1.0"` means 100% (equivalent to `"q100"`).
 #' @return a `ggb` object with the action 'add_annotations', used in a `ggbrain` addition chain
 #' @export
-annotate_coordinates <- function(x="right", y="bottom", ...) {
-  ggb$new(annotations = list(list(label = ".coord_label", x = x, y = y, ...)), action = "add_annotations")
+annotate_coordinates <- function(x="right", y="bottom", ..., placement = c("panel", "caption")) {
+  placement <- match.arg(placement)
+  args <- list(...)
+  if (placement == "caption") {
+    allowed <- c("color", "colour", "size", "family", "fontface", "hjust", "lineheight", "slice_index")
+    if (length(args)) checkmate::assert_names(names(args), type = "unique", subset.of = allowed)
+    x <- y <- NA_character_
+  }
+  annotation <- c(list(label = ".coord_label", x = x, y = y, coord_placement = placement), args)
+  ggb$new(annotations = list(annotation), action = "add_annotations")
 }
 
 #' Function to convert `ggb` object to ggplot/patchwork object
