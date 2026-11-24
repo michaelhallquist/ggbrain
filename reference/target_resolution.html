@@ -67,7 +67,7 @@ The slices will be resampled to this resolution before display. If the input ima
 
 <dt id="arg-interpolation">interpolation<a class="anchor" aria-label="anchor" href="#arg-interpolation"></a></dt>
 <dd><p>A character string specifying the interpolation method to use. Options are:</p><ul><li><p><code>"nearest"</code> (value 1): Nearest neighbor interpolation. Fast but can produce blocky results.</p></li>
-<li><p><code>"linear"</code> (value 2): Linear interpolation. Smooth but may blur edges.</p></li>
+<li><p><code>"linear"</code> (value 3): Linear interpolation. Smooth but may blur edges.</p></li>
 <li><p><code>"cubic"</code> (value 5): Cubic interpolation (default). Good balance of smoothness and edge preservation.</p></li>
 <li><p><code>"lanczos"</code> (value 6): Lanczos interpolation. High quality but slower.</p></li>
 </ul></dd>
@@ -85,8 +85,9 @@ for publication-quality figures, you can use <code>target_resolution(1)</code> t
 <p>Conversely, if you have high-resolution images (e.g., 0.5mm) that are slow to render or result in
 very large file sizes, you can downsample them using <code>target_resolution(2)</code> to display at 2mm.</p>
 <p>The resampling is performed on each 2D slice after extraction, which is more efficient than resampling
-the entire 3D volume. The interpolation is applied to all images in the plot. For labeled/categorical
-images, nearest neighbor interpolation is always used to preserve integer values.</p>
+the entire 3D volume. Each plane uses its two in-plane voxel spacings. Images supplied
+with label tables and automatically generated cluster IDs use nearest-neighbor interpolation.
+For an integer atlas without a label table, request <code>interpolation = "nearest"</code>.</p>
 <p>Note that upsampling does not add information to the image – it simply provides a smoother visual
 representation. For the highest quality results with functional overlays on anatomical underlays,
 consider using a high-resolution anatomical template (e.g., 1mm) as your underlay.</p>

@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Create Images of Volumetric Brain Data in NIfTI Format Using ggplot2 Syntax">
-<meta name="description" content="A ggplot2-consistent approach to generating 2D displays of volumetric brain imaging data. Display data from multiple NIfTI images using standard ggplot2 conventions such scales, limits, and themes to control the appearance of displays. The resulting plots are returned as patchwork objects, inheriting from ggplot, allowing for any standard modifications of display aesthetics supported by ggplot2.">
-<meta property="og:description" content="A ggplot2-consistent approach to generating 2D displays of volumetric brain imaging data. Display data from multiple NIfTI images using standard ggplot2 conventions such scales, limits, and themes to control the appearance of displays. The resulting plots are returned as patchwork objects, inheriting from ggplot, allowing for any standard modifications of display aesthetics supported by ggplot2.">
+<meta name="description" content="A ggplot2-consistent approach to generating 2D displays of volumetric brain imaging data. Display data from multiple NIfTI images using standard ggplot2 conventions such as scales, limits, and themes to control the appearance of displays. The resulting plots are returned as patchwork objects, inheriting from ggplot, allowing for any standard modifications of display aesthetics supported by ggplot2.">
+<meta property="og:description" content="A ggplot2-consistent approach to generating 2D displays of volumetric brain imaging data. Display data from multiple NIfTI images using standard ggplot2 conventions such as scales, limits, and themes to control the appearance of displays. The resulting plots are returned as patchwork objects, inheriting from ggplot, allowing for any standard modifications of display aesthetics supported by ggplot2.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -62,7 +62,40 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="ggbrain">ggbrain<a class="anchor" aria-label="anchor" href="#ggbrain"></a>
 </h1></div>
-<p>R package for creating plots of brains using ggplot.</p>
+<p>ggbrain draws slices of NIfTI brain images with ggplot2. Layer statistical maps or atlas regions over an anatomical image, choose slice locations in millimeters or by voxel index, and save the rendered panels with <code>ggsave()</code>.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ggbrain"</span><span class="op">)</span></span></code></pre></div>
+<p>To install the development version from GitHub, use <code>remotes::install_github("michaelhallquist/ggbrain")</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="draw-and-save-a-slice-montage">Draw and save a slice montage<a class="anchor" aria-label="anchor" href="#draw-and-save-a-slice-montage"></a>
+</h2>
+<p>This example uses two aligned images included with the package. The name <code>underlay</code> selects the default grayscale anatomical layer. The second layer shows the signed prediction-error map in color.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://michaelhallquist.github.io/ggbrain/">ggbrain</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">anatomy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"mni_template_2009c_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span><span class="va">activation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pe_ptfce_fwep_0.05_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">brain</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">anatomy</span>, activation <span class="op">=</span> <span class="va">activation</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"z = 0"</span>, <span class="st">"z = 20"</span>, <span class="st">"z = 40"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"underlay"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"activation"</span>, name <span class="op">=</span> <span class="st">"PE z"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">figure</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/render.html">render</a></span><span class="op">(</span><span class="va">brain</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">figure</span><span class="op">)</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"brain-montage.png"</span>, plot <span class="op">=</span> <span class="va">figure</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">4</span>, dpi <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+<div class="float">
+<img src="reference/figures/README-montage.png" alt="Three axial slices at z = 0, 20, and 40 mm with a signed prediction-error overlay."><div class="figcaption">Three axial slices at z = 0, 20, and 40 mm with a signed prediction-error overlay.</div>
+</div>
+<p>Supply images on the same voxel grid. ggbrain checks their dimensions, voxel sizes, and voxel-to-world transforms. For a 4D NIfTI file, select a single 1-based volume with <code>images(c(activation = path), volumes = 3)</code>.</p>
+<p>The package vignettes cover <a href="https://michaelhallquist.github.io/ggbrain/articles/ggbrain_introduction.html">slice selection and contrasts</a>, <a href="https://michaelhallquist.github.io/ggbrain/articles/ggbrain_labels.html">atlas labels</a>, and <a href="https://michaelhallquist.github.io/ggbrain/articles/ggbrain_aesthetics.html">plot aesthetics</a>. Open the installed guides with <code>browseVignettes("ggbrain")</code>.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>

@@ -464,7 +464,8 @@ get slice data for one or more slices based on their coordinates
       make_square = TRUE,
       remove_null_space = TRUE,
       target_resolution = NULL,
-      resample_interpolation = 5L
+      resample_interpolation = 5L,
+      categorical_images = character(0)
     )
 
 #### Arguments
@@ -490,11 +491,13 @@ get slice data for one or more slices based on their coordinates
 
 - `make_square`:
 
-  If TRUE, make all images square and of the same size
+  If TRUE, center all slices on a common grid using the maximum height
+  and width.
 
 - `remove_null_space`:
 
-  If TRUE, remove slices where all values are approximately zero
+  If TRUE, trim empty outer rows and columns to the bounding box of the
+  visible data.
 
 - `target_resolution`:
 
@@ -504,8 +507,13 @@ get slice data for one or more slices based on their coordinates
 
 - `resample_interpolation`:
 
-  Integer specifying the interpolation method for imager::imresize.
-  1=nearest, 2=linear, 5=cubic (default), 6=lanczos.
+  Integer specifying the interpolation method for imager::resize.
+  1=nearest, 3=linear, 5=cubic (default), 6=lanczos.
+
+- `categorical_images`:
+
+  Additional image names to resample with nearest-neighbor
+  interpolation, such as cluster IDs.
 
 #### Details
 

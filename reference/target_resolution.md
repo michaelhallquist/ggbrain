@@ -27,7 +27,7 @@ target_resolution(voxel_size, interpolation = "cubic")
   - `"nearest"` (value 1): Nearest neighbor interpolation. Fast but can
     produce blocky results.
 
-  - `"linear"` (value 2): Linear interpolation. Smooth but may blur
+  - `"linear"` (value 3): Linear interpolation. Smooth but may blur
     edges.
 
   - `"cubic"` (value 5): Cubic interpolation (default). Good balance of
@@ -54,10 +54,11 @@ slow to render or result in very large file sizes, you can downsample
 them using `target_resolution(2)` to display at 2mm.
 
 The resampling is performed on each 2D slice after extraction, which is
-more efficient than resampling the entire 3D volume. The interpolation
-is applied to all images in the plot. For labeled/categorical images,
-nearest neighbor interpolation is always used to preserve integer
-values.
+more efficient than resampling the entire 3D volume. Each plane uses its
+two in-plane voxel spacings. Images supplied with label tables and
+automatically generated cluster IDs use nearest-neighbor interpolation.
+For an integer atlas without a label table, request
+`interpolation = "nearest"`.
 
 Note that upsampling does not add information to the image – it simply
 provides a smoother visual representation. For the highest quality

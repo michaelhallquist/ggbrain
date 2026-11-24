@@ -115,11 +115,12 @@ cluster_slices(
 
 ## Value
 
-If `images` is provided along with `definition`, returns a character
-vector of slice coordinates (e.g., `c("z = 10.5", "z = -3.2")`) suitable
-for passing to
-[`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md).
-If `layer` is specified or `images` is not provided, returns a deferred
+If `images` is provided along with `definition`, returns a list. Pass
+its `$coordinates` character vector to
+[`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
+and use `$cluster_data` to inspect cluster sizes and centers. When
+outlines are requested, `$labeled_volume` contains the selected cluster
+IDs. If `layer` is specified or `images` is omitted, returns a deferred
 specification object (class `"cluster_slices_spec"`) that will be
 resolved during the ggbrain rendering pipeline.
 

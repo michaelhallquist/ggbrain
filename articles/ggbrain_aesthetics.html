@@ -657,11 +657,12 @@ smoother, higher-resolution figures:</p>
 <div class="section level3">
 <h3 id="resampling-images-externally">Resampling images externally<a class="anchor" aria-label="anchor" href="#resampling-images-externally"></a>
 </h3>
-<p>Users could also consider resampling images externally using tools
-like AFNI’s <code>3dresample</code> before loading into
-<code>ggbrain</code>. This will yield similar results to te</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="ex">3dresample</span> <span class="at">-input</span> functional_overlay_3mm.nii.gz <span class="dt">\</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="at">-prefix</span> functional_overlay_1mm.nii.gz <span class="dt">\</span></span>
+<p>For images already registered to the same space, use a reference
+image to put them on a common voxel grid before loading them. This AFNI
+example uses nearest-neighbor interpolation to preserve integer atlas
+IDs.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="ex">3dresample</span> <span class="at">-input</span> atlas_3mm.nii.gz <span class="dt">\</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="at">-prefix</span> atlas_1mm.nii.gz <span class="dt">\</span></span>
 <span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="at">-master</span> anatomical_template_1mm.nii.gz <span class="dt">\</span></span>
 <span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="at">-rmode</span> NN</span></code></pre></div>
 </div>

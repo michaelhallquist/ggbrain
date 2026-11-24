@@ -155,9 +155,10 @@ to connect regardless of sign.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>If <code>images</code> is provided along with <code>definition</code>, returns a character vector
-of slice coordinates (e.g., <code>c("z = 10.5", "z = -3.2")</code>) suitable for passing to
-<code><a href="slices.html">slices()</a></code>. If <code>layer</code> is specified or <code>images</code> is not provided, returns
+    <p>If <code>images</code> is provided along with <code>definition</code>, returns a list.
+Pass its <code>$coordinates</code> character vector to <code><a href="slices.html">slices()</a></code> and use
+<code>$cluster_data</code> to inspect cluster sizes and centers. When outlines are requested,
+<code>$labeled_volume</code> contains the selected cluster IDs. If <code>layer</code> is specified or <code>images</code> is omitted, returns
 a deferred specification object (class <code>"cluster_slices_spec"</code>) that will be resolved
 during the ggbrain rendering pipeline.</p>
     </div>

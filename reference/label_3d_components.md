@@ -1,6 +1,7 @@
-# 3D connected component labeling using two-pass algorithm with union-find
+# Native 3D connected component labeling using iterative component traversal
 
-3D connected component labeling using two-pass algorithm with union-find
+Native 3D connected component labeling using iterative component
+traversal
 
 ## Usage
 

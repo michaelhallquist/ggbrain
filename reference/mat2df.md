@@ -8,6 +8,11 @@ Converts a 2D numeric matrix into a 3-column data.frame
 
   A `matrix` to convert to data.frame
 
+- na_zeros:
+
+  If true, convert values with absolute magnitude below 1e-4 to missing
+  values.
+
 ## Value
 
 A 3-column data.frame with dim1, dim2, and value

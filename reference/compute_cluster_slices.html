@@ -96,6 +96,31 @@
 <dd><p>Neighborhood connectivity (1, 2, or 3)</p></dd>
 
 
+<dt id="arg-outline">outline<a class="anchor" aria-label="anchor" href="#arg-outline"></a></dt>
+<dd><p>Logical. If <code>TRUE</code>, a cluster outline mask is generated and automatically
+added as a <code><a href="geom_outline.html">geom_outline()</a></code> layer during rendering. Default: <code>FALSE</code></p></dd>
+
+
+<dt id="arg-outline-color">outline_color<a class="anchor" aria-label="anchor" href="#arg-outline-color"></a></dt>
+<dd><p>A single color string for all cluster outlines. If <code>NULL</code> (default),
+distinct colors are assigned to each cluster using the "Dark 3" HCL palette. Mutually
+exclusive with <code>outline_scale</code>.</p></dd>
+
+
+<dt id="arg-outline-size">outline_size<a class="anchor" aria-label="anchor" href="#arg-outline-size"></a></dt>
+<dd><p>Integer specifying the outline thickness in pixels. Default: 1</p></dd>
+
+
+<dt id="arg-outline-scale">outline_scale<a class="anchor" aria-label="anchor" href="#arg-outline-scale"></a></dt>
+<dd><p>A ggplot2 scale object (e.g., <code>scale_fill_manual</code>) to use for
+cluster outline colors. Mutually exclusive with <code>outline_color</code>.</p></dd>
+
+
+<dt id="arg-outline-show-legend">outline_show_legend<a class="anchor" aria-label="anchor" href="#arg-outline-show-legend"></a></dt>
+<dd><p>Logical. Whether to show a legend for cluster outlines. If
+<code>NULL</code> (default), a legend is shown when multiple clusters exist.</p></dd>
+
+
 <dt id="arg-sided">sided<a class="anchor" aria-label="anchor" href="#arg-sided"></a></dt>
 <dd><p>Sidedness for clustering thresholded images. See <code><a href="cluster_slices.html">cluster_slices()</a></code>.</p></dd>
 

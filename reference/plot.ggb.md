@@ -21,7 +21,8 @@ plot(x, ...)
 
 ## Value
 
-NULL, invisibly
+The rendered ggbrain_patchwork object, invisibly, or NULL when there are
+no layers.
 
 ## Details
 

@@ -2,6 +2,16 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- Corrected orientation labels for reversed voxel axes and preserved
+  gaps between regions when trimming slice margins.
+
+- Display resampling now uses the voxel spacing of each in-plane axis
+  and preserves generated cluster IDs.
+
+- Cluster reports handle empty selections and mixed outline settings.
+  Extending a rendered figure refreshes the data returned by slice
+  inspection.
+
 - [`annotate_coordinates()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_coordinates.md)
   can put slice labels in per-panel captions. In-panel text gets edge
   padding and inward alignment at the default corner.

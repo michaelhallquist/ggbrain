@@ -44,9 +44,7 @@ You can install the latest public version of the `ggbrain` package using
 install.packages("ggbrain")
 ```
 
-You can also to install the development version. It may may have new
-features and bugfixes, though it may also have new bugs or include works
-in progress.
+To try changes under development, install the package from GitHub.
 
 ``` r
 
@@ -83,7 +81,7 @@ Also note that the order of the addition operations for images and
 slices (`images` and `slices`, respectively) is not important. The
 example order below – adding images, slices, layers, and labels – is
 conceptually intuitive, but could be reordered without altering the
-plut. As in `ggplot2`, the order of all geom\_\* layers *does* matter,
+plot. As in `ggplot2`, the order of all geom\_\* layers *does* matter,
 such that geom\_\* layers that are added later are rendered on top of
 layers added earlier. For example, the
 [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
@@ -91,25 +89,23 @@ layer for an underlay image should be added before an overlay.
 
 ### Add images
 
-A ggbrain plot must have at least one 3D image stored in NIfTI format.
-These images are read into ggbrain using the `RNifti` package. All
-images for a given plot must have the same image dimensions (otherwise,
-an error will occur). At present, `ggbrain` provides no internal support
-for interpolation to combine images with different resolutions. We
-encourage you to use `3dresample` from AFNI for this purpose (see
-details in the ‘Other considerations’ section below).
+Supply NIfTI images on a common voxel grid. ggbrain checks that the
+image dimensions, voxel sizes, and voxel-to-world transforms agree.
+Prepare images on the same grid before combining them. Slice selection
+by world coordinate assumes the voxel axes run along the sagittal,
+coronal, and axial directions, in either sign. Reorient permuted or
+oblique images to a common cardinal grid for this workflow.
 
-The file names containing relevant images can be passed in as arguments
-to `ggbrain` or they can be appended using
+Use `images(c(overlay = path), volumes = 3)` to select the third volume
+of a 4D file. The default is the first volume. To select different
+volumes from different files, use a separate
 [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md)
-In either, it is important to provide a name for the image that is used
-internally to refer to the image in contrasts, labels, or other
-operations. If you do not provide a name, you will see a warning:
+call for each volume index. After slice extraction,
+[`target_resolution()`](https://michaelhallquist.github.io/ggbrain/reference/target_resolution.md)
+can change the display pixel spacing.
 
-    Warning message:
-    In private$set_images(images, fill_holes, clean_specks) :
-      The images vector does not contain any names. This may lead to weird behaviors downstream
-      if 'underlay' and 'overlay' are requested.
+Name each image so that layers, labels, and contrast expressions can
+refer to it.
 
 ``` r
 
@@ -178,7 +174,7 @@ gg_obj <- gg_obj + slices(c("x = 10", "y = 50", "z = 15"))
 ```
 
 This will add one sagittal slice (x=10), one coronal (y=50), and one
-axis (z=15).
+axial slice (z=15).
 
 #### Adding slices by quantile
 
@@ -186,8 +182,9 @@ If you want to use standardized coordinates in terms of percentiles,
 rather than spatial coordinates, you can append `%` at the end of the
 [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
 specification. This will find the position of the corresponding slice
-along the axis between 0% and 100%. These percentiles are computed based
-on the slices that are not entirely empty (i.e., not all zero).
+along the axis between 0% and 100%. The endpoints are the first and last
+slices with nonzero data across the images. The percentage selects a
+position between those endpoints, so the chosen slice can fall in a gap.
 
 ``` r
 
@@ -244,7 +241,7 @@ The arguments are
 - `max_coord`: the highest spatial position to be included. Mutually
   exclusive with quantile approach. Default: NULL
 
-The code below adds 10 axial slices between the 10th and 90th
+The code below adds 10 axial slices between the 10th and 80th
 percentiles.
 
 ``` r
@@ -361,6 +358,30 @@ Key points:
   (single value) for a fixed outline. Set `outline_show_legend` to force
   or suppress the outline legend.
 
+For a table of the clusters used in a rendered figure, call
+`gg$get_cluster_data()` after `render(gg)` or `plot(gg)`. To inspect
+clusters before building a plot, supply the image paths directly. The
+result contains both a table and a character vector of coordinates.
+
+``` r
+
+selected <- cluster_slices(
+  images = c(overlay = pe_overlay_2mm), definition = "overlay[abs(overlay) > 3]",
+  nclusters = 4, min_clust_size = 40
+)
+selected$cluster_data[, c("size", "side", "com_x", "com_y", "com_z")]
+```
+
+    ##    size     side      com_x       com_y     com_z
+    ## 1 41494 positive  -2.385791  -36.776064  9.646937
+    ## 2   779 positive  42.451861   38.613607 15.057766
+    ## 3   667 positive  47.910045    9.862069 26.437781
+    ## 4    44 negative -13.045455 -100.500000 15.181818
+
+Use `slices(selected$coordinates)` to reuse those locations. For
+automatic outlines, use the deferred form
+`slices(cluster_slices(..., outline = TRUE))` shown above.
+
 ### Add brain overlay layers
 
 Now that we have defined the images to read and the slices to render, we
@@ -471,7 +492,7 @@ plot our figure to see the result.
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-18-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png)
 
 #### Defining subset layers
 
@@ -492,7 +513,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-19-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png)
 
 Note how ‘overlay’ is treated as an R object that is subset using square
 brackets. The subsetting expression inside the brackets uses standard R
@@ -509,7 +530,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-20-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png)
 
 Finally, note that one can combine subsetting expressions using logical
 operators `&` and `|` , as in standard R syntax for vector operations.
@@ -528,7 +549,7 @@ gg_obj <- gg_base +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-21-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-22-1.png)
 
 #### Defining a contrast layer
 
@@ -561,7 +582,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-22-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-23-1.png)
 
 An equivalent plot would be achieved by including the definition inline:
 
@@ -592,7 +613,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-24-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-25-1.png)
 
 #### Conjunction analysis
 
@@ -623,7 +644,7 @@ gg_obj <- ggbrain(bg_color = "gray80", text_color = "black") +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-25-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-26-1.png)
 
 Internally, the conjunction retains integer codes in its `value` column
 so that image-processing operations continue to work. The category names
@@ -685,7 +706,7 @@ gg_obj <- ggbrain() +
 plot(gg_obj)
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-27-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-28-1.png)
 
 ### Clusterized categorical layers
 
@@ -790,7 +811,7 @@ Likewise, you can modify the overall theme information using the
 gg_obj + plot_annotation(title="Overall title") & theme_minimal()
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-30-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-31-1.png)
 
 Note that you don’t necessarily need to use
 [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
@@ -814,7 +835,7 @@ brain_plot <- ggbrain() +
 render(brain_plot) + plot_annotation(title = "Overall")
 ```
 
-![](ggbrain_introduction_files/figure-html/unnamed-chunk-31-1.png)
+![](ggbrain_introduction_files/figure-html/unnamed-chunk-32-1.png)
 
 ``` r
 
