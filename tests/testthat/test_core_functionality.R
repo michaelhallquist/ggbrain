@@ -22,7 +22,6 @@ test_that("basic ggbrain pipeline renders a patchwork object with expected layer
 
 test_that("categorical labels stay unified across slices and render", {
   skip_on_cran()
-  library(ggplot2)
 
   atlas_img <- system.file("extdata", "Schaefer_200_7networks_2009c_2mm.nii.gz", package = "ggbrain")
   atlas_labels <- read.csv(system.file("extdata", "Schaefer_200_7networks_labels.csv", package = "ggbrain"))
@@ -31,8 +30,8 @@ test_that("categorical labels stay unified across slices and render", {
   ggb_obj <- ggbrain(bg_color = "gray90", text_color = "black") +
     images(c(atlas = atlas_img), labels = list(atlas = atlas_labels)) +
     slices(c("z=20", "z=40")) +
-    geom_brain(definition = "atlas", name = "atlas_fill", mapping = aes(fill = network), show_legend = FALSE, unify_scales = TRUE) +
-    geom_outline(definition = "atlas", name = "atlas_outline", mapping = aes(group = network), outline = "black", show_legend = FALSE) +
+    geom_brain(definition = "atlas", name = "atlas_fill", mapping = ggplot2::aes(fill = network), show_legend = FALSE, unify_scales = TRUE) +
+    geom_outline(definition = "atlas", name = "atlas_outline", mapping = ggplot2::aes(group = network), outline = "black", show_legend = FALSE) +
     annotate_coordinates()
 
   patch <- ggb_obj$render(guides = "collect")
@@ -225,7 +224,7 @@ test_that("inline factor mapping materializes label column before unify scales",
   gg_obj <- ggbrain() +
     images(c(test = tf)) +
     slices(c("k=1", "k=2")) +
-    geom_brain(definition = "test", mapping = aes(fill = factor(label_col)), unify_scales = TRUE, show_legend = FALSE)
+    geom_brain(definition = "test", mapping = ggplot2::aes(fill = factor(label_col)), unify_scales = TRUE, show_legend = FALSE)
 
   gg_obj$render()
 

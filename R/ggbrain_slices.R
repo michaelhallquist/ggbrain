@@ -333,7 +333,11 @@ ggbrain_slices <- R6::R6Class(
 
       img_ranges <- img_data %>%
         dplyr::group_by(layer) %>%
-        dplyr::summarize(low = min(value, na.rm = TRUE), high = max(value, na.rm = TRUE), .groups = "drop")
+        dplyr::summarize(
+          low = if (all(is.na(value))) NA_real_ else min(value, na.rm = TRUE),
+          high = if (all(is.na(value))) NA_real_ else max(value, na.rm = TRUE),
+          .groups = "drop"
+        )
 
       # for bisided layers, we need pos and neg ranges -- N.B. this does not support arbitrary cutpoints!
       img_ranges_posneg <- img_data %>%

@@ -73,7 +73,9 @@ ggbrain_plot <- R6::R6Class(
       if (missing(value)) {
         return(private$pvt_slices)
       } else if (is.null(value)) {
-        return(invisible(NULL)) # do nothing
+        private$pvt_slices <- NULL
+        private$pvt_nslices <- NULL
+        private$pvt_ggbrain_panels <- NULL
       } else {
         checkmate::assert_class(value, "ggbrain_slices")
         private$pvt_slices <- value

@@ -12,7 +12,7 @@
 \item{...}{additional arguments passed to the plot method}
 }
 \value{
-NULL, invisibly
+The rendered ggbrain_patchwork object, invisibly, or NULL when there are no layers.
 }
 \description{
 S3 method to allow for plot(x) syntax with ggbrain (ggb) objects

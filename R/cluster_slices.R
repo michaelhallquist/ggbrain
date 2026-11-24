@@ -43,9 +43,10 @@
 #' @param outline_show_legend Logical. Whether to show a legend for cluster outlines. If
 #'   \code{NULL} (default), a legend is shown when multiple clusters exist.
 #'
-#' @return If \code{images} is provided along with \code{definition}, returns a character vector
-#'   of slice coordinates (e.g., \code{c("z = 10.5", "z = -3.2")}) suitable for passing to
-#'   \code{slices()}. If \code{layer} is specified or \code{images} is not provided, returns
+#' @return If \code{images} is provided along with \code{definition}, returns a list.
+#'   Pass its \code{$coordinates} character vector to \code{slices()} and use
+#'   \code{$cluster_data} to inspect cluster sizes and centers. When outlines are requested,
+#'   \code{$labeled_volume} contains the selected cluster IDs. If \code{layer} is specified or \code{images} is omitted, returns
 #'   a deferred specification object (class \code{"cluster_slices_spec"}) that will be resolved
 #'   during the ggbrain rendering pipeline.
 #'
@@ -190,6 +191,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
 #' @param plane The plane for slice selection
 #' @param nn Neighborhood connectivity (1, 2, or 3)
 #' @param sided Sidedness for clustering thresholded images. See \code{cluster_slices()}.
+#' @inheritParams cluster_slices
 #' @param contrasts Optional named character strings containing numeric/logical contrast expressions.
 #' @return A list with elements: coordinates (character vector of slice coords) and
 #'   cluster_data (data.frame with cluster details). When outlines are requested, the list
@@ -225,7 +227,7 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
     )
   } else {
     cluster_info <- find_3d_clusters(masked_vol, min_size = min_clust_size, nn = nn, return_labels = outline)
-    cluster_info$side <- "two_sided"
+    cluster_info$side <- rep("two_sided", nrow(cluster_info))
   }
   labeled_volume <- attr(cluster_info, "labeled_volume")
 

@@ -13,3 +13,5 @@ pkg_build
 ^Meta$
 ^\.positai$
 ^\.claude$
+^introduction\.txt$
+(^|/)Rplots\.pdf$

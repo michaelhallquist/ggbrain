@@ -129,6 +129,7 @@ label_3d_components_cpp <- function(mask, nn = 3L, min_size = 1L, return_labels 
 #' @description Converts a 2D numeric matrix into a 3-column data.frame
 #' @details This function is a faster version of reshape2::melt for the simple 2-D case. It is about 2.5x faster than melt.
 #' @param mat A \code{matrix} to convert to data.frame
+#' @param na_zeros If true, convert values with absolute magnitude below 1e-4 to missing values.
 #' @return A 3-column data.frame with dim1, dim2, and value
 #' @keywords internal
 #' @author Michael Hallquist

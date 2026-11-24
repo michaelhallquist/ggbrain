@@ -69,7 +69,7 @@ ggbrain_panel <- R6::R6Class(
       gg <- gg + private$pvt_default_theme + private$pvt_theme_custom
 
       if (!is.null(private$pvt_title)) {
-        gg <- gg + ggtitle(private$pvt_title)
+        gg <- gg + ggplot2::ggtitle(private$pvt_title)
       }
 
       if (!is.null(private$pvt_xlab)) {

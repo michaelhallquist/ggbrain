@@ -75,3 +75,21 @@ test_that("geom_brain_clusterized errors if definition image missing", {
     obj$render()
   }, "not found")
 })
+
+test_that("clusterized layers with the same default name keep their own masks", {
+  values <- array(1, c(4, 4, 3))
+  values[1:2, , ] <- -1
+  img <- ggbrain_images$new(list(map = RNifti::asNifti(values)))
+  pair <- ggbrain() +
+    geom_brain_clusterized("map[map > 0]", nclusters = 1) +
+    geom_brain_clusterized("map[map < 0]", nclusters = 1)
+  p <- ggbrain(images = img, slices = "k=2") + geom_brain("map") + pair
+  render(p)
+
+  sources <- vapply(p$ggb_plot$layers, function(layer) layer$source, character(1))
+  expect_identical(unname(sources), c("map", "clusterized", "clusterized_2"))
+  positive <- p$get_slice_data("clusterized", as_matrix = TRUE)[[1]]
+  negative <- p$get_slice_data("clusterized_2", as_matrix = TRUE)[[1]]
+  expect_equal(!is.na(positive), values[, , 2] > 0)
+  expect_equal(!is.na(negative), values[, , 2] < 0)
+})
