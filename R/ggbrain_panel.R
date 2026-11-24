@@ -143,16 +143,17 @@ ggbrain_panel <- R6::R6Class(
             pos <- quantile(df$dim2, 0, na.rm = TRUE)
           } else if (pos == "middle") {
             if (grepl("^x", aes_name)) {
-              pos <- quantile(df$dim1, 0.5, na.rm = TRUE)
+              pos <- mean(range(df$dim1, na.rm = TRUE))
             } else if (grepl("^y", aes_name)) {
-              pos <- quantile(df$dim2, 0.5, na.rm = TRUE)
+              pos <- mean(range(df$dim2, na.rm = TRUE))
             } else {
               stop(paste("aesthetic", aes_name, "is 'middle', but is not x* or y*"))
             }
           } else if (grepl("^q[-\\d\\.]+$", pos, perl=TRUE)) {
             qnum <- as.numeric(sub("^q", "", pos))
-            if (qnum > 1 || qnum < -1) qnum <- qnum/100 # percentile -> quantile
             if (is.na(qnum)) stop("Could not parse quantile specification: ", pos)
+            # Bare q1 is the first percentile. The decimal q1.0 is a fraction of 1.
+            if (pos == "q1" || qnum > 1 || qnum < -1) qnum <- qnum / 100
             if (grepl("^x", aes_name)) {
               pos <- quant(df$dim1, qnum, na.rm = TRUE)
             } else {
@@ -181,28 +182,97 @@ ggbrain_panel <- R6::R6Class(
       # pvt_annotations is a list. Each element should be a tibble reflecting an annotate_slices operation.
       # Each row of the tibble is an annotation to add to the plot
 
-      # use do.call c to combine lower-level annotations (rows of annotation within a given type/operation)
+      # Resolve each row separately so different kinds of annotations can share a panel.
       gg_ann_list <- do.call(c, lapply(private$pvt_annotations, function(ann_df) {
-        # touch up aes mapping columns
-        aes_cols <- grep("^(x|y)", names(ann_df), value = TRUE)
-        allow_oob <- if ("allow_oob" %in% names(ann_df)) ann_df$allow_oob else FALSE
-        for (aa in aes_cols) {
-          ann_df[[aa]] <- map_pos(aa, ann_df[[aa]], allow_oob)
-        }
-        if ("allow_oob" %in% names(ann_df)) {
-          ann_df$allow_oob <- NULL
-        }
-
         lapply(seq_len(nrow(ann_df)), function(i) {
           this_ann <- as.list(ann_df[i, , drop = FALSE])
           this_ann <- this_ann[!is.na(this_ann)] # remove any NA elements that occur from a bind_rows operation
-          if (is.null(this_ann$color)) this_ann$color <- private$pvt_text_color
+          placement <- this_ann$coord_placement
+          this_ann$coord_placement <- NULL
+
+          if (identical(placement, "caption")) {
+            return(private$coordinate_caption(this_ann))
+          }
+
+          x_edge <- this_ann[["x"]]
+          y_edge <- this_ann[["y"]]
+          aes_cols <- grep("^(x|y)", names(this_ann), value = TRUE)
+          for (aa in aes_cols) {
+            this_ann[[aa]] <- map_pos(aa, this_ann[[aa]], isTRUE(this_ann$allow_oob))
+          }
+          this_ann$allow_oob <- NULL
+          if (is.null(this_ann$color) && is.null(this_ann$colour)) {
+            this_ann$color <- private$pvt_text_color
+          }
+
+          if (identical(placement, "panel") && this_ann$geom %in% c("text", "label")) {
+            return(private$padded_coordinate_label(this_ann, x_edge, y_edge, df))
+          }
 
           do.call(ggplot2::annotate, this_ann)
         })
       }))
 
       return(gg_ann_list)
+    },
+
+    coordinate_caption = function(annotation) {
+      style <- list(
+        colour = private$pvt_text_color,
+        size = private$pvt_base_size * .7,
+        hjust = 1,
+        margin = margin(t = 3, r = 2, b = 2)
+      )
+      if (!is.null(annotation$size)) style$size <- annotation$size * ggplot2::.pt
+      if (!is.null(annotation$color)) style$colour <- annotation$color
+      if (!is.null(annotation$colour)) style$colour <- annotation$colour
+      if (!is.null(annotation$fontface)) style$face <- annotation$fontface
+      for (name in intersect(c("family", "hjust", "lineheight"), names(annotation))) {
+        style[[name]] <- annotation[[name]]
+      }
+      list(
+        ggplot2::labs(caption = annotation$label),
+        theme(plot.caption.position = "panel", plot.caption = do.call(element_text, style))
+      )
+    },
+
+    padded_coordinate_label = function(annotation, x_edge, y_edge, df) {
+      if (isTRUE(x_edge %in% c("left", "right"))) {
+        left <- x_edge == "left"
+        inset <- 0.02 * diff(range(df$dim1, na.rm = TRUE))
+        annotation$x <- annotation$x + if (left) inset else -inset
+        if (is.null(annotation$hjust)) annotation$hjust <- if (left) 0 else 1
+      }
+
+      if (!isTRUE(y_edge %in% c("bottom", "top"))) return(do.call(ggplot2::annotate, annotation))
+
+      bottom <- y_edge == "bottom"
+      direction <- if (bottom) -1 else 1
+      # Slice coordinates are pixel centres. Start the band beyond the half-pixel edge.
+      image_edge <- annotation$y + direction * 0.5
+      span <- diff(range(df$dim2, na.rm = TRUE)) + 1
+      # Give larger text extra room, while keeping the band smaller than the image.
+      size <- annotation[["size"]]
+      size_unit <- annotation[["size.unit"]]
+      if (is.numeric(size) && is.finite(size) && size > 0 && (is.null(size_unit) || size_unit == "mm")) {
+        default_size <- private$pvt_base_size * .7 / ggplot2::.pt
+        span <- span * max(1, min(2, size / default_size))
+      }
+      band <- 0.22 * span
+      gap <- 0.03 * span
+      if (is.null(annotation$vjust)) annotation$vjust <- if (bottom) 0 else 1
+      vjust <- annotation$vjust
+      # Keep numeric justification overrides and move the anchor within the band accordingly.
+      band_position <- if (is.numeric(vjust) && vjust >= 0 && vjust <= 1) {
+        if (bottom) 1 - vjust else vjust
+      } else {
+        0.5
+      }
+      annotation$y <- image_edge + direction * (gap + (band - 2 * gap) * band_position)
+      list(
+        ggplot2::expand_limits(y = image_edge + direction * band),
+        do.call(ggplot2::annotate, annotation)
+      )
     }
   ),
   public = list(
