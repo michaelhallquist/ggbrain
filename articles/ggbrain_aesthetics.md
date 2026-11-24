@@ -354,9 +354,11 @@ plot(gg_labeled)
 
 ### Coordinate annotations
 
-Use
-[`annotate_coordinates()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_coordinates.md)
-to add slice coordinate labels to each panel:
+Use `annotate_coordinates(placement = "caption")` to put slice
+coordinates below each image. Captions are useful in compact montages
+because they have their own row. The default, `placement = "panel"`,
+keeps labels in the panel and reserves space for them at the top or
+bottom when you use `y = "top"` or `y = "bottom"`.
 
 ``` r
 
@@ -369,7 +371,7 @@ gg_coords <- ggbrain(bg_color = "gray90", text_color = "black") +
     fill_scale = scale_fill_bisided(),
     remove_specks = 15
   ) +
-  annotate_coordinates(hjust = 1, color = "black", x = "right", y = "bottom", size = 3)
+  annotate_coordinates(placement = "caption", size = 3)
 
 plot(gg_coords)
 ```

@@ -2,20 +2,34 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- [`annotate_coordinates()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_coordinates.md)
+  can put slice labels in per-panel captions. In-panel text gets edge
+  padding and inward alignment at the default corner.
+
+- Annotation position `"middle"` uses the midpoint of the slice grid, so
+  overlays with unevenly distributed rows do not shift it.
+
+- Annotation position `"q1"` now means the 1st percentile. Use `"q1.0"`
+  or `"q100"` for the 100th percentile.
+
 - feature:
   [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
   now supports unquoted definitions such as
   `define(diff := img1 - img2)`
+
 - feature: conjunctions can use `case_when(condition ~ "label", ...)`
   with first-match precedence
+
 - feature: added
   [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
   function that allows user to choose slices based on connected clusters
   in a given image
+
 - feature: added
   [`geom_brain_clusterized()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain_clusterized.md),
   which allows users to display connected clusters instead of continuous
   values
+
 - feature: added
   [`target_resolution()`](https://michaelhallquist.github.io/ggbrain/reference/target_resolution.md)
   function to resample slices to a different resolution for display.
@@ -23,81 +37,107 @@
   2.5mm data at 1mm) or downsample for faster rendering and smaller file
   sizes. Supports nearest neighbor, linear, cubic (default), and lanczos
   interpolation methods.
+
 - feature: added
   [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
   function to add anatomical orientation labels to plots
+
 - feature: added
   [`annotate_crosshairs()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_crosshairs.md)
   function to add requested cross-hairs to relevant panels
+
 - feature: Improve speed of `find_threads` by only decrementing neighbor
   counts for pixels identified from the initial full scan.
+
 - feature: Move 3D connected-component labeling and cluster statistics
   into a single native traversal. This removes nested per-voxel R loops
   and repeated full-volume scans for each cluster while preserving 6-,
   18-, and 26-connectivity results.
+
 - feature: Text colors on plots default to a color that contrasts with
   the background (allowing dark-on-light or light-on-dark plots)
+
 - breaking change: legacy semicolon conjunctions now also use
   first-match precedence; place specific conditions first
+
 - bugfix: avoid double calls to `refine_image()` when unifying
   categorical scales by releveling before data assignment
+
 - bugfix: ensure `fill_holes` uses mode for categorical/labeled data
   (even with fixed outlines) and cap imputation radius for small slices
+
 - bugfix: replace deprecated `aes_string()` with tidy-eval `aes()`
   mappings for rasters and labels
+
 - bugfix: replace deprecated
   [`rlang::flatten()`](https://rlang.r-lib.org/reference/flatten.html)
   with internal `flatten_list_once()` helper
+
 - bugfix: correct row/column swap in the eastward check of
   count_neighbors.
+
 - bugfix: switched `flood_fill` to stack-based approach to avoid
   overflow due to recursion.
+
 - bugfix: Correct invalid 1-based indexing assumption in `nearest_pts`
   used for filling holes.
+
 - bugfix: Refactor `nearest_pts` to exclude missing, non-finite,
   ignored-zero, and target pixels before selecting neighbors. This
   prevents invalid values from entering `nn_impute` when fewer than the
   requested number of valid neighbors are available and improves
   performance, especially for sparse images.
+
 - bugfix: Make repeated
   [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
   calls idempotent for cluster-derived slices and layers. Generated
   cluster slices, clusterized layers, and outline layers are now kept in
   render-local state instead of being appended to the stored
   `ggb_slices` and `ggb_layers` specification.
+
 - bugfix: Keep `ggbrain_images` metadata and nonzero-range caches
   synchronized after image addition, filtering, thresholding, and
   removal. Nested image filters are now applied correctly, and removing
   images also removes their names, labels, and other associated
   metadata.
+
 - bugfix: Import
   [`ggplot2::geom_text()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
   and
   [`ggplot2::geom_label()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
   so region text and label layers render without requiring users to
   attach ggplot2.
+
 - bugfix: Correct convenience argument handling for
   `ggbrain(..., slices=)` and for applying `labels` or `filter` when
   [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md)
   receives an existing `ggbrain_images` object.
+
 - bugfix: Deep-clone layer and region-label fragments when attaching
   them to a plot, preventing reused fragments from sharing mutable R6
   state. Region-label slice data are now assigned to render-local clones
   rather than the stored plot specification.
+
 - bugfix: Clear labels associated with old image data when an image is
   replaced under an existing name. Object-to-object additions install
   labels from the replacement object when provided.
+
 - bugfix: Use bisided scale for all slices when `unify=TRUE` but only
   some slices have positive and negative values
+
 - bugfix: Use square data for outlines to avoid warnings about
   misalignment
+
 - bugfix: Always apply filter expressions passed with
   [`images()`](https://michaelhallquist.github.io/ggbrain/reference/images.md),
   not just for labeled images
+
 - bugfix: Do not default to bisided scale for underlay when in contains
   negative values
+
 - bugfix: conjunction labels are preserved as factor levels and
   automatically use categorical fill scales
+
 - bugfix: allow
   [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
   and
@@ -107,6 +147,7 @@
   [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md).
   Signed clustering now uses the calculated contrast values rather than
   a single source image.
+
 - tests: add core vignette-style integration tests covering rendering,
   outlines, and labeled atlas slices; add tests for `refine_image` call
   count and hole filling
