@@ -429,3 +429,20 @@ test_that("cluster reports combine specifications and display preserves categori
   expect_setequal(ids[!is.na(ids)], 1:2)
   expect_equal(sum(!is.na(ids)), 32)
 })
+
+test_that("fixed-color signed outlines trace both tails of the same mask", {
+  z <- array(0, c(9, 9, 2))
+  z[2:4, 2:4, ] <- -4
+  z[6:8, 6:8, ] <- 4
+  base <- ggbrain() + images(list(z = RNifti::asNifti(z))) + slices("k=1")
+  signed <- base + geom_outline("z[abs(z) >= 3]", outline = "black", size = 1)
+  mask <- base + define("magnitude := abs(z)") +
+    geom_outline("magnitude[magnitude >= 3]", outline = "black", size = 1)
+
+  boundary <- function(obj) ggplot2::ggplot_build(render(obj)[[1]])$data[[1]][c("x", "y")]
+  expect_no_warning(pixels <- boundary(signed))
+  expect_equal(pixels, boundary(mask))
+  source <- signed$get_slice_data("z")[[1]]
+  values <- merge(pixels, source, by.x = c("x", "y"), by.y = c("dim1", "dim2"))$value
+  expect_setequal(values, c(-4, 4))
+})

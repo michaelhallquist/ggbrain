@@ -268,26 +268,11 @@ ggbrain_layer <- R6::R6Class(
 
       gg <- gg + robj + fill_scale
       
-      # cleanup psychotic collision of 2 bugs: show.legend = TRUE is needed to show all levels of a factor
-      # and show.legend should be left unset for TRUE layers and set only for FALSE layers to eliminate some guides in ggnewscale
-      # Based on weird ggplot2 + ggnewscale bug, only set show.legend when it is FALSE to avoid legend collisions:
-      # https://github.com/eliocamp/ggnewscale/issues/32
-      # This conflicts with a different bug, where if we don't set show.legend to TRUE, then we get swiss cheese legends depending on
-      # what levels are present for a given slice/plot: https://github.com/tidyverse/ggplot2/issues/5996
-      #
-      # Feb 2025: This is even wilder than anticipated: https://stackoverflow.com/questions/79410493/getting-multiple-fill-with-categorical-data-to-display-using-ggplot2-3-5-0
-      # The predictable solution (for now) is to use guides(<x>="none"), as below, mixed with a named show.legend argument to geom_*, including
-      # an irrelevant fill_made_up=NA.
-
-      # use the show.legend property of the guides to decide which guides to suppress
-      # then use guides(<x>="none") to suppress any guides that have been inadvertently reintroduced by upstream bugs
-      show <- sapply(gg$layers, function(layer) layer$show.legend["fill"])
-      if (any(show==FALSE)) {
-        scale_names <- sapply(gg$scales$scales, function(x) x$aesthetics)
-        noshow <- scale_names[!show]
-        gg <- gg + do.call(ggplot2::guides, sapply(noshow, function(i) "none", USE.NAMES=TRUE, simplify = FALSE))
+      # ggnewscale carries this guide setting forward when it renames the fill aesthetic.
+      if (!is.null(fill_scale) && !private$pvt_show_legend) {
+        gg <- gg + ggplot2::guides(fill = "none")
       }
-      
+
       return(gg)
     },
 
@@ -310,7 +295,8 @@ ggbrain_layer <- R6::R6Class(
       # "Raster pixels are placed at uneven vertical intervals and will be shifted"
       # This appears to be ignorable, but is concerning and slightly annoying as a warning message
       # Thus, we create parallel data.frames with NAs, rather than a simple filter for pos or neg
-      if (isTRUE(private$pvt_bisided) && isFALSE(private$pvt_categorical_fill)) {
+      bisided <- isTRUE(private$pvt_map_fill) && isTRUE(private$pvt_bisided) && !private$pvt_categorical_fill
+      if (bisided) {
         df <- NULL
         df_neg <- private$pvt_data %>%
           dplyr::mutate(!!vcol := if_else(!!sym(vcol) < 0, !!sym(vcol), NA_real_))
@@ -329,8 +315,6 @@ ggbrain_layer <- R6::R6Class(
         fill_scale <- private$pvt_fill_scale
         fill_scale_pos <- fill_scale_neg <- NULL
       }
-
-      bisided <- private$pvt_bisided
 
       return(named_list(df, df_pos, df_neg, fill_scale, fill_scale_pos, fill_scale_neg, vcol, bisided))
 
