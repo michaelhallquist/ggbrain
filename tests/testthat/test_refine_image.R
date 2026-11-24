@@ -1,8 +1,6 @@
 test_that("refine_image runs once per layer when unifying categorical levels", {
   refine_calls <- 0L
 
-  library(ggplot2)
-
   # test double-dispatch of refine_image via data assignment
   TestLayer <- R6::R6Class(
     "TestLayer",
@@ -86,7 +84,7 @@ test_that("fill_holes uses mode for labeled data even with fixed outline", {
   )
   layer$data <- df
 
-  filled_val <- subset(layer$data, dim1 == 2 & dim2 == 2)$value
-  expect_true(filled_val %in% c(1, 2))
+  filled_val <- subset(layer$data, dim1 == 3 & dim2 == 3)$value
+  expect_equal(filled_val, 1)
   expect_true(all(layer$data$value %% 1 == 0, na.rm = TRUE))
 })

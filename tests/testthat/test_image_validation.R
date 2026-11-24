@@ -123,20 +123,24 @@ test_that("voxel size mismatch is detected when combining via add() method", {
   )
 })
 
-# test_that("affine matrix mismatch between images is detected", {
-#  skip("Creating NIfTI images with different affine matrices requires external tools")
-#   # This test is skipped because RNifti's sform<- function does not reliably
-# 
-#   # modify the affine matrix for testing purposes. In practice, the affine check
-#   # works when loading real NIfTI files that have genuinely different affines.
-# })
-# 
-# test_that("affine mismatch is detected when combining via add() method", {
-#   skip("Creating NIfTI images with different affine matrices requires external tools")
-#   # This test is skipped because RNifti's sform<- function does not reliably
-#   # modify the affine matrix for testing purposes. In practice, the affine check
-#   # works when loading real NIfTI files that have genuinely different affines.
-# })
+test_that("translated affines are rejected on import, addition, and derived images", {
+  original <- RNifti::asNifti(array(1, c(4, 5, 6)))
+  shifted <- RNifti::asNifti(array(2, c(4, 5, 6)))
+  affine <- diag(4)
+  affine[1, 4] <- 10
+  RNifti::sform(shifted) <- structure(affine, code = 2L)
+  paths <- c(original = tempfile(fileext = ".nii"), shifted = tempfile(fileext = ".nii"))
+  on.exit(unlink(paths), add = TRUE)
+  RNifti::writeNifti(original, paths[[1]])
+  RNifti::writeNifti(shifted, paths[[2]])
+
+  expect_error(images(paths), "Affine matrices do not match")
+  expect_error(images(paths[1]) + images(paths[2]), "Affine matrices do not match")
+  collection <- ggbrain_images$new(paths[1])
+  expect_error(collection$add_array_as_image(array(1, c(4, 5, 6)), "bad", shifted),
+               "Affine matrices do not match")
+  expect_identical(collection$get_image_names(), "original")
+})
 
 test_that("empty ggbrain_images object can be added without error", {
   underlay <- system.file("extdata", "mni_template_2009c_2mm.nii.gz", package = "ggbrain")

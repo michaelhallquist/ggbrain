@@ -37,18 +37,24 @@ ggb <- R6::R6Class(
         )
         if (length(cluster_result$coordinates) > 0 && !identical(spec$action, "clusterized")) {
           # Convert to the list format expected by ggb_slices
-          cluster_slice_list <- lapply(cluster_result$coordinates, function(coord) list(coordinate = coord))
+          cluster_slice_list <- lapply(cluster_result$coordinates, function(coord) {
+            c(list(coordinate = coord), spec$panel_settings)
+          })
           render_slices <- c(render_slices, cluster_slice_list)
         }
         # Annotate cluster provenance and store for later retrieval
         cluster_df <- cluster_result$cluster_data
-        cluster_df$type <- if (identical(spec$action, "clusterized")) "display" else "slicing"
-        cluster_df$cluster_source <- if (!is.null(spec$layer)) spec$layer else spec$definition
-        cluster_df$cluster_layer <- if (!is.null(spec$cluster_layer_name)) spec$cluster_layer_name else NA_character_
+        is_display <- identical(spec$action, "clusterized")
+        cluster_df$type <- rep(if (is_display) "display" else "slicing", nrow(cluster_df))
+        cluster_df$cluster_source <- rep(spec$layer %||% spec$definition, nrow(cluster_df))
+        cluster_df$cluster_layer <- rep(spec$cluster_layer_name %||% NA_character_, nrow(cluster_df))
         cluster_data <- c(cluster_data, list(cluster_df))
 
-        # If this spec is for a clusterized fill layer, add the labeled volume and wire fill scale
-        if (identical(spec$action, "clusterized") && !is.null(cluster_result$labeled_volume)) {
+        # Keep an empty clusterized layer transparent on any explicitly selected slices.
+        if (is_display) {
+          if (is.null(cluster_result$labeled_volume)) {
+            cluster_result$labeled_volume <- array(NA_integer_, dim = img$dim())
+          }
           cluster_img_name <- spec$cluster_layer_name %||% "clusterized"
           existing_imgs <- img$get_image_names()
           counter <- 1L
@@ -61,9 +67,7 @@ ggb <- R6::R6Class(
 
           # Update the placeholder layer to point to the new cluster image and scale
           if (!is.null(render_layers) && length(render_layers) > 0L) {
-            cl_idx <- which(vapply(render_layers, function(ll) identical(ll$name, spec$cluster_layer_name), logical(1)))
-            if (length(cl_idx) == 0L) cl_idx <- length(render_layers) # fallback
-            cl_idx <- cl_idx[[1L]]
+            cl_idx <- spec$cluster_layer_index %||% match(spec$cluster_layer_name, names(render_layers))
             render_layers[[cl_idx]]$name <- cluster_img_name
             render_layers[[cl_idx]]$definition <- cluster_img_name
             render_layers[[cl_idx]]$source <- cluster_img_name
@@ -200,11 +204,12 @@ ggb <- R6::R6Class(
     },
 
     # Retrieve slices with target resolution settings, if present
-    get_slices_for_render = function(img) {
+    get_slices_for_render = function(img, categorical_images) {
       if (!is.null(self$ggb_target_resolution)) {
         return(img$get_slices(
           target_resolution = self$ggb_target_resolution$voxel_size,
-          resample_interpolation = self$ggb_target_resolution$interpolation_value
+          resample_interpolation = self$ggb_target_resolution$interpolation_value,
+          categorical_images = categorical_images
         ))
       }
       img$get_slices()
@@ -390,7 +395,7 @@ ggb <- R6::R6Class(
         return(NULL)
       }
       # Combine all cluster data into a single data.frame
-      do.call(rbind, self$ggb_cluster_data)
+      dplyr::bind_rows(self$ggb_cluster_data)
     },
 
     #' @description add contrast definitions to the plot object
@@ -539,7 +544,7 @@ ggb <- R6::R6Class(
       render_slices <- res$slices
       render_layers <- res$layers
       self$ggb_cluster_data <- res$cluster_data
-      outline_imgs <- res$outline_imgs
+      cluster_images <- setdiff(img$get_image_names(), self$ggb_images$get_image_names())
 
       if (!is.null(render_slices)) {
         img$add_slices(vapply(render_slices, `[[`, character(1L), "coordinate"))
@@ -547,7 +552,10 @@ ggb <- R6::R6Class(
 
       if (!is.null(self$ggb_image_labels))  do.call(img$add_labels, self$ggb_image_labels)
 
-      slc <- private$get_slices_for_render(img)
+      if (length(self$ggb_cluster_slices) && !length(img$slices) && !length(render_slices)) {
+        stop("No slices to render. Add slices() with explicit coordinates or adjust the cluster selection.")
+      }
+      slc <- private$get_slices_for_render(img, cluster_images)
 
       # compute any defined contrasts before looking at inline contrasts
       slc$compute_contrasts(self$ggb_contrasts)
@@ -660,7 +668,7 @@ ggb <- R6::R6Class(
 #' @param ... additional arguments passed to the plot method
 #' @details
 #'   This will plot the ggbrain object to the current graphics device
-#' @return NULL, invisibly
+#' @return The rendered ggbrain_patchwork object, invisibly, or NULL when there are no layers.
 #' @export
 plot.ggb <- function(x, ...) {
   p <- x$plot(...) # convert to ggbrain_patchwork object
@@ -731,20 +739,20 @@ print.ggbrain_patchwork <- plot.ggbrain_patchwork
 
   oc <- o1$clone(deep = TRUE)
   oc$action <- NULL # always make sure no action is needed in combined object
+  oc$ggb_plot$slices <- NULL
+  oc$ggb_cluster_data <- NULL
 
   for (aa in actions) {
     if (aa == "add_slices") {
       oc$add_slices(o2$ggb_slices)
-    } else if (aa == "add_cluster_slices") {
-      # Handle cluster_slices_spec from slices(cluster_slices(...))
+    } else if (aa %in% c("add_cluster_slices", "add_clusterized_layer")) {
       for (spec in o2$ggb_cluster_slices) {
+        if (!is.null(spec$cluster_layer_index)) {
+          spec$cluster_layer_index <- length(o1$ggb_layers) + spec$cluster_layer_index
+        }
         oc$add_cluster_slices(spec)
       }
-    } else if (aa == "add_clusterized_layer") {
-      for (spec in o2$ggb_cluster_slices) {
-        oc$add_cluster_slices(spec)
-      }
-      oc$add_layers(o2$ggb_layers)
+      if (aa == "add_clusterized_layer") oc$add_layers(o2$ggb_layers)
     } else if (aa == "add_contrasts") {
       oc$add_contrasts(o2$ggb_contrasts)
     } else if (aa == "add_images") {

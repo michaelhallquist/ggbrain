@@ -543,11 +543,11 @@ p1 | p2
 
 ## Resampling images externally
 
-Users could also consider resampling images externally using tools like AFNI's `3dresample` before loading into `ggbrain`. This will yield similar results to te 
+For images already registered to the same space, use a reference image to put them on a common voxel grid before loading them. This AFNI example uses nearest-neighbor interpolation to preserve integer atlas IDs.
  
 ```bash
-3dresample -input functional_overlay_3mm.nii.gz \
-  -prefix functional_overlay_1mm.nii.gz \
+3dresample -input atlas_3mm.nii.gz \
+  -prefix atlas_1mm.nii.gz \
   -master anatomical_template_1mm.nii.gz \
   -rmode NN
 ```

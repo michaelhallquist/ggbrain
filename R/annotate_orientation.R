@@ -26,8 +26,7 @@ orientation_annotations_for_slice <- function(panel_index, slices_obj, size = 3,
   ori <- slices_obj$get_orientation_labels()
   if (is.null(ori)) return(NULL)
 
-  plane <- slices_obj$coord_input[[panel_index]]
-  if (length(plane) == 1 && is.character(plane)) plane <- tolower(substr(plane, 1, 1))
+  axis <- substr(tolower(trimws(slices_obj$coord_input[[panel_index]])), 1L, 1L)
 
   slice_data <- slices_obj$slice_data[[panel_index]]
   dims <- slice_data[[1]]
@@ -35,10 +34,10 @@ orientation_annotations_for_slice <- function(panel_index, slices_obj, size = 3,
   y_range <- range(dims$dim2, na.rm = TRUE)
 
   map <- switch(
-    plane,
-    x = c("y", "z"), i = c("y", "z"),
-    y = c("x", "z"), j = c("x", "z"),
-    z = c("x", "y"), k = c("x", "y"),
+    axis,
+    x = , i = c("y", "z"),
+    y = , j = c("x", "z"),
+    z = , k = c("x", "y"),
     c(NA, NA)
   )
   if (any(is.na(map))) return(NULL)

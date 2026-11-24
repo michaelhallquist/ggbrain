@@ -33,6 +33,21 @@ compute_cluster_slices(
 
 \item{nn}{Neighborhood connectivity (1, 2, or 3)}
 
+\item{outline}{Logical. If \code{TRUE}, a cluster outline mask is generated and automatically
+added as a \code{geom_outline()} layer during rendering. Default: \code{FALSE}}
+
+\item{outline_color}{A single color string for all cluster outlines. If \code{NULL} (default),
+distinct colors are assigned to each cluster using the "Dark 3" HCL palette. Mutually
+exclusive with \code{outline_scale}.}
+
+\item{outline_size}{Integer specifying the outline thickness in pixels. Default: 1}
+
+\item{outline_scale}{A ggplot2 scale object (e.g., \code{scale_fill_manual}) to use for
+cluster outline colors. Mutually exclusive with \code{outline_color}.}
+
+\item{outline_show_legend}{Logical. Whether to show a legend for cluster outlines. If
+\code{NULL} (default), a legend is shown when multiple clusters exist.}
+
 \item{sided}{Sidedness for clustering thresholded images. See \code{cluster_slices()}.}
 
 \item{contrasts}{Optional named character strings containing numeric/logical contrast expressions.}

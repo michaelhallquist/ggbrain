@@ -389,3 +389,43 @@ test_that("repeated cluster slice renders do not mutate slices or layers", {
   )
   expect_equal(outline_layers[[length(outline_layers)]]$size, 3L)
 })
+
+test_that("empty cluster selections preserve explicit panels in either sidedness mode", {
+  image <- ggbrain_images$new(list(underlay = RNifti::asNifti(array(1, c(4, 4, 4)))))
+  base <- ggbrain(images = image) + geom_brain("underlay")
+
+  for (side in c("bisided", "two_sided")) {
+    empty <- cluster_slices(definition = "underlay[underlay > 2]", sided = side)
+    p <- base + slices("k=2") + slices(empty)
+    expect_warning(figure <- render(p), "No clusters found")
+    expect_s3_class(figure, "ggbrain_patchwork")
+    expect_equal(nrow(p$get_cluster_data()), 0L)
+    expect_identical(p$ggb_plot$slices$coord_input, "k=2")
+  }
+
+  display <- base + slices("k=2") + geom_brain_clusterized("underlay[underlay > 2]")
+  expect_warning(render(display), "No clusters found")
+  expect_true(all(is.na(display$get_slice_data("clusterized")[[1]]$value)))
+  expect_equal(nrow(display$get_cluster_data()), 0L)
+  expect_warning(expect_error(render(base + slices(empty)), "Add slices"), "No clusters found")
+})
+
+test_that("cluster reports combine specifications and display preserves categorical IDs", {
+  values <- array(0, c(6, 6, 3))
+  values[1:2, 1:2, 2] <- 1
+  values[5:6, 5:6, 2] <- -1
+  image <- ggbrain_images$new(list(map = RNifti::asNifti(values)))
+  selection <- cluster_slices(definition = "map", nclusters = 2)
+  p <- ggbrain(images = image) + slices(selection, title = "Selected regions") +
+    geom_brain("map") + geom_brain_clusterized("map", nclusters = 2) +
+    target_resolution(0.5, interpolation = "cubic")
+  figure <- render(p)
+  expect_identical(figure[[1]]$labels$title, "Selected regions")
+  report <- p$get_cluster_data()
+  expect_identical(report$type, c("slicing", "slicing", "display", "display"))
+  expect_equal(report$size, rep(4L, 4))
+  expect_true(all(is.na(report$outline_color[report$type == "slicing"])))
+  ids <- p$get_slice_data("clusterized")[[1]]$value
+  expect_setequal(ids[!is.na(ids)], 1:2)
+  expect_equal(sum(!is.na(ids)), 32)
+})

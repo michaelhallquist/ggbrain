@@ -60,6 +60,11 @@ ggbrain_images <- R6::R6Class(
       invisible(NULL)
     },
 
+    # Coordinate along a cardinal world axis, with the other voxel indices at one.
+    axis_world = function(axis, index) {
+      private$pvt_affine[axis, 4L] + (index - 1) * private$pvt_affine[axis, axis]
+    },
+
     set_images = function(images = NULL, volumes = NULL) {
       if (is.null(images)) return(NULL) # skip out
       if (is.null(volumes)) volumes <- 1L # just read first volume as default
@@ -104,8 +109,6 @@ ggbrain_images <- R6::R6Class(
       if (!all(dim_match)) {
         print(img_dims)
         stop("Image dimensions do not match one another")
-      } else {
-        private$pvt_dims <- img_dims[, 1]
       }
 
       # Check voxel sizes match (with tolerance for floating-point comparison)
@@ -130,7 +133,6 @@ ggbrain_images <- R6::R6Class(
           stop("Voxel sizes do not match between images. Images must have the same resolution.")
         }
       }
-      private$pvt_pixdim <- pixdims[, 1]
 
       # Check affine matrices match (with tolerance)
       # The affine (sform/xform) defines how voxel coordinates map to world coordinates
@@ -160,7 +162,6 @@ ggbrain_images <- R6::R6Class(
           stop("Affine matrices do not match between images. Images must be in the same space/orientation.")
         }
       }
-      private$pvt_affine <- affines[[1]]
 
       replaced_names <- intersect(names(img_list), names(private$pvt_imgs))
       if (length(replaced_names) > 0L) {
@@ -347,37 +348,22 @@ ggbrain_images <- R6::R6Class(
     #' @details This is useful for adding computed/derived images (like cluster masks) without writing
     #'   to disk. The array dimensions must match existing images.
     add_array_as_image = function(arr, name, reference = NULL) {
-      checkmate::assert_array(arr)
       checkmate::assert_string(name)
-      
-      # Check dimensions match
-      if (!is.null(private$pvt_dims)) {
-        if (!all(dim(arr) == private$pvt_dims)) {
-          stop(glue::glue(
-            "Array dimensions {paste(dim(arr), collapse='x')} do not match existing images {paste(private$pvt_dims, collapse='x')}"
-          ))
-        }
+      checkmate::assert_array(arr, d = 3L)
+      if (!is.null(private$pvt_dims) && !identical(dim(arr), private$pvt_dims)) {
+        stop(glue::glue(
+          "Array dimensions {paste(dim(arr), collapse='x')} do not match existing images {paste(private$pvt_dims, collapse='x')}"
+        ))
       }
-      
-      # Get reference image for NIfTI header
       if (is.null(reference)) {
         if (length(private$pvt_imgs) == 0L) {
           stop("No reference image available. Either add images first or provide a reference.")
         }
         reference <- private$pvt_imgs[[1L]]
       }
-      
-      # Create NIfTI image from array with proper header
+
       nii_img <- RNifti::asNifti(arr, reference = reference)
-      
-      # Add to images list
-      if (name %in% names(private$pvt_imgs)) {
-        private$pvt_img_labels[name] <- NULL
-      }
-      private$pvt_imgs[[name]] <- nii_img
-      private$pvt_img_volumes[[name]] <- 1L
-      private$refresh_image_invariants()
-      
+      private$set_images(setNames(list(nii_img), name))
       return(self)
     },
 
@@ -636,19 +622,21 @@ ggbrain_images <- R6::R6Class(
     #' @param contrasts a named character vector of contrasts to be calculated for each slice
     #' @param fill_labels if TRUE, the numeric value of the image will be used for any value that does not
     #'   have a corresponding label in the labels data.frame. Default: FALSE
-    #' @param make_square If TRUE, make all images square and of the same size
-    #' @param remove_null_space If TRUE, remove slices where all values are approximately zero
+    #' @param make_square If TRUE, center all slices on a common grid using the maximum height and width.
+    #' @param remove_null_space If TRUE, trim empty outer rows and columns to the bounding box of the visible data.
     #' @param target_resolution Optional target voxel size in mm for resampling slices. If provided, slices
     #'   will be resampled to this resolution using the specified interpolation method.
-    #' @param resample_interpolation Integer specifying the interpolation method for imager::imresize.
-    #'   1=nearest, 2=linear, 5=cubic (default), 6=lanczos.
+    #' @param categorical_images Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.
+    #' @param resample_interpolation Integer specifying the interpolation method for imager::resize.
+    #'   1=nearest, 3=linear, 5=cubic (default), 6=lanczos.
     #' @details This function always returns a data.frame where each row represents a slice requested
     #'   by the user. The $slice_data element is a list-column where each element is itself a list
     #'   of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
     #'   is a list-column where each element is a list of 2-D matrices, one per layer/image.
     #'  @return a ggbrain_slices object containing the requested slices and contrasts
     get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, fill_labels = FALSE,
-      make_square = TRUE, remove_null_space = TRUE, target_resolution = NULL, resample_interpolation = 5L) {
+      make_square = TRUE, remove_null_space = TRUE, target_resolution = NULL, resample_interpolation = 5L,
+      categorical_images = character(0)) {
 
       if (is.null(slices)) {
         if (!is.null(private$pvt_slices)) {
@@ -663,7 +651,6 @@ ggbrain_images <- R6::R6Class(
       }
 
       slice_df <- self$lookup_slices(slices) # defaults to ignoring null space
-      img_dims <- self$dim()
       all_img_names <- self$get_image_names()
       if (!is.null(img_names)) {
         checkmate::assert_subset(img_names, all_img_names)
@@ -676,23 +663,7 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_number(target_resolution, lower = 0.1, upper = 10, null.ok = TRUE)
       checkmate::assert_integerish(resample_interpolation, lower = 1L, upper = 6L, len = 1L)
 
-      # Determine resampling scale factor based on target resolution
-      resample_factor <- NULL
-      if (!is.null(target_resolution)) {
-        # Get voxel size from first image header (assumes isotropic or uses first dimension)
-        nii_headers <- self$get_headers(drop = FALSE)
-        nii_head <- nii_headers[[1L]] # use first image header
-        # pixdim gives voxel dimensions; pixdim[2:4] are x, y, z sizes in mm
-        # pixdim is a numeric vector where indices 2, 3, 4 correspond to x, y, z voxel sizes
-        pixdim_vec <- as.numeric(nii_head$pixdim)
-        current_voxel_size <- mean(abs(pixdim_vec[2:4])) # average voxel size
-        resample_factor <- current_voxel_size / target_resolution
-        # Allow both upsampling (factor > 1) and downsampling (factor < 1)
-        # Only skip if factor is essentially 1 (no change needed)
-        if (abs(resample_factor - 1.0) < 0.01) {
-          resample_factor <- NULL # no resampling needed if already at target resolution
-        }
-      }
+      checkmate::assert_subset(categorical_images, all_img_names)
 
       # which images contain integer-valued data that should be labeled?
       label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
@@ -711,12 +682,6 @@ ggbrain_images <- R6::R6Class(
         list(row_idx = seq_len(nrow(m)), col_idx = seq_len(ncol(m)))
       })
 
-      # precompute world coordinates for each voxel index (used later for crosshair mapping)
-      nii_head <- self$get_headers(drop = FALSE)[[1L]]
-      xcoords_full <- RNifti::voxelToWorld(cbind(seq_len(img_dims[1]), 1, 1), nii_head)[, 1]
-      ycoords_full <- RNifti::voxelToWorld(cbind(1, seq_len(img_dims[2]), 1), nii_head)[, 2]
-      zcoords_full <- RNifti::voxelToWorld(cbind(1, 1, seq_len(img_dims[3])), nii_head)[, 3]
-
       # remove blank space from matrices if requested (this must come before making the slices square)
       if (isTRUE(remove_null_space)) {
         # find voxels in each image that are different from zero
@@ -727,15 +692,91 @@ ggbrain_images <- R6::R6Class(
           })
 
           img_any <- Reduce("|", img_nz)
-          good_rows <- rowSums(img_any, na.rm = TRUE) > 0L
-          good_cols <- colSums(img_any, na.rm = TRUE) > 0L
+          # An empty slice has no bounding box. Keep its native grid.
+          if (!any(img_any, na.rm = TRUE)) next
+          rows <- which(rowSums(img_any, na.rm = TRUE) > 0L)
+          cols <- which(colSums(img_any, na.rm = TRUE) > 0L)
+          good_rows <- seq.int(min(rows), max(rows))
+          good_cols <- seq.int(min(cols), max(cols))
 
           slc[[si]] <- lapply(ilist, function(mat) {
-            mat[good_rows, good_cols]
+            mat[good_rows, good_cols, drop = FALSE]
           })
 
           slice_maps[[si]]$row_idx <- slice_maps[[si]]$row_idx[good_rows]
           slice_maps[[si]]$col_idx <- slice_maps[[si]]$col_idx[good_cols]
+        }
+      }
+
+      # Resample slices to target resolution if requested (both upsampling and downsampling supported)
+      if (!is.null(target_resolution)) {
+        discrete_images <- union(label_imgs, categorical_images)
+        for (si in seq_along(slc)) {
+          axes <- switch(slice_df$plane[si], sagittal = 2:3, coronal = c(1L, 3L), axial = 1:2)
+          source_dims <- dim(slc[[si]][[1L]])
+          target_dims <- pmax(1L, round(source_dims * private$pvt_pixdim[axes] / target_resolution))
+          if (all(source_dims == target_dims)) next
+
+          target_x <- target_dims[1L]
+          target_y <- target_dims[2L]
+          smap <- slice_maps[[si]]
+          slice_maps[[si]]$row_idx <- seq(smap$row_idx[1L], smap$row_idx[source_dims[1L]], length.out = target_x)
+          slice_maps[[si]]$col_idx <- seq(smap$col_idx[1L], smap$col_idx[source_dims[2L]], length.out = target_y)
+
+          ilist <- slc[[si]]
+          slc[[si]] <- lapply(names(ilist), function(img_name) {
+            mat <- ilist[[img_name]]
+            is_labeled <- img_name %in% discrete_images
+            interp_method <- if (is_labeled) 1L else resample_interpolation
+
+            # Convert to cimg for resizing
+            cimg_obj <- imager::as.cimg(mat)
+
+            # NB: We use imager::resize() directly instead of imager::imresize() because imresize
+            # has a bug where it ignores the interpolation parameter when the scale factor is a
+            # power of 2 (e.g., 2x, 4x). In those cases, imresize uses fast doubling functions
+            # (resize_doubleXY) that only do nearest-neighbor interpolation, regardless of the
+            # interpolation argument. Using resize() with explicit target dimensions ensures the
+            # interpolation_type is always respected.
+
+            # For non-labeled images with interpolation methods other than nearest-neighbor, use
+            # mask-aware interpolation to avoid artifacts at edges where the image transitions
+            # from valid data to zero (masked regions). This is common with thresholded
+            # statistical maps. For cubic/lanczos, this prevents ringing. For linear, this
+            # prevents edge darkening where values blend toward zero.
+            use_mask_interpolation <- !is_labeled && interp_method > 1L # linear (3), cubic (5), or lanczos (6)
+
+            if (use_mask_interpolation) {
+              # Create a binary mask: 1 where data is valid (non-zero), 0 elsewhere
+              # Use floating-point tolerance instead of exact != 0 comparison
+              mask_mat <- ifelse(is.finite(mat) & abs(mat) > private$pvt_zero_tol, 1, 0)
+              cimg_obj[!is.finite(cimg_obj)] <- 0
+              mask_cimg <- imager::as.cimg(mask_mat)
+
+              # Interpolate the data using the requested method
+              resized_data <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
+                                             interpolation_type = interp_method)
+
+              # Interpolate the mask using linear interpolation (sufficient for edge detection)
+              resized_mask <- imager::resize(mask_cimg, size_x = target_x, size_y = target_y,
+                                             interpolation_type = 3L) # linear
+
+              # Convert back to matrices
+              result <- matrix(resized_data, nrow = target_x, ncol = target_y)
+              mask_result <- matrix(resized_mask, nrow = target_x, ncol = target_y)
+
+              # Apply mask: set pixels to 0 where interpolated mask < 0.5
+              # This creates clean edges without blending artifacts
+              result[mask_result < 0.5] <- 0
+            } else {
+              # Standard interpolation for labeled images or nearest-neighbor method
+              resized <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
+                                        interpolation_type = interp_method)
+              result <- matrix(resized, nrow = target_x, ncol = target_y)
+            }
+
+            return(result)
+          }) %>% setNames(names(ilist))
         }
       }
 
@@ -761,91 +802,6 @@ ggbrain_images <- R6::R6Class(
           slice_maps[[si]]$row_idx <- pad_to_square(slice_maps[[si]]$row_idx, square_dims[1])
           slice_maps[[si]]$col_idx <- pad_to_square(slice_maps[[si]]$col_idx, square_dims[2])
         }
-      }
-
-      # Resample slices to target resolution if requested (both upsampling and downsampling supported)
-      if (!is.null(resample_factor)) {
-        resample_idx_map <- function(idx, target_len) {
-          if (length(idx) == 0L) return(idx)
-          valid <- which(!is.na(idx))
-          if (!length(valid)) return(rep(NA_integer_, target_len))
-          approx(
-            x = valid,
-            y = idx[valid],
-            xout = seq(1, length(idx), length.out = target_len),
-            rule = 2,
-            ties = "ordered"
-          )$y
-        }
-
-        for (si in seq_along(slice_maps)) {
-          target_x <- round(length(slice_maps[[si]]$row_idx) * resample_factor)
-          target_y <- round(length(slice_maps[[si]]$col_idx) * resample_factor)
-          slice_maps[[si]]$row_idx <- resample_idx_map(slice_maps[[si]]$row_idx, target_x)
-          slice_maps[[si]]$col_idx <- resample_idx_map(slice_maps[[si]]$col_idx, target_y)
-        }
-
-        slc <- lapply(slc, function(ilist) {
-          lapply(names(ilist), function(img_name) {
-            mat <- ilist[[img_name]]
-            if (is.null(mat) || length(mat) == 0L) return(mat)
-
-            # Check if this is a labeled/categorical image (use nearest neighbor for those)
-            is_labeled <- img_name %in% label_imgs
-            interp_method <- if (is_labeled) 1L else resample_interpolation # 1 = nearest neighbor
-
-            # Convert to cimg for resizing
-            cimg_obj <- imager::as.cimg(mat)
-
-            # Calculate target dimensions based on resample_factor
-            target_x <- round(dim(cimg_obj)[1] * resample_factor)
-            target_y <- round(dim(cimg_obj)[2] * resample_factor)
-
-            # NB: We use imager::resize() directly instead of imager::imresize() because imresize
-            # has a bug where it ignores the interpolation parameter when the scale factor is a
-            # power of 2 (e.g., 2x, 4x). In those cases, imresize uses fast doubling functions
-            # (resize_doubleXY) that only do nearest-neighbor interpolation, regardless of the
-            # interpolation argument. Using resize() with explicit target dimensions ensures the
-            # interpolation_type is always respected.
-
-            # For non-labeled images with interpolation methods other than nearest-neighbor, use
-            # mask-aware interpolation to avoid artifacts at edges where the image transitions
-            # from valid data to zero (masked regions). This is common with thresholded
-            # statistical maps. For cubic/lanczos, this prevents ringing. For linear, this
-            # prevents edge darkening where values blend toward zero.
-            use_mask_interpolation <- !is_labeled && interp_method > 1L # linear (3), cubic (5), or lanczos (6)
-
-            if (use_mask_interpolation) {
-              # Create a binary mask: 1 where data is valid (non-zero), 0 elsewhere
-              # Use floating-point tolerance instead of exact != 0 comparison
-              mask_mat <- ifelse(abs(mat) > private$pvt_zero_tol, 1, 0)
-              mask_cimg <- imager::as.cimg(mask_mat)
-
-              # Interpolate the data using the requested method
-              resized_data <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
-                                             interpolation_type = interp_method)
-
-              # Interpolate the mask using linear interpolation (sufficient for edge detection)
-              resized_mask <- imager::resize(mask_cimg, size_x = target_x, size_y = target_y,
-                                             interpolation_type = 3L) # linear
-
-              # Convert back to matrices
-              result <- as.matrix(resized_data[, , 1, 1])
-              mask_result <- as.matrix(resized_mask[, , 1, 1])
-
-              # Apply mask: set pixels to 0 where interpolated mask < 0.5
-              # This creates clean edges without blending artifacts
-              result[mask_result < 0.5] <- 0
-            } else {
-              # Standard interpolation for labeled images or nearest-neighbor method
-              resized <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
-                                        interpolation_type = interp_method)
-              result <- as.matrix(resized[, , 1, 1])
-            }
-
-            return(result)
-          }) %>% setNames(names(ilist))
-        })
       }
 
       # look up labels for each slice
@@ -979,17 +935,17 @@ ggbrain_images <- R6::R6Class(
         if (is.null(smap)) return(NULL)
 
         if (plane == "sagittal") {
-          dim1_world <- ycoords_full[smap$row_idx]
-          dim2_world <- zcoords_full[smap$col_idx]
-          slice_coord <- xcoords_full[slice_df$slice_number[idx]]
+          dim1_world <- private$axis_world(2L, smap$row_idx)
+          dim2_world <- private$axis_world(3L, smap$col_idx)
+          slice_coord <- private$axis_world(1L, slice_df$slice_number[idx])
         } else if (plane == "coronal") {
-          dim1_world <- xcoords_full[smap$row_idx]
-          dim2_world <- zcoords_full[smap$col_idx]
-          slice_coord <- ycoords_full[slice_df$slice_number[idx]]
+          dim1_world <- private$axis_world(1L, smap$row_idx)
+          dim2_world <- private$axis_world(3L, smap$col_idx)
+          slice_coord <- private$axis_world(2L, slice_df$slice_number[idx])
         } else { # axial
-          dim1_world <- xcoords_full[smap$row_idx]
-          dim2_world <- ycoords_full[smap$col_idx]
-          slice_coord <- zcoords_full[slice_df$slice_number[idx]]
+          dim1_world <- private$axis_world(1L, smap$row_idx)
+          dim2_world <- private$axis_world(2L, smap$col_idx)
+          slice_coord <- private$axis_world(3L, slice_df$slice_number[idx])
         }
 
         list(
@@ -1042,7 +998,7 @@ ggbrain_images <- R6::R6Class(
         attr(slc_mat, "slice_numbers") <- slice_numbers
         attr(slc_mat, "plane") <- plane
 
-        if (isTRUE(drop)) slc_mat <- drop(slc_mat)
+        if (isTRUE(drop) && length(slice_numbers) == 1L) dim(slc_mat) <- dim(slc_mat)[-1L]
         return(slc_mat)
       }, simplify = FALSE)
     },
@@ -1074,11 +1030,7 @@ ggbrain_images <- R6::R6Class(
         opposites <- c(L = "R", R = "L", P = "A", A = "P", I = "S", S = "I")
         if (!code %in% names(opposites)) return(c(NA_character_, NA_character_))
 
-        if (code %in% c("L", "P", "I")) {
-          c(code, opposites[[code]]) # low, high
-        } else {
-          c(opposites[[code]], code) # positive is high end
-        }
+        c(opposites[[code]], code)
       })
 
       names(axis_labels) <- c("x", "y", "z")
@@ -1094,6 +1046,14 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_character(slices)
       img_dims <- self$dim()
 
+      # World-coordinate lookup below assumes each voxel axis follows its matching world axis.
+      directions <- private$pvt_affine[1:3, 1:3, drop = FALSE]
+      directions <- sweep(directions, 2L, sqrt(colSums(directions^2)), "/")
+      if (any(abs(directions[row(directions) != col(directions)]) > 1e-4, na.rm = TRUE)) {
+        warning("Image axes are permuted or oblique. For anatomical planes, world-coordinate labels, ",
+                "and crosshairs, reorient the images to a common cardinal grid.")
+      }
+
       slc_range_full <- list(i = seq_len(img_dims[1]), j = seq_len(img_dims[2]), k = seq_len(img_dims[3]))
 
       if (isTRUE(ignore_null_space)) {
@@ -1102,13 +1062,10 @@ ggbrain_images <- R6::R6Class(
         slc_range <- slc_range_full
       }
 
-      # get nifti header for first image for voxel -> world transformations
-      nii_head <- self$get_headers(drop=FALSE)[[1L]]
-
       # translate ijk to xyz for each axis
-      xcoords <- RNifti::voxelToWorld(cbind(slc_range_full$i, 1, 1), nii_head)[, 1]
-      ycoords <- RNifti::voxelToWorld(cbind(1, slc_range_full$j, 1), nii_head)[, 2]
-      zcoords <- RNifti::voxelToWorld(cbind(1, 1, slc_range_full$k), nii_head)[, 3]
+      xcoords <- private$axis_world(1L, slc_range_full$i)
+      ycoords <- private$axis_world(2L, slc_range_full$j)
+      zcoords <- private$axis_world(3L, slc_range_full$k)
 
       # helper subfunction to lookup slice number, plane, and label for any ijk, xyz, or % input
       get_slice_num <- function(coord_str) {

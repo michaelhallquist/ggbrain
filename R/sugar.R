@@ -121,6 +121,7 @@ slices <- function(coordinates = NULL, title = NULL, bg_color = NULL, text_color
   if (is_cluster_slices_spec(coordinates)) {
     # Create a ggb object and manually add the cluster_slices_spec
     ret <- ggb$new(action = "add_cluster_slices")
+    coordinates$panel_settings <- named_list(title, bg_color, text_color, border_color, border_size, xlab, ylab, theme_custom)
     ret$ggb_cluster_slices <- list(coordinates)
     return(ret)
   }
@@ -476,6 +477,7 @@ geom_brain_clusterized <- function(definition,
   spec$cluster_show_legend <- show_legend
   spec$action <- "clusterized"
   spec$cluster_layer_name <- placeholder_def
+  spec$cluster_layer_index <- 1L
   spec$cluster_label_fields <- cluster_info
 
   layer_obj <- ggbrain_layer_brain$new(
@@ -711,7 +713,7 @@ contrast_split <- function(x, no_name="") {
 #' @param interpolation A character string specifying the interpolation method to use. Options are:
 #'   \itemize{
 #'     \item \code{"nearest"} (value 1): Nearest neighbor interpolation. Fast but can produce blocky results.
-#'     \item \code{"linear"} (value 2): Linear interpolation. Smooth but may blur edges.
+#'     \item \code{"linear"} (value 3): Linear interpolation. Smooth but may blur edges.
 #'     \item \code{"cubic"} (value 5): Cubic interpolation (default). Good balance of smoothness and edge preservation.
 #'     \item \code{"lanczos"} (value 6): Lanczos interpolation. High quality but slower.
 #'   }
@@ -725,8 +727,9 @@ contrast_split <- function(x, no_name="") {
 #'   very large file sizes, you can downsample them using \code{target_resolution(2)} to display at 2mm.
 #'
 #'   The resampling is performed on each 2D slice after extraction, which is more efficient than resampling
-#'   the entire 3D volume. The interpolation is applied to all images in the plot. For labeled/categorical
-#'   images, nearest neighbor interpolation is always used to preserve integer values.
+#'   the entire 3D volume. Each plane uses its two in-plane voxel spacings. Images supplied
+#'   with label tables and automatically generated cluster IDs use nearest-neighbor interpolation.
+#'   For an integer atlas without a label table, request \code{interpolation = "nearest"}.
 #'
 #'   Note that upsampling does not add information to the image -- it simply provides a smoother visual
 #'   representation. For the highest quality results with functional overlays on anatomical underlays,

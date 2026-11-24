@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluster_slices.R
 \name{label_3d_components}
 \alias{label_3d_components}
-\title{3D connected component labeling using two-pass algorithm with union-find}
+\title{Native 3D connected component labeling using iterative component traversal}
 \usage{
 label_3d_components(mask, nn = 3)
 }
@@ -15,6 +15,6 @@ label_3d_components(mask, nn = 3)
 A 3D integer array with cluster labels (0 = background)
 }
 \description{
-3D connected component labeling using two-pass algorithm with union-find
+Native 3D connected component labeling using iterative component traversal
 }
 \keyword{internal}

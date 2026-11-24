@@ -15,7 +15,7 @@ The slices will be resampled to this resolution before display. If the input ima
 \item{interpolation}{A character string specifying the interpolation method to use. Options are:
 \itemize{
 \item \code{"nearest"} (value 1): Nearest neighbor interpolation. Fast but can produce blocky results.
-\item \code{"linear"} (value 2): Linear interpolation. Smooth but may blur edges.
+\item \code{"linear"} (value 3): Linear interpolation. Smooth but may blur edges.
 \item \code{"cubic"} (value 5): Cubic interpolation (default). Good balance of smoothness and edge preservation.
 \item \code{"lanczos"} (value 6): Lanczos interpolation. High quality but slower.
 }}
@@ -35,8 +35,9 @@ Conversely, if you have high-resolution images (e.g., 0.5mm) that are slow to re
 very large file sizes, you can downsample them using \code{target_resolution(2)} to display at 2mm.
 
 The resampling is performed on each 2D slice after extraction, which is more efficient than resampling
-the entire 3D volume. The interpolation is applied to all images in the plot. For labeled/categorical
-images, nearest neighbor interpolation is always used to preserve integer values.
+the entire 3D volume. Each plane uses its two in-plane voxel spacings. Images supplied
+with label tables and automatically generated cluster IDs use nearest-neighbor interpolation.
+For an integer atlas without a label table, request \code{interpolation = "nearest"}.
 
 Note that upsampling does not add information to the image -- it simply provides a smoother visual
 representation. For the highest quality results with functional overlays on anatomical underlays,

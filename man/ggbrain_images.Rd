@@ -406,7 +406,8 @@ get slice data for one or more slices based on their coordinates
   make_square = TRUE,
   remove_null_space = TRUE,
   target_resolution = NULL,
-  resample_interpolation = 5L
+  resample_interpolation = 5L,
+  categorical_images = character(0)
 )}\if{html}{\out{</div>}}
 }
 
@@ -422,15 +423,17 @@ get slice data for one or more slices based on their coordinates
 \item{\code{fill_labels}}{if TRUE, the numeric value of the image will be used for any value that does not
 have a corresponding label in the labels data.frame. Default: FALSE}
 
-\item{\code{make_square}}{If TRUE, make all images square and of the same size}
+\item{\code{make_square}}{If TRUE, center all slices on a common grid using the maximum height and width.}
 
-\item{\code{remove_null_space}}{If TRUE, remove slices where all values are approximately zero}
+\item{\code{remove_null_space}}{If TRUE, trim empty outer rows and columns to the bounding box of the visible data.}
 
 \item{\code{target_resolution}}{Optional target voxel size in mm for resampling slices. If provided, slices
 will be resampled to this resolution using the specified interpolation method.}
 
-\item{\code{resample_interpolation}}{Integer specifying the interpolation method for imager::imresize.
-1=nearest, 2=linear, 5=cubic (default), 6=lanczos.}
+\item{\code{resample_interpolation}}{Integer specifying the interpolation method for imager::resize.
+1=nearest, 3=linear, 5=cubic (default), 6=lanczos.}
+
+\item{\code{categorical_images}}{Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.}
 }
 \if{html}{\out{</div>}}
 }

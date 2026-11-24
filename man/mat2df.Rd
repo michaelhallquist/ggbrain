@@ -5,6 +5,8 @@
 \title{Fast conversion of 2D mat to 3-column data.frame with dim1, dim2, value}
 \arguments{
 \item{mat}{A \code{matrix} to convert to data.frame}
+
+\item{na_zeros}{If true, convert values with absolute magnitude below 1e-4 to missing values.}
 }
 \value{
 A 3-column data.frame with dim1, dim2, and value

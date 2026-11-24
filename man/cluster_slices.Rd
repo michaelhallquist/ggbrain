@@ -71,9 +71,10 @@ clusters positive and negative surviving voxels separately, matching AFNI's
 to connect regardless of sign.}
 }
 \value{
-If \code{images} is provided along with \code{definition}, returns a character vector
-of slice coordinates (e.g., \code{c("z = 10.5", "z = -3.2")}) suitable for passing to
-\code{slices()}. If \code{layer} is specified or \code{images} is not provided, returns
+If \code{images} is provided along with \code{definition}, returns a list.
+Pass its \code{$coordinates} character vector to \code{slices()} and use
+\code{$cluster_data} to inspect cluster sizes and centers. When outlines are requested,
+\code{$labeled_volume} contains the selected cluster IDs. If \code{layer} is specified or \code{images} is omitted, returns
 a deferred specification object (class \code{"cluster_slices_spec"}) that will be resolved
 during the ggbrain rendering pipeline.
 }

@@ -58,7 +58,7 @@ You can install the latest public version of the `ggbrain` package using `instal
 install.packages("ggbrain")
 ```
 
-You can also to install the development version. It may may have new features and bugfixes, though it may also have new bugs or include works in progress.
+To try changes under development, install the package from GitHub.
 
 ```{r, eval=FALSE}
 devtools::install_github("michaelhallquist/ggbrain")
@@ -80,20 +80,15 @@ plot(gg_obj)
 
 Consistent with the `ggplot2` approach, additional elements can be added using the `+` operator, as we elaborate below. The main thing to know at this point is that **you need to add all ggbrain-specific elements before adding typical ggplot components such as `theme()`**.
 
-Also note that the order of the addition operations for images and slices (`images` and `slices`, respectively) is not important. The example order below -- adding images, slices, layers, and labels -- is conceptually intuitive, but could be reordered without altering the plut. As in `ggplot2`, the order of all geom\_\* layers *does* matter, such that geom\_\* layers that are added later are rendered on top of layers added earlier. For example, the `geom_brain()` layer for an underlay image should be added before an overlay.
+Also note that the order of the addition operations for images and slices (`images` and `slices`, respectively) is not important. The example order below -- adding images, slices, layers, and labels -- is conceptually intuitive, but could be reordered without altering the plot. As in `ggplot2`, the order of all geom\_\* layers *does* matter, such that geom\_\* layers that are added later are rendered on top of layers added earlier. For example, the `geom_brain()` layer for an underlay image should be added before an overlay.
 
 ## Add images
 
-A ggbrain plot must have at least one 3D image stored in NIfTI format. These images are read into ggbrain using the `RNifti` package. All images for a given plot must have the same image dimensions (otherwise, an error will occur). At present, `ggbrain` provides no internal support for interpolation to combine images with different resolutions. We encourage you to use `3dresample` from AFNI for this purpose (see details in the 'Other considerations' section below).
+Supply NIfTI images on a common voxel grid. ggbrain checks that the image dimensions, voxel sizes, and voxel-to-world transforms agree. Prepare images on the same grid before combining them. Slice selection by world coordinate assumes the voxel axes run along the sagittal, coronal, and axial directions, in either sign. Reorient permuted or oblique images to a common cardinal grid for this workflow.
 
-The file names containing relevant images can be passed in as arguments to `ggbrain` or they can be appended using `images()` In either, it is important to provide a name for the image that is used internally to refer to the image in contrasts, labels, or other operations. If you do not provide a name, you will see a warning:
+Use `images(c(overlay = path), volumes = 3)` to select the third volume of a 4D file. The default is the first volume. To select different volumes from different files, use a separate `images()` call for each volume index. After slice extraction, `target_resolution()` can change the display pixel spacing.
 
-```         
-Warning message:
-In private$set_images(images, fill_holes, clean_specks) :
-  The images vector does not contain any names. This may lead to weird behaviors downstream
-  if 'underlay' and 'overlay' are requested.
-```
+Name each image so that layers, labels, and contrast expressions can refer to it.
 
 ```{r}
 gg_obj <- gg_obj + images(c(underlay = underlay_2mm))
@@ -132,11 +127,11 @@ You can add one or more slices using `slices()` by passing a character vector of
 gg_obj <- gg_obj + slices(c("x = 10", "y = 50", "z = 15"))
 ```
 
-This will add one sagittal slice (x=10), one coronal (y=50), and one axis (z=15).
+This will add one sagittal slice (x=10), one coronal (y=50), and one axial slice (z=15).
 
 ### Adding slices by quantile
 
-If you want to use standardized coordinates in terms of percentiles, rather than spatial coordinates, you can append `%` at the end of the `slices()` specification. This will find the position of the corresponding slice along the axis between 0% and 100%. These percentiles are computed based on the slices that are not entirely empty (i.e., not all zero).
+If you want to use standardized coordinates in terms of percentiles, rather than spatial coordinates, you can append `%` at the end of the `slices()` specification. This will find the position of the corresponding slice along the axis between 0% and 100%. The endpoints are the first and last slices with nonzero data across the images. The percentage selects a position between those endpoints, so the chosen slice can fall in a gap.
 
 ```{r}
 gg_obj <- gg_obj + slices(c("x = 25%", "y = 50%", "z = 90%"))
@@ -174,7 +169,7 @@ If you would like a set of slices along one of the image planes to form a montag
 -   `min_coord`: the lowest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
 -   `max_coord`: the highest spatial position to be included. Mutually exclusive with quantile approach. Default: NULL
 
-The code below adds 10 axial slices between the 10th and 90th percentiles.
+The code below adds 10 axial slices between the 10th and 80th percentiles.
 
 ```{r}
 gg_obj <- gg_obj + slices(montage("axial", 10, min = 0.1, max = 0.8))
@@ -246,6 +241,18 @@ Key points:
 - With the named pathway, call `define()` upstream and pass that contrast name to `cluster_slices()`.
 - Every source image referenced by either pathway must be added using `images()`.
 - `outline = TRUE` adds a `geom_outline()` layer using the cluster IDs as categorical values. Provide `outline_scale` for a custom palette/legend, or `outline_color` (single value) for a fixed outline. Set `outline_show_legend` to force or suppress the outline legend.
+
+For a table of the clusters used in a rendered figure, call `gg$get_cluster_data()` after `render(gg)` or `plot(gg)`. To inspect clusters before building a plot, supply the image paths directly. The result contains both a table and a character vector of coordinates.
+
+```{r}
+selected <- cluster_slices(
+  images = c(overlay = pe_overlay_2mm), definition = "overlay[abs(overlay) > 3]",
+  nclusters = 4, min_clust_size = 40
+)
+selected$cluster_data[, c("size", "side", "com_x", "com_y", "com_z")]
+```
+
+Use `slices(selected$coordinates)` to reuse those locations. For automatic outlines, use the deferred form `slices(cluster_slices(..., outline = TRUE))` shown above.
 
 ## Add brain overlay layers
 
