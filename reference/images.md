@@ -25,10 +25,14 @@ images(images = NULL, volumes = NULL, labels = NULL, filter = NULL)
 - labels:
 
   a data.frame or named list of data.frame objects corresponding to
-  images that should be labeled. You can only provide a data.frame if
-  there is a single image being added. If multiple images are added, the
-  names of the `labels` list are used to align the labels with a given
-  matching image.
+  integer-valued/atlas images. Each data.frame must contain a `value`
+  column matching integer codes in the image and may include categorical
+  label columns (character/factor) as well as numeric parcel-level
+  columns (e.g., ROI statistics) for continuous fill, opacity, or
+  contrast expressions. Rows with missing atlas codes are ignored. You
+  can only provide a data.frame if there is a single image being added.
+  If multiple images are added, the names of the `labels` list are used
+  to align each table with its matching image.
 
 - filter:
 

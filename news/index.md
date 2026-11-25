@@ -2,6 +2,16 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- Atlas lookup tables supplied to `images(..., labels = ...)` now fully
+  support numeric parcel/ROI columns (e.g., region-level effect sizes,
+  *t*-statistics, or *p*-values) in addition to categorical labels.
+  Unified scale limits, automatic default/bisided scale selection,
+  `alpha_cutoff` opacity mapping, `fill_holes`,
+  [`geom_outline()`](https://michaelhallquist.github.io/ggbrain/reference/geom_outline.md),
+  and contrast/subset expressions (e.g., `atlas[atlas.p_fdr < 0.05]`)
+  all operate directly on joined numeric columns while preserving `NA`s
+  for unmeasured parcels.
+
 - [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
   supports voxelwise opacity using a numeric layer column, aligned
   image, or named contrast. Set `alpha_cutoff` for transparent

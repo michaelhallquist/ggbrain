@@ -95,8 +95,9 @@ the fill color, in distinction to color mapping: <code>mapping=aes(fill=&lt;vari
 
 
 <dt id="arg-mapping">mapping<a class="anchor" aria-label="anchor" href="#arg-mapping"></a></dt>
-<dd><p>A <code><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">ggplot2::aes()</a></code> mapping. Fill defaults to <code>value</code>; a label column
-can supply categorical colors. Map <code>alpha</code> to a numeric expression using layer columns,
+<dd><p>A <code><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">ggplot2::aes()</a></code> mapping. Fill defaults to <code>value</code>; columns joined via
+<code>images(..., labels = ...)</code> can supply either categorical labels (character/factor) or
+continuous parcel-level statistics (numeric). Map <code>alpha</code> to a numeric expression using layer columns,
 aligned images, or named contrasts from <code><a href="define.html">define()</a></code>. Layer columns take precedence.
 Without <code>alpha_cutoff</code>, mapped opacity must be between 0 and 1. Aligned images
 supply their numeric values, including zeros. Named contrasts use their computed masks.</p></dd>
@@ -148,8 +149,8 @@ to display. Specks are small clusters that may be distracting and contribute to 
 <dt id="arg-alpha-cutoff">alpha_cutoff<a class="anchor" aria-label="anchor" href="#arg-alpha-cutoff"></a></dt>
 <dd><p>Positive statistic magnitude at which the layer is fully opaque.
 Opacity is <code>pmin(1, abs(statistic) / alpha_cutoff)^alpha_power</code> on every slice.
-The statistic defaults to the layer's numeric <code>value</code> after image cleanup. Use
-<code>aes(alpha = z)</code> to supply a separate statistic. Missing values are transparent. The opacity key
+The statistic defaults to the layer's mapped numeric fill column (typically <code>value</code>) after image cleanup.
+Use <code>aes(alpha = z)</code> to supply a separate statistic. Missing values are transparent. The opacity key
 shows statistic magnitudes and is displayed when <code>show_legend = TRUE</code>.</p></dd>
 
 

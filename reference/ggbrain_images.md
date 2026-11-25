@@ -1,19 +1,13 @@
 # R6 class for compiling images to render in ggplot
 
-R6 class for compiling images to render in ggplot
-
-R6 class for compiling images to render in ggplot
+Note that this class is exported only for power users and rarely needs
+to be called directly in typical use of the package. Instead, look at
+images().
 
 ## Value
 
 a `ggbrain_images` R6 class containing fields related to a set of NIfTI
 images imported into R
-
-## Details
-
-Note that this class is exported only for power users and rarely needs
-to be called directly in typical use of the package. Instead, look at
-images().
 
 ## Active bindings
 
@@ -37,7 +31,7 @@ images().
 
 ### Public methods
 
-- [`ggbrain_images$new()`](#method-ggbrain_images-new)
+- [`ggbrain_images$new()`](#method-ggbrain_images-initialize)
 
 - [`ggbrain_images$add()`](#method-ggbrain_images-add)
 
@@ -87,7 +81,7 @@ images().
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `ggbrain_images$new()`
 
 create ggbrain_images object consisting of one or more NIfTI images
 
@@ -110,10 +104,10 @@ create ggbrain_images object consisting of one or more NIfTI images
 
 - `labels`:
 
-  A named list of data.frames with labels that map to values in the
-  integer-valued/atlas elements of `images`. If a single data.frame is
-  passed, it will be accepted if only a single image is passed, too.
-  These are then assumed to correspond
+  A named list of data.frames mapping integer values in atlas/mask
+  elements of `images` to categorical labels and/or numeric parcel-level
+  columns. Each data.frame must include a `value` column. A single
+  data.frame is accepted when only one image is passed.
 
 - `filter`:
 
@@ -126,7 +120,7 @@ create ggbrain_images object consisting of one or more NIfTI images
 
 ------------------------------------------------------------------------
 
-### Method `add()`
+### `ggbrain_images$add()`
 
 method to add another ggbrain_images object to this one
 
@@ -142,10 +136,10 @@ method to add another ggbrain_images object to this one
 
 ------------------------------------------------------------------------
 
-### Method `add_labels()`
+### `ggbrain_images$add_labels()`
 
-add a labels data.frame that connects an integer-valued image with a set
-of labels
+add a lookup table data.frame that connects an integer-valued image with
+categorical labels and/or numeric ROI data
 
 #### Usage
 
@@ -156,20 +150,22 @@ of labels
 - `...`:
 
   named arguments containing data.frame objects for each image to be
-  labeled. The argument name should match the image name to be labeled
-  and the value should be a data.frame containing `value` and `label`.
+  annotated. The argument name should match the image name and each
+  data.frame must contain a `value` column matching integer codes in the
+  image, alongside any categorical label columns (character/factor) or
+  numeric parcel-level columns.
 
 #### Details
 
-As a result of \$add_labels, the \$get_slices method will always remap
-the numeric values for label images to the corresponding text-based
-labels in the label data. In addition, a new attribute will be returned
-called "slice_labels" that contains a row for each region represented in
-each slice.
+As a result of \$add_labels, the \$get_slices method joins the supplied
+table onto each slice by `value`, making both categorical labels and
+numeric ROI columns available for aesthetic mapping and contrast
+expressions. In addition, `slice_labels` records region centers of mass
+joined with the lookup table for each slice.
 
 ------------------------------------------------------------------------
 
-### Method `add_images()`
+### `ggbrain_images$add_images()`
 
 add one or more images to this ggbrain_images object
 
@@ -192,7 +188,7 @@ add one or more images to this ggbrain_images object
 
 ------------------------------------------------------------------------
 
-### Method `add_array_as_image()`
+### `ggbrain_images$add_array_as_image()`
 
 add an in-memory array as a new image
 
@@ -223,7 +219,7 @@ images.
 
 ------------------------------------------------------------------------
 
-### Method `filter_images()`
+### `ggbrain_images$filter_images()`
 
 filters an image based on an expression such as a subsetting operation
 
@@ -246,7 +242,7 @@ name `'value'` to refer to the numeric values to be filtered, such as
 
 ------------------------------------------------------------------------
 
-### Method [`dim()`](https://rdrr.io/r/base/dim.html)
+### `ggbrain_images$dim()`
 
 return the 3D dimensions of the images contained in this object
 
@@ -256,7 +252,7 @@ return the 3D dimensions of the images contained in this object
 
 ------------------------------------------------------------------------
 
-### Method `get_image_names()`
+### `ggbrain_images$get_image_names()`
 
 return the names of the images contained in this object
 
@@ -266,7 +262,7 @@ return the names of the images contained in this object
 
 ------------------------------------------------------------------------
 
-### Method `get_images()`
+### `ggbrain_images$get_images()`
 
 return the RNifti objects of one or more images contained in this object
 
@@ -288,7 +284,7 @@ return the RNifti objects of one or more images contained in this object
 
 ------------------------------------------------------------------------
 
-### Method `get_headers()`
+### `ggbrain_images$get_headers()`
 
 return the NIfTI headers for one or more images contained in this object
 
@@ -310,7 +306,7 @@ return the NIfTI headers for one or more images contained in this object
 
 ------------------------------------------------------------------------
 
-### Method `remove_images()`
+### `ggbrain_images$remove_images()`
 
 method for removing one or more images from the ggbrain_images object
 
@@ -326,7 +322,7 @@ method for removing one or more images from the ggbrain_images object
 
 ------------------------------------------------------------------------
 
-### Method `winsorize_images()`
+### `ggbrain_images$winsorize_images()`
 
 winsorize the tails of a set of images to pull in extreme values
 
@@ -347,7 +343,7 @@ winsorize the tails of a set of images to pull in extreme values
 
 ------------------------------------------------------------------------
 
-### Method `na_images()`
+### `ggbrain_images$na_images()`
 
 method to set values less than `threshold` to NA
 
@@ -370,7 +366,7 @@ method to set values less than `threshold` to NA
 
 ------------------------------------------------------------------------
 
-### Method [`summary()`](https://rdrr.io/r/base/summary.html)
+### `ggbrain_images$summary()`
 
 print a summary of the ggbrain_images object
 
@@ -380,7 +376,7 @@ print a summary of the ggbrain_images object
 
 ------------------------------------------------------------------------
 
-### Method `get_nz_indices()`
+### `ggbrain_images$get_nz_indices()`
 
 return the indices of non-zero voxels
 
@@ -402,7 +398,7 @@ specified by `img_names`.
 
 ------------------------------------------------------------------------
 
-### Method `add_slices()`
+### `ggbrain_images$add_slices()`
 
 adds one or more slices to the cached slices that will be retrieved by
 \$get_slices() when no `slices` argument is passed.
@@ -421,7 +417,7 @@ adds one or more slices to the cached slices that will be retrieved by
 
 ------------------------------------------------------------------------
 
-### Method `add_contrasts()`
+### `ggbrain_images$add_contrasts()`
 
 adds one or more contrasts to the cached contrasts that will be
 retrieved by \$get_slices() when no `contrasts` argument is passed.
@@ -440,7 +436,7 @@ retrieved by \$get_slices() when no `contrasts` argument is passed.
 
 ------------------------------------------------------------------------
 
-### Method `reset_slices()`
+### `ggbrain_images$reset_slices()`
 
 remove all cached slice settings
 
@@ -450,7 +446,7 @@ remove all cached slice settings
 
 ------------------------------------------------------------------------
 
-### Method `get_slices()`
+### `ggbrain_images$get_slices()`
 
 get slice data for one or more slices based on their coordinates
 
@@ -533,7 +529,7 @@ slices and contrasts
 
 ------------------------------------------------------------------------
 
-### Method `get_slices_inplane()`
+### `ggbrain_images$get_slices_inplane()`
 
 get_slices_inplane is mostly an internal funciton for getting one or
 more slices from a given plane
@@ -572,7 +568,7 @@ A 3D matrix of slices x dim1 x dim2
 
 ------------------------------------------------------------------------
 
-### Method `get_labels()`
+### `ggbrain_images$get_labels()`
 
 return a list of data.frames containing labels for a given image
 
@@ -586,7 +582,7 @@ the names of the list correspond directly with the names of the images
 
 ------------------------------------------------------------------------
 
-### Method `get_orientation_labels()`
+### `ggbrain_images$get_orientation_labels()`
 
 internal helper to determine anatomical orientation labels for the first
 image
@@ -602,7 +598,7 @@ c(\\L\\, \\R\\))
 
 ------------------------------------------------------------------------
 
-### Method `lookup_slices()`
+### `ggbrain_images$lookup_slices()`
 
 internal function to lookup which slices to display along each axis
 based on their quantile, xyz coordinate, or ijk coordinate
@@ -624,7 +620,7 @@ based on their quantile, xyz coordinate, or ijk coordinate
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `ggbrain_images$clone()`
 
 The objects of this class are cloneable with this method.
 

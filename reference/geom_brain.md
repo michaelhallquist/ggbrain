@@ -54,9 +54,11 @@ geom_brain(
 - mapping:
 
   A [`ggplot2::aes()`](https://ggplot2.tidyverse.org/reference/aes.html)
-  mapping. Fill defaults to `value`; a label column can supply
-  categorical colors. Map `alpha` to a numeric expression using layer
-  columns, aligned images, or named contrasts from
+  mapping. Fill defaults to `value`; columns joined via
+  `images(..., labels = ...)` can supply either categorical labels
+  (character/factor) or continuous parcel-level statistics (numeric).
+  Map `alpha` to a numeric expression using layer columns, aligned
+  images, or named contrasts from
   [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md).
   Layer columns take precedence. Without `alpha_cutoff`, mapped opacity
   must be between 0 and 1. Aligned images supply their numeric values,
@@ -118,10 +120,11 @@ geom_brain(
 
   Positive statistic magnitude at which the layer is fully opaque.
   Opacity is `pmin(1, abs(statistic) / alpha_cutoff)^alpha_power` on
-  every slice. The statistic defaults to the layer's numeric `value`
-  after image cleanup. Use `aes(alpha = z)` to supply a separate
-  statistic. Missing values are transparent. The opacity key shows
-  statistic magnitudes and is displayed when `show_legend = TRUE`.
+  every slice. The statistic defaults to the layer's mapped numeric fill
+  column (typically `value`) after image cleanup. Use `aes(alpha = z)`
+  to supply a separate statistic. Missing values are transparent. The
+  opacity key shows statistic magnitudes and is displayed when
+  `show_legend = TRUE`.
 
 - alpha_power:
 

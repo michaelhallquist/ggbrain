@@ -5,9 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="R6 class for managing slice data for ggbrain plots — ggbrain_slices"><meta name="description" content="R6 class for managing slice data for ggbrain plots
-R6 class for managing slice data for ggbrain plots"><meta property="og:description" content="R6 class for managing slice data for ggbrain plots
-R6 class for managing slice data for ggbrain plots"></head><body>
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="R6 class for managing slice data for ggbrain plots — ggbrain_slices"><meta name="description" content="R6 class for managing slice data for ggbrain plots"><meta property="og:description" content="R6 class for managing slice data for ggbrain plots"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -49,7 +47,6 @@ R6 class for managing slice data for ggbrain plots"></head><body>
 
     <div class="ref-description section level2">
     <p>R6 class for managing slice data for ggbrain plots</p>
-<p>R6 class for managing slice data for ggbrain plots</p>
     </div>
 
 
@@ -63,40 +60,40 @@ R6 class for managing slice data for ggbrain plots"></head><body>
 <dd><p>read-only access to the slice_index containing the slice numbers</p></dd>
 
 
-<dt><code>coord_input</code></dt>
+    <dt><code>coord_input</code></dt>
 <dd><p>the input string used to lookup the slices</p></dd>
 
 
-<dt><code>coord_label</code></dt>
+    <dt><code>coord_label</code></dt>
 <dd><p>the calculated x, y, or z coordinate of the relevant slice</p></dd>
 
 
-<dt><code>slice_number</code></dt>
+    <dt><code>slice_number</code></dt>
 <dd><p>the slice number along the relevant axis of the 3D image matrix</p></dd>
 
 
-<dt><code>slice_data</code></dt>
+    <dt><code>slice_data</code></dt>
 <dd><p>a nested list of data.frames where each element contains all data relevant to
 that slice and the list elements within are each a given image</p></dd>
 
 
-<dt><code>slice_matrix</code></dt>
+    <dt><code>slice_matrix</code></dt>
 <dd><p>the slice data in matrix form</p></dd>
 
 
-<dt><code>slice_labels</code></dt>
+    <dt><code>slice_labels</code></dt>
 <dd><p>a data.frame for each slice containing the coordinates of labels available to be drawn</p></dd>
 
 
-<dt><code>layer_names</code></dt>
+    <dt><code>layer_names</code></dt>
 <dd><p>a character vector of layer names within each slice</p></dd>
 
 
-<dt><code>orientation_labels</code></dt>
+    <dt><code>orientation_labels</code></dt>
 <dd><p>axis labels inherited from the source images</p></dd>
 
 
-<dt><code>slice_grid</code></dt>
+    <dt><code>slice_grid</code></dt>
 <dd><p>list mapping display coords back to voxel/world space for each slice</p></dd>
 
 
@@ -107,52 +104,49 @@ that slice and the list elements within are each a given image</p></dd>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
-
-<ul><li><p><a href="#method-ggbrain_slices-new"><code>ggbrain_slices$new()</code></a></p></li>
+<p></p><ul><li><p><a href="#method-ggbrain_slices-initialize"><code>ggbrain_slices$new()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-get_orientation_labels"><code>ggbrain_slices$get_orientation_labels()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-ensure_label_columns"><code>ggbrain_slices$ensure_label_columns()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-compute_contrasts"><code>ggbrain_slices$compute_contrasts()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-as_tibble"><code>ggbrain_slices$as_tibble()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-get_ranges"><code>ggbrain_slices$get_ranges()</code></a></p></li>
+<li><p><a href="#method-ggbrain_slices-get_column_range"><code>ggbrain_slices$get_column_range()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-get_uvals"><code>ggbrain_slices$get_uvals()</code></a></p></li>
 <li><p><a href="#method-ggbrain_slices-clone"><code>ggbrain_slices$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-ggbrain_slices-new"></a><div class="section">
-<h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
+</ul></div><p></p><hr><a id="method-ggbrain_slices-initialize"></a><div class="section">
+<h3 id="ggbrain-slices-new-"><code>ggbrain_slices$new()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-new-"></a></h3>
 <p>create a ggbrain_slices object based</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/ggbrain_slices.html">ggbrain_slices</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>slice_df <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>slice_df</code></dt>
 <dd><p>a data.frame generated by ggbrain_images$get_slices()</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
 <p>If this becomes a user-facing/exported class, we may want a more friendly constructor</p>
 </div>
 
+</div>
 
-</div><p></p><hr><a id="method-ggbrain_slices-get_orientation_labels"></a><div class="section">
-<h3 id="method-get-orientation-labels-">Method <code>get_orientation_labels()</code><a class="anchor" aria-label="anchor" href="#method-get-orientation-labels-"></a></h3>
+<p></p><hr><a id="method-ggbrain_slices-get_orientation_labels"></a><div class="section">
+<h3 id="ggbrain-slices-get-orientation-labels-"><code>ggbrain_slices$get_orientation_labels()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-get-orientation-labels-"></a></h3>
 <p>return the orientation labels inherited from the source ggbrain_images object</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_orientation_labels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+</div>
 
-</div><p></p><hr><a id="method-ggbrain_slices-ensure_label_columns"></a><div class="section">
-<h3 id="method-ensure-label-columns-">Method <code>ensure_label_columns()</code><a class="anchor" aria-label="anchor" href="#method-ensure-label-columns-"></a></h3>
+<p></p><hr><a id="method-ggbrain_slices-ensure_label_columns"></a><div class="section">
+<h3 id="ggbrain-slices-ensure-label-columns-"><code>ggbrain_slices$ensure_label_columns()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-ensure-label-columns-"></a></h3>
 <p>Ensure requested label columns exist on slice data (used for inline factor labels)</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">ensure_label_columns</span><span class="op">(</span>add_labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>add_labels</code></dt>
 <dd><p>named list of label columns to add per layer</p></dd>
@@ -161,14 +155,14 @@ that slice and the list elements within are each a given image</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-ggbrain_slices-compute_contrasts"></a><div class="section">
-<h3 id="method-compute-contrasts-">Method <code>compute_contrasts()</code><a class="anchor" aria-label="anchor" href="#method-compute-contrasts-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-ggbrain_slices-compute_contrasts"></a><div class="section">
+<h3 id="ggbrain-slices-compute-contrasts-"><code>ggbrain_slices$compute_contrasts()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-compute-contrasts-"></a></h3>
 <p>computes contrasts of the sliced image data</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">compute_contrasts</span><span class="op">(</span>contrast_list <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>contrast_list</code></dt>
 <dd><p>a named list or character vector containing contrasts to be computed.
@@ -179,50 +173,74 @@ that use standard R syntax for logical tests, subsetting, and arithmetic</p></dd
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-ggbrain_slices-as_tibble"></a><div class="section">
-<h3 id="method-as-tibble-">Method <code>as_tibble()</code><a class="anchor" aria-label="anchor" href="#method-as-tibble-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-ggbrain_slices-as_tibble"></a><div class="section">
+<h3 id="ggbrain-slices-as-tibble-"><code>ggbrain_slices$as_tibble()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-as-tibble-"></a></h3>
 <p>convert the slices object into a data.frame with list-columns for slice data elements</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+</div>
 
-</div><p></p><hr><a id="method-ggbrain_slices-get_ranges"></a><div class="section">
-<h3 id="method-get-ranges-">Method <code>get_ranges()</code><a class="anchor" aria-label="anchor" href="#method-get-ranges-"></a></h3>
+<p></p><hr><a id="method-ggbrain_slices-get_ranges"></a><div class="section">
+<h3 id="ggbrain-slices-get-ranges-"><code>ggbrain_slices$get_ranges()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-get-ranges-"></a></h3>
 <p>calculates the numeric ranges of each image/contrast in this object, across all
 constituent slices. This is useful for setting scale limits that are shared across panels</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_ranges</span><span class="op">(</span>slice_indices <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>slice_indices</code></dt>
 <dd><p>an optional integer vector of slice indices to be used as a subset in the calculation</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>a tibble keyed by 'layer' with overall low and high values, as well as split by pos/neg</p>
 </div>
 
-</div><p></p><hr><a id="method-ggbrain_slices-get_uvals"></a><div class="section">
-<h3 id="method-get-uvals-">Method <code>get_uvals()</code><a class="anchor" aria-label="anchor" href="#method-get-uvals-"></a></h3>
-<p>returns a data.frame with the unique values for each label layer, across all
-constituent slices</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_uvals</span><span class="op">(</span>slice_indices <span class="op">=</span> <span class="cn">NULL</span>, add_labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
+<p></p><hr><a id="method-ggbrain_slices-get_column_range"></a><div class="section">
+<h3 id="ggbrain-slices-get-column-range-"><code>ggbrain_slices$get_column_range()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-get-column-range-"></a></h3>
+<p>calculates the numeric range of a specific column for one layer across slices</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_column_range</span><span class="op">(</span><span class="va">layer</span>, column <span class="op">=</span> <span class="st">"value"</span>, slice_indices <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>a character string naming the image or contrast layer</p></dd>
+
+      <dt><code>column</code></dt>
+<dd><p>a character string naming the numeric column to summarize. Default: <code>"value"</code></p></dd>
+
+      <dt><code>slice_indices</code></dt>
+<dd><p>an optional integer vector of slice indices to include</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>a one-row tibble with overall and positive/negative ranges for the requested column</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-ggbrain_slices-get_uvals"></a><div class="section">
+<h3 id="ggbrain-slices-get-uvals-"><code>ggbrain_slices$get_uvals()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-get-uvals-"></a></h3>
+<p>returns a data.frame with the unique values for each label layer, across all
+constituent slices</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">get_uvals</span><span class="op">(</span>slice_indices <span class="op">=</span> <span class="cn">NULL</span>, add_labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>slice_indices</code></dt>
 <dd><p>an optional integer vector of slice indices to be used as a subset in the calculation</p></dd>
 
-
-<dt><code>add_labels</code></dt>
+      <dt><code>add_labels</code></dt>
 <dd><p>an optional named list indicating the label columns to add to a given layer. The names
 of the list specify the layer to which labels are added and the values should be character vectors
 specifying the names of columns that serve as labels for the layer. These are always <em>added</em> to any
@@ -230,24 +248,22 @@ existing label columns for the layer.</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
 <p><code>add_labels</code> is provided here for any categorical columns that were specified inline in the
 layer definition using factor or as.factor, such as aes(fill=factor(value)). Otherwise, it's best
 to input data with labels in the first place so that labels are described in the data structure itself.</p>
 </div>
 
-
-</div><p></p><hr><a id="method-ggbrain_slices-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
-<p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
-<div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><hr><a id="method-ggbrain_slices-clone"></a><div class="section">
+<h3 id="ggbrain-slices-clone-"><code>ggbrain_slices$clone()</code><a class="anchor" aria-label="anchor" href="#ggbrain-slices-clone-"></a></h3>
+<p>The objects of this class are cloneable with this method.</p><div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_slices</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -256,6 +272,7 @@ to input data with labels in the first place so that labels are described in the
 </div>
 
 </div>
+
 
     </div>
 

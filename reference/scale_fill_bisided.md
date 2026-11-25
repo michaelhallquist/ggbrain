@@ -26,7 +26,7 @@ scale_fill_bisided(
 
 - pos_scale:
 
-  a scale_fill\_\* object used for positive values
+  a scale_fill\_\* object used for positive values and measured zeros
 
 - symmetric:
 

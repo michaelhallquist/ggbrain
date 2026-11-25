@@ -2,8 +2,6 @@
 
 R6 class for managing slice data for ggbrain plots
 
-R6 class for managing slice data for ggbrain plots
-
 ## Author
 
 Michael Hallquist
@@ -57,7 +55,7 @@ Michael Hallquist
 
 ### Public methods
 
-- [`ggbrain_slices$new()`](#method-ggbrain_slices-new)
+- [`ggbrain_slices$new()`](#method-ggbrain_slices-initialize)
 
 - [`ggbrain_slices$get_orientation_labels()`](#method-ggbrain_slices-get_orientation_labels)
 
@@ -69,13 +67,15 @@ Michael Hallquist
 
 - [`ggbrain_slices$get_ranges()`](#method-ggbrain_slices-get_ranges)
 
+- [`ggbrain_slices$get_column_range()`](#method-ggbrain_slices-get_column_range)
+
 - [`ggbrain_slices$get_uvals()`](#method-ggbrain_slices-get_uvals)
 
 - [`ggbrain_slices$clone()`](#method-ggbrain_slices-clone)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `ggbrain_slices$new()`
 
 create a ggbrain_slices object based
 
@@ -96,7 +96,7 @@ friendly constructor
 
 ------------------------------------------------------------------------
 
-### Method `get_orientation_labels()`
+### `ggbrain_slices$get_orientation_labels()`
 
 return the orientation labels inherited from the source ggbrain_images
 object
@@ -107,7 +107,7 @@ object
 
 ------------------------------------------------------------------------
 
-### Method `ensure_label_columns()`
+### `ggbrain_slices$ensure_label_columns()`
 
 Ensure requested label columns exist on slice data (used for inline
 factor labels)
@@ -124,7 +124,7 @@ factor labels)
 
 ------------------------------------------------------------------------
 
-### Method `compute_contrasts()`
+### `ggbrain_slices$compute_contrasts()`
 
 computes contrasts of the sliced image data
 
@@ -143,7 +143,7 @@ computes contrasts of the sliced image data
 
 ------------------------------------------------------------------------
 
-### Method `as_tibble()`
+### `ggbrain_slices$as_tibble()`
 
 convert the slices object into a data.frame with list-columns for slice
 data elements
@@ -154,7 +154,7 @@ data elements
 
 ------------------------------------------------------------------------
 
-### Method `get_ranges()`
+### `ggbrain_slices$get_ranges()`
 
 calculates the numeric ranges of each image/contrast in this object,
 across all constituent slices. This is useful for setting scale limits
@@ -178,7 +178,38 @@ split by pos/neg
 
 ------------------------------------------------------------------------
 
-### Method `get_uvals()`
+### `ggbrain_slices$get_column_range()`
+
+calculates the numeric range of a specific column for one layer across
+slices
+
+#### Usage
+
+    ggbrain_slices$get_column_range(layer, column = "value", slice_indices = NULL)
+
+#### Arguments
+
+- `layer`:
+
+  a character string naming the image or contrast layer
+
+- `column`:
+
+  a character string naming the numeric column to summarize. Default:
+  `"value"`
+
+- `slice_indices`:
+
+  an optional integer vector of slice indices to include
+
+#### Returns
+
+a one-row tibble with overall and positive/negative ranges for the
+requested column
+
+------------------------------------------------------------------------
+
+### `ggbrain_slices$get_uvals()`
 
 returns a data.frame with the unique values for each label layer, across
 all constituent slices
@@ -212,7 +243,7 @@ structure itself.
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `ggbrain_slices$clone()`
 
 The objects of this class are cloneable with this method.
 

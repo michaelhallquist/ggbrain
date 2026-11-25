@@ -440,6 +440,136 @@ premotor (including frontal eye fields), and middle temporal visual area
 <p><img src="ggbrain_labels_files/figure-html/dan_overlay-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
+<h2 id="mapping-numeric-roi-statistics-onto-an-atlas">Mapping numeric ROI statistics onto an atlas<a class="anchor" aria-label="anchor" href="#mapping-numeric-roi-statistics-onto-an-atlas"></a>
+</h2>
+<p>Often, an analysis yields one summary statistic per brain parcel or
+region of interest (ROI)—for example, parcel-level regression slopes,
+cortical thickness estimates, or regional <em>t</em>-statistics stored
+in a <code>data.frame</code>. Rather than converting that table into a
+new NIfTI file on disk, you can attach numeric columns directly to an
+integer atlas image through the <code>labels</code> argument of
+<code><a href="../reference/images.html">images()</a></code> and map them onto volumetric slices with
+<code>aes(fill = &lt;column&gt;)</code>.</p>
+<p>To illustrate, we summarize the packaged feedback-onset statistical
+map (<code>feedback_onset_2mm.nii.gz</code>) within each of the 200
+Schaefer parcels to produce two numeric parcel-level variables: the
+parcel mean <em>z</em>-statistic (<code>mean_z</code>) and the
+percentage of voxels in the parcel exceeding <code>|z| &gt; 2</code>
+(<code>pct_gt2</code>).</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">feedback_img</span> <span class="op">&lt;-</span> <span class="fu">readNifti</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"feedback_onset_2mm.nii.gz"</span>, package <span class="op">=</span> <span class="st">"ggbrain"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">parcel_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">schaefer_img</span><span class="op">)</span>,</span>
+<span>  z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">feedback_img</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">value</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">value</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">summarize</span><span class="op">(</span></span>
+<span>    mean_z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span>,</span>
+<span>    pct_gt2 <span class="op">=</span> <span class="fl">100</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">schaefer_with_stats</span> <span class="op">&lt;-</span> <span class="va">schaefer200_atlas_labels</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">parcel_stats</span>, by <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span></code></pre></div>
+<p>These summaries use every voxel inside each parcel. In the packaged
+map, 10,485 voxels across 94 parcels have an exact zero. Each zero
+contributes to the denominator of both summaries and counts below the
+<code>|z| &gt; 2</code> cutoff. For example, parcel 5 has 239 zeros
+among its 554 voxels. Its mean is 2.24 using all voxels and 3.93 using
+only nonzero voxels. That choice changes whether parcel 5 appears in the
+thresholded figure below.</p>
+<p>For your own data, use the analysis mask to identify measured voxels,
+including those with a measured <em>z</em> of zero. With a binary
+<code>mask_img</code> on the same voxel grid as the atlas and statistic
+image, add <code>in_mask = as.logical(mask_img)</code> to the voxel data
+frame and use <code>filter(value &gt; 0, in_mask, is.finite(z))</code>
+before grouping. Both summaries then use the number of covered voxels in
+each parcel as their denominator. The <code>left_join()</code> leaves
+both statistics as <code>NA</code> for any parcel with no covered
+voxels.</p>
+<div class="section level3">
+<h3 id="continuous-parcel-fills-with-unified-scales">Continuous parcel fills with unified scales<a class="anchor" aria-label="anchor" href="#continuous-parcel-fills-with-unified-scales"></a>
+</h3>
+<p>When a numeric table column is mapped to <code>fill</code>,
+<code>ggbrain</code> computes unified color scale limits and chooses an
+appropriate default scale (including bisided positive/negative scales
+when the mapped column contains both signs) from that column rather than
+from the integer parcel IDs in <code>value</code>. Lookup tables
+containing only <code>value</code> and numeric columns (with no text
+label columns) are also supported.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">roi_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ggbrain.html">ggbrain</a></span><span class="op">(</span>bg_color <span class="op">=</span> <span class="st">"gray95"</span>, text_color <span class="op">=</span> <span class="st">"black"</span>, base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>underlay <span class="op">=</span> <span class="va">underlay_file</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/images.html">images</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>atlas <span class="op">=</span> <span class="va">schaefer200_atlas_file</span><span class="op">)</span>, labels <span class="op">=</span> <span class="va">schaefer_with_stats</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/slices.html">slices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x = -36"</span>, <span class="st">"z = 12"</span>, <span class="st">"z = 44"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"underlay"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p_roi_bisided</span> <span class="op">&lt;-</span> <span class="va">roi_base</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span><span class="st">"atlas"</span>, name <span class="op">=</span> <span class="st">"Mean z"</span>, mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">mean_z</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>placement <span class="op">=</span> <span class="st">"caption"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p_roi_bisided</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_labels_files/figure-html/parcel_stats_bisided-1.png" class="r-plt" alt="" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="thresholding-and-outlining-parcels-using-numeric-table-columns">Thresholding and outlining parcels using numeric table columns<a class="anchor" aria-label="anchor" href="#thresholding-and-outlining-parcels-using-numeric-table-columns"></a>
+</h3>
+<p>Numeric columns attached to an atlas are also available inside
+<code><a href="../reference/define.html">define()</a></code> and layer contrast expressions via
+<code>&lt;image&gt;.&lt;column&gt;</code> syntax. For example,
+<code>atlas[abs(atlas.mean_z) &gt; 3]</code> selects parcels whose mean
+voxel <em>z</em> exceeds 3 in magnitude. A parcel with a missing mean is
+excluded. Here 3 is an illustrative display cutoff. To select parcels by
+statistical significance, supply a parcel-level test result such as an
+adjusted <em>p</em>-value and filter on that column.</p>
+<p>Both layers use the same subset. The fill shows the signed mean
+<em>z</em> of the selected parcels, and the dark outline traces the
+boundary of the selected area. Elsewhere, only the anatomical underlay
+is visible.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_roi_thr</span> <span class="op">&lt;-</span> <span class="va">roi_base</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    <span class="st">"atlas[abs(atlas.mean_z) &gt; 3]"</span>,</span>
+<span>    name <span class="op">=</span> <span class="st">"Mean z\n(|mean z| &gt; 3)"</span>,</span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">mean_z</span><span class="op">)</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient2</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#2166AC"</span>, mid <span class="op">=</span> <span class="st">"#F7F7F7"</span>, high <span class="op">=</span> <span class="st">"#B2182B"</span>, midpoint <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span><span class="st">"atlas[abs(atlas.mean_z) &gt; 3]"</span>, outline <span class="op">=</span> <span class="st">"gray15"</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>placement <span class="op">=</span> <span class="st">"caption"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p_roi_thr</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_labels_files/figure-html/parcel_stats_threshold-1.png" class="r-plt" alt="" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="combining-parcel-effect-size-with-opacity-and-contours">Combining parcel effect size with opacity and contours<a class="anchor" aria-label="anchor" href="#combining-parcel-effect-size-with-opacity-and-contours"></a>
+</h3>
+<p>Numeric ROI columns can also drive voxelwise opacity via
+<code>aes(alpha = ...)</code> and <code>alpha_cutoff</code>. This pairs
+naturally with the “highlight, don’t hide” approach for parcellated
+data: every parcel’s effect direction and magnitude is encoded by
+<code>fill</code>, its spatial consistency (<code>pct_gt2</code>)
+controls opacity, and a contour highlights parcels meeting a stricter
+criterion.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_roi_alpha</span> <span class="op">&lt;-</span> <span class="va">roi_base</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_brain.html">geom_brain</a></span><span class="op">(</span></span>
+<span>    <span class="st">"atlas"</span>,</span>
+<span>    name <span class="op">=</span> <span class="st">"Mean z"</span>,</span>
+<span>    mapping <span class="op">=</span> <span class="fu">aes</span><span class="op">(</span>fill <span class="op">=</span> <span class="va">mean_z</span>, alpha <span class="op">=</span> <span class="va">pct_gt2</span><span class="op">)</span>,</span>
+<span>    fill_scale <span class="op">=</span> <span class="fu">scale_fill_gradient2</span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#2166AC"</span>, mid <span class="op">=</span> <span class="st">"#F7F7F7"</span>, high <span class="op">=</span> <span class="st">"#B2182B"</span>, midpoint <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    alpha_cutoff <span class="op">=</span> <span class="fl">75</span>,</span>
+<span>    alpha_power <span class="op">=</span> <span class="fl">2</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_outline.html">geom_outline</a></span><span class="op">(</span><span class="st">"atlas[abs(atlas.mean_z) &gt; 3]"</span>, outline <span class="op">=</span> <span class="st">"black"</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/annotate_coordinates.html">annotate_coordinates</a></span><span class="op">(</span>placement <span class="op">=</span> <span class="st">"caption"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p_roi_alpha</span><span class="op">)</span></span></code></pre></div>
+<p><img src="ggbrain_labels_files/figure-html/parcel_stats_opacity-1.png" class="r-plt" alt="" width="768"></p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="adding-annotations">Adding annotations<a class="anchor" aria-label="anchor" href="#adding-annotations"></a>
 </h2>
 <p>In addition to plotting categorical images, we often wish to annotate
@@ -451,7 +581,7 @@ apply to <code>annotate_slice</code> as well. Relative to typical
 annotations in ggplot2, with <code>ggbrain</code>, we must also provide
 x and y positions on the panel, as well the slice to which the
 annotation should be added.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>x<span class="op">=</span><span class="fl">20</span>, y<span class="op">=</span><span class="fl">20</span>, slice_index<span class="op">=</span><span class="fl">1</span>, geom<span class="op">=</span><span class="st">"text"</span>, label<span class="op">=</span><span class="st">"slice1"</span>, color<span class="op">=</span><span class="st">"gray40"</span>, size<span class="op">=</span><span class="fl">11</span>, hjust<span class="op">=</span><span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>x<span class="op">=</span><span class="fl">20</span>, y<span class="op">=</span><span class="fl">40</span>, slice_index<span class="op">=</span><span class="fl">2</span>, geom<span class="op">=</span><span class="st">"text"</span>, label<span class="op">=</span><span class="st">"slice2"</span>, color<span class="op">=</span><span class="st">"gray40"</span>, size<span class="op">=</span><span class="fl">11</span>, hjust<span class="op">=</span><span class="fl">0</span><span class="op">)</span></span>
@@ -466,7 +596,7 @@ NIfTIs have dimensions: 97, 115, 97.</p>
 <p>Alternatively, we can use the shorthand of “left” and “right” for x
 coordinates and “top” and “bottom” for y coordinates. The shorthand of
 “middle” also works in x and y.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"left"</span>, y<span class="op">=</span><span class="st">"top"</span>, slice_index<span class="op">=</span><span class="fl">1</span>, geom<span class="op">=</span><span class="st">"text"</span>, label<span class="op">=</span><span class="st">"slice1"</span>, color<span class="op">=</span><span class="st">"gray40"</span>, size<span class="op">=</span><span class="fl">11</span>, hjust<span class="op">=</span><span class="fl">0</span>, vjust<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"right"</span>, y<span class="op">=</span><span class="st">"bottom"</span>, slice_index<span class="op">=</span><span class="fl">2</span>, geom<span class="op">=</span><span class="st">"text"</span>, label<span class="op">=</span><span class="st">"slice2"</span>, color<span class="op">=</span><span class="st">"gray40"</span>, size<span class="op">=</span><span class="fl">11</span>, hjust<span class="op">=</span><span class="fl">1</span>, vjust<span class="op">=</span><span class="fl">0</span><span class="op">)</span></span>
@@ -475,7 +605,7 @@ coordinates and “top” and “bottom” for y coordinates. The shorthand of
 <p><img src="ggbrain_labels_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="672"></p>
 <p>Finally, we can use quantiles/percentiles along each axis to position
 things in relative space.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"q30"</span>, y<span class="op">=</span><span class="st">"q60"</span>, slice_index<span class="op">=</span><span class="fl">1</span>, geom<span class="op">=</span><span class="st">"text"</span>, label<span class="op">=</span><span class="st">"slice1"</span>, color<span class="op">=</span><span class="st">"gray40"</span>, size<span class="op">=</span><span class="fl">11</span>, hjust<span class="op">=</span><span class="fl">0</span>, vjust<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"q35"</span>, y<span class="op">=</span><span class="st">"q70"</span>, slice_index<span class="op">=</span><span class="fl">2</span>, geom<span class="op">=</span><span class="st">"text"</span>, label<span class="op">=</span><span class="st">"slice2"</span>, color<span class="op">=</span><span class="st">"gray40"</span>, size<span class="op">=</span><span class="fl">11</span>, hjust<span class="op">=</span><span class="fl">0.5</span>, vjust<span class="op">=</span><span class="fl">0</span><span class="op">)</span></span>
@@ -486,7 +616,7 @@ things in relative space.</p>
 <code>annotate_slice</code> function can also be used to add other
 geometric shapes such as rectangles or points. For example, we could
 highlight the occipital region here.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/annotate_slice.html">annotate_slice</a></span><span class="op">(</span>xmin<span class="op">=</span><span class="st">"q0"</span>, xmax<span class="op">=</span><span class="st">"q38"</span>, ymin<span class="op">=</span><span class="st">"q25"</span>, ymax<span class="op">=</span><span class="st">"q59"</span>, slice_index<span class="op">=</span><span class="fl">1</span>, geom<span class="op">=</span><span class="st">"rect"</span>, </span>
 <span>                 color<span class="op">=</span><span class="st">"blue"</span>, fill<span class="op">=</span><span class="st">"transparent"</span>, linewidth<span class="op">=</span><span class="fl">1.5</span><span class="op">)</span></span>
@@ -516,7 +646,7 @@ parcellation regions comprising the three DAN areas of MT+, PPC, and
 Premotor. These labels already exist in our
 <code>schaefer200_atlas_labels</code> data.frame. Let’s use the
 MNI_Glasser_HCP_v1.0 labels.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_region_label.html">geom_region_label</a></span><span class="op">(</span>image<span class="op">=</span><span class="st">"atlas"</span>, label_column<span class="op">=</span><span class="st">"MNI_Glasser_HCP_v1.0"</span>, size<span class="op">=</span><span class="fl">3</span>, color<span class="op">=</span><span class="st">"black"</span><span class="op">)</span></span>
 <span><span class="co"># </span></span>
@@ -538,7 +668,7 @@ visualization than the long labels.</p>
 <span><span class="co">## [4] "|L_Medial_Superior_Temporal_Area      |TPJ          |"</span></span>
 <span><span class="co">## [5] "|L_Area_V3A                           |iLIP         |"</span></span>
 <span><span class="co">## [6] "|L_Frontal_Eye_Fields                 |lFEF         |"</span></span></code></pre>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ann</span> <span class="op">&lt;-</span> <span class="va">abspe_gg</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_region_label.html">geom_region_label</a></span><span class="op">(</span>image<span class="op">=</span><span class="st">"atlas"</span>, label_column<span class="op">=</span><span class="st">"custom_label"</span>, size<span class="op">=</span><span class="fl">3</span>, color<span class="op">=</span><span class="st">"black"</span><span class="op">)</span></span>
 <span><span class="co"># </span></span>
