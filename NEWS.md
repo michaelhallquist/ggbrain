@@ -1,5 +1,6 @@
 # ggbrain 1.0 (7Dec2025)
 
+* Fixed-color outlines of signed maps now trace both positive and negative regions.
 * Corrected orientation labels for reversed voxel axes and preserved gaps between regions when trimming slice margins.
 * Display resampling now uses the voxel spacing of each in-plane axis and preserves generated cluster IDs.
 * Cluster reports handle empty selections and mixed outline settings. Extending a rendered figure refreshes the data returned by slice inspection.
