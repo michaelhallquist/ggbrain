@@ -1,5 +1,6 @@
 # ggbrain 1.0 (7Dec2025)
 
+* Added `read_lut()` and `scale_fill_lut()` to parse FreeSurfer, ITK-SNAP, and FSL/FSLeyes color lookup tables directly into tidy label tables (`value`, `label`, `r`, `g`, `b`, `color`) and build matching discrete `ggplot2` fill/outline scales.
 * `geom_brain()` supports voxelwise opacity using a numeric layer column, aligned image, or named contrast. Set `alpha_cutoff` for transparent thresholding with a shared opacity key across slices. The default fade is quadratic. Set `alpha_power = 1` for a linear fade or choose another positive exponent.
 * Fixed-color outlines of signed maps now trace both positive and negative regions.
 * Corrected orientation labels for reversed voxel axes and preserved gaps between regions when trimming slice margins.
