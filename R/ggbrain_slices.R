@@ -39,7 +39,7 @@ ggbrain_slices <- R6::R6Class(
       img_slice <- private$pvt_slice_data[slice_indices]
       if (isTRUE(only_labeled)) {
         # which layers are labeled
-        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_columns")))
+        has_labels <- sapply(private$pvt_slice_data[[1]], function(x) length(attr(x, "label_columns")) > 0L)
         stopifnot(sum(has_labels) > 0L) # would be a problem
 
         # subset img_slice to only labeled layers
@@ -59,7 +59,7 @@ ggbrain_slices <- R6::R6Class(
           data.table::rbindlist(idcol="slice_index")
 
         # if label columns are present, gather them into a single key-value pair
-        if (!is.null(label_columns)) {
+        if (length(label_columns) > 0L) {
           ll_df <- data.table::melt(ll_df, measure.vars=label_columns, variable.name=".label_col", value.name=".label_val")
         }
 
@@ -246,10 +246,13 @@ ggbrain_slices <- R6::R6Class(
 
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
-        # add image name as prefix to value and labeled columns to allow for cbind
+        # add image name as prefix to value and joined table/label columns to allow for cbind
+        measured <- vapply(slc_xx, function(df) isTRUE(attr(df, "measured_statistic")), logical(1))
         slc_xx <- lapply(slc_xx, function(img_ii) {
           img_name <- img_ii$image[1L]
-          nmr <- match(c("value", attr(img_ii, "label_columns")), names(img_ii))
+          attr_cols <- unique(c("value", attr(img_ii, "label_columns"), attr(img_ii, "table_columns")))
+          attr_cols <- intersect(attr_cols, names(img_ii))
+          nmr <- match(attr_cols, names(img_ii))
           new_names <- paste(img_name, names(img_ii)[nmr], sep=".")
           names(img_ii)[nmr] <- new_names
           img_ii <- img_ii[, c("dim1", "dim2", new_names)] # subset to only key columns
@@ -267,6 +270,9 @@ ggbrain_slices <- R6::R6Class(
         }
 
         ss <- Reduce(cbind_attr, slc_xx)
+        # A named contrast derived from table statistics keeps zero as data
+        # when it becomes the input to another contrast.
+        attr(ss, "measured_images") <- names(measured)[measured]
 
         # safer to inner join instead of cbind, but this is unnecessary compute given that they all pass through mat2df
         # about 8x slower than bind_cols
@@ -289,6 +295,7 @@ ggbrain_slices <- R6::R6Class(
             df <- df %>%
               dplyr::left_join(src_df, by = c("dim1", "dim2", "value"))
             attr(df, "label_columns") <- attr(src_df, "label_columns") # copy through label columns for subset contrast
+            attr(df, "table_columns") <- attr(src_df, "table_columns") # copy through numeric/table columns for subset contrast
           }
 
           return(df)
@@ -358,6 +365,54 @@ ggbrain_slices <- R6::R6Class(
 
     },
 
+    #' @description calculates the numeric range of a specific column for one layer across slices
+    #' @param layer a character string naming the image or contrast layer
+    #' @param column a character string naming the numeric column to summarize. Default: `"value"`
+    #' @param slice_indices an optional integer vector of slice indices to include
+    #' @return a one-row tibble with overall and positive/negative ranges for the requested column
+    get_column_range = function(layer, column = "value", slice_indices = NULL) {
+      checkmate::assert_string(layer)
+      checkmate::assert_string(column)
+      if (is.null(slice_indices)) {
+        slice_indices <- private$pvt_slice_index
+      } else {
+        checkmate::assert_integerish(slice_indices, lower = 1, upper = max(private$pvt_slice_index), unique = TRUE)
+      }
+
+      vals <- unlist(lapply(private$pvt_slice_data[slice_indices], function(slc) {
+        df <- slc[[layer]]
+        if (!is.null(df) && column %in% names(df)) df[[column]] else NULL
+      }), use.names = FALSE)
+
+      if (is.null(vals) || !is.numeric(vals)) {
+        return(tibble::tibble(
+          layer = layer,
+          column = column,
+          low = NA_real_,
+          high = NA_real_,
+          low_pos = NA_real_,
+          low_neg = NA_real_,
+          high_pos = NA_real_,
+          high_neg = NA_real_
+        ))
+      }
+
+      finite_vals <- vals[is.finite(vals)]
+      pos_vals <- finite_vals[finite_vals > 2 * .Machine$double.eps]
+      neg_vals <- finite_vals[finite_vals < -2 * .Machine$double.eps]
+
+      tibble::tibble(
+        layer = layer,
+        column = column,
+        low = if (length(finite_vals) == 0L) NA_real_ else min(finite_vals),
+        high = if (length(finite_vals) == 0L) NA_real_ else max(finite_vals),
+        low_pos = if (length(pos_vals) == 0L) NA_real_ else min(pos_vals),
+        low_neg = if (length(neg_vals) == 0L) NA_real_ else min(neg_vals),
+        high_pos = if (length(pos_vals) == 0L) NA_real_ else max(pos_vals),
+        high_neg = if (length(neg_vals) == 0L) NA_real_ else max(neg_vals)
+      )
+    },
+
     #' @description returns a data.frame with the unique values for each label layer, across all
     #'   constituent slices
     #' @param slice_indices an optional integer vector of slice indices to be used as a subset in the calculation
@@ -387,7 +442,7 @@ ggbrain_slices <- R6::R6Class(
       }
 
       # examine first slice to see if any layers have labels (reasonably assumes all slices have same layers)
-      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) !is.null(attr(x, "label_columns")))
+      has_labels <- sapply(private$pvt_slice_data[[1]], function(x) length(attr(x, "label_columns")) > 0L)
       if (!any(has_labels)) {
         return(data.frame()) # return empty data.frame
       } else {

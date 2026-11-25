@@ -208,8 +208,9 @@ ggbrain_images <- R6::R6Class(
     #' @param images a character vector of file names containing NIfTI images to read
     #' @param volumes the volumes to be read from each element of \code{images}. By default, this is 1, in which case the first volume is
     #'   used, which is appropriate for all 3-D images. For 4-D images, \code{volumes} gives you more flexibility over the volume to display.
-    #' @param labels A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
-    #'   a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond
+    #' @param labels A named list of data.frames mapping integer values in atlas/mask elements of \code{images}
+    #'   to categorical labels and/or numeric parcel-level columns. Each data.frame must include a \code{value}
+    #'   column. A single data.frame is accepted when only one image is passed.
     #' @param filter A named list of filter expressions to be applied to particular images. The names of the list correspond to the names
     #'   of the \code{images} provided. Each element of the list can either be a character vector denoting a filtering expression
     #'   (e.g., \code{'value < 100'}) or a numeric vector denoting values of the image that should be retained (e.g., \code{c(5, 10, 12)}).
@@ -290,14 +291,15 @@ ggbrain_images <- R6::R6Class(
       return(self)
     },
 
-    #' @description add a labels data.frame that connects an integer-valued image with a set of labels
-    #' @param ... named arguments containing data.frame objects for each image to be labeled. The argument name should
-    #'   match the image name to be labeled and the value should be a data.frame containing \code{value} and \code{label}.
+    #' @description add a lookup table data.frame that connects an integer-valued image with categorical labels and/or numeric ROI data
+    #' @param ... named arguments containing data.frame objects for each image to be annotated. The argument name should
+    #'   match the image name and each data.frame must contain a \code{value} column matching integer codes in the image,
+    #'   alongside any categorical label columns (character/factor) or numeric parcel-level columns.
     #' @details
     #'
-    #'   As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
-    #'   text-based labels in the label data. In addition, a new attribute will be returned called "slice_labels" that contains
-    #'   a row for each region represented in each slice.
+    #'   As a result of $add_labels, the $get_slices method joins the supplied table onto each slice by \code{value},
+    #'   making both categorical labels and numeric ROI columns available for aesthetic mapping and contrast expressions.
+    #'   In addition, \code{slice_labels} records region centers of mass joined with the lookup table for each slice.
     add_labels = function(...) {
       label_args <- list(...)
 
@@ -319,9 +321,16 @@ ggbrain_images <- R6::R6Class(
           message(glue::glue("Image {label_names[x]} has labels, which will replaced"))
         }
 
-        # encode label columns for each input data.frame -- only character and factor/ordered allowed
-        cat_cols <- sapply(label_args[[x]], function(v) inherits(v, c("character", "ordered", "factor")))
-        attr(label_args[[x]], "label_columns") <- names(label_args[[x]][cat_cols])
+        # A row without an atlas ID cannot annotate a parcel. Drop it before any
+        # joins (including center-of-mass and fallback label lookups).
+        label_args[[x]] <- dplyr::filter(label_args[[x]], !is.na(value))
+
+        # encode categorical label columns and all joined table columns separately
+        cat_cols <- vapply(label_args[[x]], function(v) inherits(v, c("character", "ordered", "factor")), logical(1L))
+        label_cols <- names(label_args[[x]])[cat_cols]
+        table_cols <- setdiff(names(label_args[[x]]), c("value", "dim1", "dim2", "image"))
+        attr(label_args[[x]], "label_columns") <- if (length(label_cols) > 0L) label_cols else NULL
+        attr(label_args[[x]], "table_columns") <- if (length(table_cols) > 0L) table_cols else NULL
 
         private$pvt_img_labels[[ label_names[x] ]] <- label_args[[x]]
       }
@@ -865,8 +874,12 @@ ggbrain_images <- R6::R6Class(
             # get labels data.frame
             lb <- private$pvt_img_labels[[label_name]]
 
-            # which columns in the data.frame are labels
+            # which columns in the data.frame are categorical labels vs all joined table columns
             label_columns <- attr(lb, "label_columns")
+            table_columns <- attr(lb, "table_columns")
+            if (is.null(table_columns)) {
+              table_columns <- setdiff(names(lb), c("value", "dim1", "dim2", "image"))
+            }
 
             # in the fill_labels == TRUE case, fill in labels that are present in the label data.frame, but
             # add a default label (the value) for any values in the image that lack a label
@@ -892,6 +905,13 @@ ggbrain_images <- R6::R6Class(
                   dplyr::mutate(!!ll := comb_df$label[match(value, comb_df$value)])
               }
 
+              # preserve any non-label (e.g., numeric/logical) columns from the lookup table
+              extra_cols <- setdiff(table_columns, label_columns)
+              if (length(extra_cols) > 0L) {
+                this_img <- this_img %>%
+                  dplyr::left_join(dplyr::select(lb, all_of(c("value", extra_cols))), by = "value")
+              }
+
               this_img <- this_img %>%
                 dplyr::select(dim1, dim2, value, image, everything())
             } else {
@@ -901,7 +921,8 @@ ggbrain_images <- R6::R6Class(
             # also label CoM data.frame
             if (!is.null(this_com)) this_com <- this_com %>% left_join(lb, by="value")
 
-            attr(this_img, "label_columns") <- label_columns
+            attr(this_img, "label_columns") <- if (length(label_columns) > 0L) label_columns else NULL
+            attr(this_img, "table_columns") <- if (length(table_columns) > 0L) table_columns else NULL
 
             slc_nestlist[[ii]][[label_name]] <- this_img
             com_stats[[ii]][[label_name]] <- this_com # update com stats

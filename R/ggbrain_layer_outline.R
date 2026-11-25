@@ -38,7 +38,11 @@ ggbrain_layer_outline <- R6::R6Class(
       # always drop NAs before proceeding with outline since only non-NA points can contribute
       max_dim1 <- max(df$dim1) # extent of x axis (before na.omit)
       max_dim2 <- max(df$dim2)
-      df <- subset(df, !is.na(value))
+      keep_rows <- !is.na(df$value)
+      if (isTRUE(private$pvt_map_fill) && !is.null(private$pvt_fill_column) && private$pvt_fill_column %in% names(df)) {
+        keep_rows <- keep_rows & !is.na(df[[private$pvt_fill_column]])
+      }
+      df <- df[keep_rows, , drop = FALSE]
       attr(df, "dim1") <- max_dim1
       attr(df, "dim2") <- max_dim2
       # preserve the original cluster id in a dedicated column for coloring

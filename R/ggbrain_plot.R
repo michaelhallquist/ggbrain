@@ -265,6 +265,8 @@ ggbrain_plot <- R6::R6Class(
       }
 
       checkmate::assert_list(layers)
+      # Automatic scales and limits belong to this selection of slices.
+      layers <- lapply(layers, function(layer) layer$clone(deep = TRUE))
       layer_sources <- sapply(layers, "[[", "source")
 
       # each slice forms a ggbrain_panel
@@ -323,34 +325,45 @@ ggbrain_plot <- R6::R6Class(
 
       # lookup ranges of each layer and unique values of labels
       private$pvt_slices$ensure_label_columns(ll)
-      img_ranges <- private$pvt_slices$get_ranges(slice_indices)
       img_uvals <- private$pvt_slices$get_uvals(slice_indices, add_labels = ll)
 
-      # When scales are unified and the overall data contain both positive and negative values,
-      # default to a bisided scale even if individual slices are one-sided.
-      if (nrow(img_ranges) > 0L) {
-        for (li in seq_along(layers)) {
-          l_obj <- layers[[li]]
-          if (isTRUE(l_obj$unify_scales) &&
-              !isTRUE(l_obj$categorical_fill) &&
-              !identical(l_obj$source, "underlay") &&
-              !identical(l_obj$definition, "underlay") &&
-              is.null(l_obj$fill_scale)) {
+      # Train once per layer on the mapped values of the selected slices.
+      # Split signs in statistic units, then transform each scale's limits.
+      for (layer in layers) {
+        column <- layer$fill_column
+        if (!isTRUE(layer$unify_scales) || isTRUE(layer$categorical_fill) ||
+            is.null(column) || !nrow(slice_df)) next
+        source_data <- slice_df$slice_data[[1L]][[layer$source]]
+        if (!is.numeric(source_data[[column]])) next
 
-            rng <- img_ranges %>% dplyr::filter(layer == !!l_obj$source)
-            has_pos <- any(!is.na(rng$high_pos))
-            has_neg <- any(!is.na(rng$high_neg))
-
-            if (isTRUE(has_pos) && isTRUE(has_neg)) {
-              l_obj$fill_scale <- scale_fill_bisided(
-                neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
-                pos_scale = scale_fill_distiller(palette = "Reds")
-              )
-            }
+        values <- unlist(lapply(slice_df$slice_data, function(slice) {
+          unique(mapped_fill_values(layer, slice[[layer$source]]))
+        }), use.names = FALSE)
+        if (is.null(layer$fill_scale)) {
+          if (identical(layer$definition, "underlay")) {
+            layer$fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
+          } else {
+            layer$fill_scale <- default_statistic_scale(values)
           }
         }
+        # ggplot scales are mutable. Each mapping needs its own trained copy,
+        # including when the caller supplies the same scale to two layers.
+        scale <- layer$fill_scale
+        if (isTRUE(layer$bisided)) {
+          scale$pos_scale <- scale$pos_scale$clone()
+          scale$neg_scale <- scale$neg_scale$clone()
+          layer$fill_scale <- scale
+          pos <- continuous_fill_limits(scale$pos_scale, values[which(values >= 0)])
+          neg <- continuous_fill_limits(scale$neg_scale, values[which(values < 0)])
+          if (!is.null(pos)) layer$set_pos_limits(pos)
+          if (!is.null(neg)) layer$set_neg_limits(neg)
+        } else {
+          layer$fill_scale <- scale$clone()
+          limits <- continuous_fill_limits(scale, values)
+          if (!is.null(limits)) layer$set_limits(limits)
+        }
       }
-      
+
       # generate a list of panel objects that combine layers and slice data
       private$pvt_ggbrain_panels <- lapply(seq_len(nrow(slice_df)), function(i) {
         # match slice data with layers
@@ -437,31 +450,9 @@ ggbrain_plot <- R6::R6Class(
           l_obj$data <- layer_data # set slice-specific data (this will also set properties such as whether fill layer is categorical)
           if (isTRUE(l_obj$categorical_fill)) l_obj$fill_scale$na.translate <- FALSE # don't park "NA" in legend for empty tiles
 
-          if (isTRUE(l_obj$unify_scales)) {
-            if (isTRUE(l_obj$categorical_fill)) {
-              l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
-              } else {
-                if (isTRUE(l_obj$bisided)) {
-                  pos_lims <- img_ranges %>%
-                    filter(layer == !!l_obj$source) %>%
-                    select(low_pos, high_pos) %>%
-                    unlist()
-                  if (length(pos_lims) == 2L) l_obj$set_pos_limits(pos_lims)
-
-                  neg_lims <- img_ranges %>%
-                    filter(layer == !!l_obj$source) %>%
-                    select(low_neg, high_neg) %>%
-                    unlist()
-                  if (length(neg_lims) == 2L) l_obj$set_neg_limits(neg_lims)
-                } else {
-                  lims <- img_ranges %>%
-                    filter(layer == !!l_obj$source) %>%
-                    select(low, high) %>%
-                    unlist()
-                  if (length(lims) == 2L) l_obj$set_limits(lims)
-                }
-              }
-            }
+          if (isTRUE(l_obj$unify_scales) && isTRUE(l_obj$categorical_fill)) {
+            l_obj$fill_scale$drop <- FALSE
+          }
 
           return(l_obj)
         })

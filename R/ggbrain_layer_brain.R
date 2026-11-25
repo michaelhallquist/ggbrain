@@ -17,7 +17,16 @@ ggbrain_layer_brain <- R6::R6Class(
       pmin(1, abs(statistic) / private$alpha_cutoff)^private$alpha_power
     },
     voxel_alpha = function(data, expr) {
-      statistic <- if (is.null(expr)) data$value else rlang::eval_tidy(expr, data)
+      if (is.null(expr)) {
+        fcol <- private$pvt_fill_column
+        statistic <- if (!is.null(fcol) && fcol %in% names(data) && is.numeric(data[[fcol]])) {
+          data[[fcol]]
+        } else {
+          data$value
+        }
+      } else {
+        statistic <- rlang::eval_tidy(expr, data)
+      }
       checkmate::assert_numeric(statistic, any.missing = TRUE)
       if (!length(statistic) %in% c(1L, nrow(data))) {
         stop("Mapped alpha must have one value per pixel or one constant value")
@@ -68,10 +77,14 @@ ggbrain_layer_brain <- R6::R6Class(
         if (mapped_alpha && is.null(value$fill) && is.null(private$pvt_fill)) {
           value$fill <- ggplot2::aes(fill = value)$fill
         }
-        opacity <- if (mapped_alpha && !self$is_empty()) private$voxel_alpha(private$pvt_data, value$alpha)
+        # Validate an explicit opacity mapping before replacing the current one.
+        if (!is.null(value$alpha) && !self$is_empty()) {
+          opacity <- private$voxel_alpha(private$pvt_data, value$alpha)
+        } else {
+          opacity <- NULL
+        }
         private$pvt_mapping <- value
         private$pvt_alpha_column <- if (mapped_alpha) ".ggbrain_alpha"
-        if (!self$is_empty()) private$pvt_data[[".ggbrain_alpha"]] <- opacity
         private$pvt_fill_expr <- "{new_val}"
         if (is.null(value$fill)) {
           private$pvt_fill_column <- NULL
@@ -96,7 +109,15 @@ ggbrain_layer_brain <- R6::R6Class(
           }
           private$pvt_has_fill <- TRUE
         }
-        if (!self$is_empty()) private$validate_layer()
+        if (!self$is_empty()) {
+          private$validate_layer()
+          if (mapped_alpha && is.null(value$alpha)) {
+            # Cutoff-only opacity uses the newly validated fill column.
+            private$update_voxel_alpha()
+          } else {
+            private$pvt_data[[".ggbrain_alpha"]] <- opacity
+          }
+        }
       }
     }
   ),
@@ -170,7 +191,14 @@ ggbrain_layer_brain <- R6::R6Class(
       title <- "Opacity"
       if (!is.null(cutoff)) {
         expr <- private$pvt_mapping$alpha
-        source <- if (is.null(expr)) self$definition else rlang::as_label(expr)
+        fcol <- private$pvt_fill_column
+        source <- if (!is.null(expr)) {
+          rlang::as_label(expr)
+        } else if (!is.null(fcol) && !identical(fcol, "value") && !isTRUE(private$pvt_categorical_fill)) {
+          fcol
+        } else {
+          self$definition
+        }
         title <- paste0("|", source, "| (power ", format(private$alpha_power), ")")
         magnitudes <- c(0, cutoff / 2, cutoff)
         labels <- c("0", format(magnitudes[2L]), paste0("\u2265", format(cutoff)))
