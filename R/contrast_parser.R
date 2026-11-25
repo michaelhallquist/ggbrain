@@ -139,6 +139,8 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   # Here, I add .value to any ambiguous name as a predictable fill-in behavior.
 
   img_names <- attr(data, "image")
+  image_values <- paste0(img_names, ".value")
+  background_values <- paste0(setdiff(img_names, attr(data, "measured_images")), ".value")
   attribute_expr <- paste0("^(", paste(img_names, collapse="|"), ").*$")
   attribute_cols <- grep(attribute_expr, names(data), value=TRUE)
   # attribute_names <- unique(sapply(strsplit(attribute_cols, ".", fixed=TRUE), "[[", 2))
@@ -215,7 +217,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
     # if there is just one image.value variable and one subset, we have a simple subset
     # and should merge the result back against joined label/table columns
     simple_subset <- length(img_vars) == 1L && nrow(brack_df) == 1L &&
-      endsWith(trimws(img_vars), ".value")
+      trimws(img_vars) %in% image_values
 
     # the last element of each split must be the variable that is subset based
     # on the use of brack_df to find the text preceding each bracket set
@@ -257,7 +259,7 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   # were masked to NA during slicing), so expressions like img1 - img2 or img1 < 0
   # evaluate cleanly. Preserve NAs in joined table/label columns so predicates like
   # atlas.p_fdr < 0.05 or is.na(atlas.beta) do not treat missing parcel data as 0.
-  value_cols <- grep("\\.value$", names(out_data), value = TRUE)
+  value_cols <- intersect(background_values, names(out_data))
   if (length(value_cols) > 0L) {
     out_data[value_cols] <- lapply(out_data[value_cols], rm_na)
   }
@@ -270,14 +272,14 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
 
     # mask elements that fail the predicate so they do not pass into the result
     target_col <- img_vars[subset_vars][vi]
-    out_data[[target_col]][l_test] <- if (endsWith(target_col, ".value")) 0 else NA
+    out_data[[target_col]][l_test] <- if (target_col %in% background_values) 0 else NA
   }
 
   # now that subsetting is complete, perform the requested arithmetic
   out_var <- with(out_data, eval(parse(text = nobrack_expr)))
 
   if (!is.logical(out_var)) {
-    if (all(endsWith(img_vars, ".value"))) {
+    if (all(img_vars %in% background_values)) {
       # For voxelwise image values, treat near-zero values as background/masked
       out_var[!is.na(out_var) & abs(out_var) < 1e-6] <- default_val
     } else {
@@ -291,8 +293,11 @@ contrast_parser <- function(expr, data = NULL, default_val=NA_real_) {
   checkmate::assert_subset(c("dim1", "dim2"), names(data))
 
   out_df <- data.frame(data[, c("dim1", "dim2")], value = out_var)
+  if (is.numeric(out_var) && any(!img_vars %in% background_values)) {
+    attr(out_df, "measured_statistic") <- TRUE
+  }
   if (isTRUE(simple_subset)) {
-    attr(out_df, "img_source") <- strsplit(img_vars, ".", fixed = TRUE)[[1L]][1L] # image name is pre-dot
+    attr(out_df, "img_source") <- img_names[match(img_vars, image_values)]
   }
 
   return(out_df)

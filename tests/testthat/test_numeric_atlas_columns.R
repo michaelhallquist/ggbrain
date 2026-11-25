@@ -57,13 +57,13 @@ test_that("numeric ROI columns unify scale limits and auto-select bisided scales
   expect_true(all(vapply(atlas_layers, function(l) isTRUE(l$bisided), logical(1L))))
   expect_true(all(vapply(atlas_layers, function(l) !isTRUE(l$categorical_fill), logical(1L))))
 
-  # Symmetric bisided limits should reflect beta (1..4 / -4..-1), not parcel IDs (1..6)
+  # The positive scale includes the measured zero, with symmetric negative limits.
   for (lay in atlas_layers) {
     built <- ggplot2::ggplot_build(lay$add_to_gg(ggplot2::ggplot()))
     neg_lims <- built$plot$scales$scales[[1L]]$limits
     pos_lims <- built$plot$scales$scales[[2L]]$limits
-    expect_equal(neg_lims, c(-4, -1))
-    expect_equal(pos_lims, c(1, 4))
+    expect_equal(neg_lims, c(-4, 0))
+    expect_equal(pos_lims, c(0, 4))
   }
 
   # Single diverging scale: unified limits must use beta (-3..4), not parcel IDs (1..6)
@@ -311,4 +311,97 @@ test_that("fill_labels = TRUE preserves numeric table columns alongside filled c
   expect_equal(unique(df3$beta[which(df3$value == 5)]), 4.0)
   expect_equal(unique(df3$region[which(df3$value == 6)]), "6")
   expect_true(all(is.na(df3$beta[which(df3$value == 6)])))
+})
+
+test_that("dotted statistic names and named statistic subsets preserve NA and zero", {
+  s <- make_synthetic_atlas_setup()
+  tab <- dplyr::rename(s$roi_stats, p.value = p_fdr)
+  tab$effect.value <- tab$beta
+  g <- ggbrain() + images(list(atlas = s$atlas), labels = tab) +
+    slices(c("k=2", "k=3")) +
+    define(stat := atlas.effect.value[atlas.p.value < 1]) +
+    geom_brain("positive := stat[stat >= 0]") +
+    geom_brain("sig := atlas[atlas.p.value < .05]")
+  render(g)
+  expect_setequal(stats::na.omit(g$get_slice_data("sig")[[2]]$value), 5)
+  positive <- g$get_slice_data("positive")
+  expect_setequal(positive[[1]]$value, c(0, 2))
+  expect_setequal(positive[[2]]$value, c(4, NA_real_))
+  expect_false("beta" %in% names(g$get_slice_data("stat")[[1]]))
+})
+
+test_that("hole filling on ROI statistics keeps valid zeros and exterior missing pixels", {
+  s <- make_synthetic_atlas_setup()
+  g <- ggbrain() + images(list(underlay = s$underlay)) +
+    images(list(atlas = s$atlas), labels = s$roi_stats) +
+    slices("k=2") + geom_brain("stat := atlas.beta", fill_holes = 1L)
+  render(g)
+  layer <- g$ggb_plot$.__enclos_env__$private$pvt_ggbrain_panels[[1]]$get_layers()[[1]]
+  expect_equal(layer$data$value, g$get_slice_data("stat")[[1]]$value)
+
+  # A ring of measured zeros is a valid neighborhood for imputation.
+  m <- matrix(NA_real_, 7, 7)
+  m[2:6, 2:6] <- 0
+  m[4, 4] <- NA_real_
+  d <- ggbrain:::mat2df(m)
+  attr(d, "measured_statistic") <- TRUE
+  layer$data <- d
+  m[4, 4] <- 0
+  expect_equal(layer$data$value, as.vector(m))
+})
+
+test_that("unkeyed lookup statistics cannot color atlas background or affect limits", {
+  s <- make_synthetic_atlas_setup()
+  tab <- rbind(s$roi_stats, transform(s$roi_stats[1, ], value = NA, beta = 99))
+  g <- ggbrain() + images(list(underlay = s$underlay)) +
+    images(list(atlas = s$atlas), labels = tab) + slices("k=1") +
+    geom_brain("underlay") +
+    geom_brain("atlas", mapping = ggplot2::aes(fill = beta))
+  p <- render(g)
+  d <- g$get_slice_data("atlas")[[1]]
+  expect_true(anyNA(d$value))
+  expect_true(all(is.na(d$beta[is.na(d$value)])))
+  expect_equal(unname(p[[1]]$scales$get_scales("fill")$limits), c(-3, -1))
+})
+
+test_that("continuous scales draw measured zeros and use mapped values for sign and limits", {
+  s <- make_synthetic_atlas_setup()
+  g <- ggbrain() + images(list(atlas = s$atlas), labels = s$roi_stats) +
+    slices(c("k=1", "k=2", "k=3"))
+  p <- render(g + geom_brain("atlas", mapping = ggplot2::aes(fill = beta)))
+  pixel_fill <- function(panel, x, y) {
+    raster <- utils::tail(ggplot2::ggplot_build(panel)$data, 1)[[1]]
+    raster$fill[raster$x == x & raster$y == y]
+  }
+  expect_false(pixel_fill(p[[2]], 4, 2) %in% c(NA, "transparent"))
+  expect_true(pixel_fill(p[[3]], 4, 2) %in% c(NA, "transparent"))
+
+  for (unify in c(TRUE, FALSE)) {
+    p <- render(g + geom_brain("atlas", mapping = ggplot2::aes(fill = abs(beta)),
+                               unify_scales = unify))
+    expect_length(p[[1]]$layers, 1L)
+    expect_false(pixel_fill(p[[1]], 2, 2) %in% c(NA, "transparent"))
+    if (unify) expect_equal(unname(p[[1]]$scales$get_scales("fill")$limits), c(0, 4))
+  }
+
+  # The negative beta in parcel 1 becomes positive under the mapping. Reversing
+  # the positive color scale changes its stored limits, not the sign split.
+  signed <- scale_fill_bisided(pos_scale = ggplot2::scale_fill_gradient(transform = "reverse"))
+  p <- render(g + geom_brain("atlas", mapping = ggplot2::aes(fill = 2 - beta),
+                             fill_scale = signed))
+  expect_false(pixel_fill(p[[1]], 2, 2) %in% c(NA, "transparent"))
+  expect_equal(unname(p[[1]]$scales$get_scales("fill")$limits), c(-5, 0))
+
+  log_scale <- ggplot2::scale_fill_gradient(transform = "log10")
+  p <- render(g + geom_brain("atlas", mapping = ggplot2::aes(fill = abs(beta) + 1),
+                             fill_scale = log_scale) +
+                geom_brain("atlas", mapping = ggplot2::aes(fill = p_fdr),
+                           fill_scale = log_scale))
+  expect_null(log_scale$limits)
+  for (i in 1:3) {
+    scales <- p[[i]]$scales
+    expect_equal(unname(scales$get_scales("fill")$limits), log10(c(.001, .8)))
+    expect_equal(unname(scales$get_scales("fill_ggnewscale_1")$limits), log10(c(1, 5)))
+  }
+  expect_false(pixel_fill(p[[1]], 2, 2) %in% c(NA, "transparent"))
 })

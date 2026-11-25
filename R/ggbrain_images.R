@@ -321,6 +321,10 @@ ggbrain_images <- R6::R6Class(
           message(glue::glue("Image {label_names[x]} has labels, which will replaced"))
         }
 
+        # A row without an atlas ID cannot annotate a parcel. Drop it before any
+        # joins (including center-of-mass and fallback label lookups).
+        label_args[[x]] <- dplyr::filter(label_args[[x]], !is.na(value))
+
         # encode categorical label columns and all joined table columns separately
         cat_cols <- vapply(label_args[[x]], function(v) inherits(v, c("character", "ordered", "factor")), logical(1L))
         label_cols <- names(label_args[[x]])[cat_cols]

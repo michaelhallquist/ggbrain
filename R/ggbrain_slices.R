@@ -247,6 +247,7 @@ ggbrain_slices <- R6::R6Class(
       # convert slice data to wide format to allow contrasts to be parsed
       wide <- lapply(private$pvt_slice_data, function(slc_xx) {
         # add image name as prefix to value and joined table/label columns to allow for cbind
+        measured <- vapply(slc_xx, function(df) isTRUE(attr(df, "measured_statistic")), logical(1))
         slc_xx <- lapply(slc_xx, function(img_ii) {
           img_name <- img_ii$image[1L]
           attr_cols <- unique(c("value", attr(img_ii, "label_columns"), attr(img_ii, "table_columns")))
@@ -269,6 +270,9 @@ ggbrain_slices <- R6::R6Class(
         }
 
         ss <- Reduce(cbind_attr, slc_xx)
+        # A named contrast derived from table statistics keeps zero as data
+        # when it becomes the input to another contrast.
+        attr(ss, "measured_images") <- names(measured)[measured]
 
         # safer to inner join instead of cbind, but this is unnecessary compute given that they all pass through mat2df
         # about 8x slower than bind_cols

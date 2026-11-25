@@ -46,7 +46,8 @@ add_labels <- function(...) {
 #' @param labels a data.frame or named list of data.frame objects corresponding to integer-valued/atlas
 #'   images. Each data.frame must contain a \code{value} column matching integer codes in the image and
 #'   may include categorical label columns (character/factor) as well as numeric parcel-level columns
-#'   (e.g., ROI statistics) for continuous fill, opacity, or contrast expressions. You can only provide a
+#'   (e.g., ROI statistics) for continuous fill, opacity, or contrast expressions. Rows with missing
+#'   atlas codes are ignored. You can only provide a
 #'   data.frame if there is a single image being added. If multiple images are added, the names of the
 #'   \code{labels} list are used to align each table with its matching image.
 #' @param filter a named list or character string specifying an expression of values to retain in the image,
@@ -669,7 +670,7 @@ named_list <- function(...) {
 #' scale for plotting separate color gradients for positive and negative values
 #' @param name the scale name to be printed in the legend (above positive scale)
 #' @param neg_scale a scale_fill_* object used for negative values
-#' @param pos_scale a scale_fill_* object used for positive values
+#' @param pos_scale a scale_fill_* object used for positive values and measured zeros
 #' @param symmetric if TRUE, the limits of the positive scale will equal the inverse limits of
 #'   the negative scale. Said differently, this makes the positive and negative scales symmetric
 #' @details Note that this will absolutely not work as a general purpose ggplot2 scale!
