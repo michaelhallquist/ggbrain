@@ -153,6 +153,23 @@ test_that("reassigning an existing layer mapping updates and clears voxel alpha"
   expect_true(all(is.na(build()$alpha)))
 })
 
+test_that("remapping numeric fill updates cutoff opacity and its legend together", {
+  d <- expand.grid(dim1 = 1:2, dim2 = 1:2)
+  d$value <- 1:4
+  d$beta <- 2
+  d$t_stat <- c(-4, 1, 0, NA_real_)
+  layer <- ggbrain_layer_brain$new(definition = "atlas", data = d,
+                                   mapping = ggplot2::aes(fill = beta),
+                                   alpha_cutoff = 4, alpha_power = 1)
+
+  plot <- layer$add_to_gg(ggplot2::ggplot())
+  expect_equal(ggplot2::ggplot_build(plot)$data[[1L]]$alpha, rep(0.5, 4))
+  layer$mapping <- ggplot2::aes(fill = t_stat)
+  plot <- layer$add_to_gg(ggplot2::ggplot())
+  expect_equal(ggplot2::ggplot_build(plot)$data[[1L]]$alpha, c(1, 0.25, 0, 0))
+  expect_identical(plot$scales$get_scales("alpha")$name, "|t_stat| (power 1)")
+})
+
 test_that("two-sided fill scales stay finite when one sign is absent", {
   d <- expand.grid(dim1 = 1:2, dim2 = 1:2)
   for (sign in c(-1, 1)) {

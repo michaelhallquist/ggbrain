@@ -909,7 +909,7 @@ ggbrain_images <- R6::R6Class(
               extra_cols <- setdiff(table_columns, label_columns)
               if (length(extra_cols) > 0L) {
                 this_img <- this_img %>%
-                  dplyr::left_join(lb[, c("value", extra_cols), drop = FALSE], by = "value")
+                  dplyr::left_join(dplyr::select(lb, all_of(c("value", extra_cols))), by = "value")
               }
 
               this_img <- this_img %>%

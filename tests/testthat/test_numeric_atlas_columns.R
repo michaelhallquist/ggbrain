@@ -313,6 +313,26 @@ test_that("fill_labels = TRUE preserves numeric table columns alongside filled c
   expect_true(all(is.na(df3$beta[which(df3$value == 6)])))
 })
 
+test_that("fill_labels joins data.table statistics by parcel ID", {
+  s <- make_synthetic_atlas_setup()
+  # Reverse the lookup order to distinguish matching by ID from matching by row.
+  table <- data.table::as.data.table(s$roi_stats[5:1, ])
+  for (lookup in list(table, table[, .(value, beta, p_fdr)])) {
+    images <- ggbrain_images$new(images = list(atlas = s$atlas),
+                                 labels = list(atlas = lookup))
+    slices <- images$get_slices(c("k=2", "k=3"), fill_labels = TRUE)$slice_data
+    d <- rbind(slices[[1L]]$atlas, slices[[2L]]$atlas)
+    expect_setequal(stats::na.omit(d$value), 3:6)
+    rows <- match(d$value, lookup$value)
+    expect_equal(d$beta, lookup$beta[rows])
+    expect_equal(d$p_fdr, lookup$p_fdr[rows])
+    if ("region" %in% names(lookup)) {
+      expect_equal(unique(d$region[d$value %in% 5]), "ROI_5")
+      expect_equal(unique(d$region[d$value %in% 6]), "6")
+    }
+  }
+})
+
 test_that("dotted statistic names and named statistic subsets preserve NA and zero", {
   s <- make_synthetic_atlas_setup()
   tab <- dplyr::rename(s$roi_stats, p.value = p_fdr)

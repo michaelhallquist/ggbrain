@@ -77,10 +77,14 @@ ggbrain_layer_brain <- R6::R6Class(
         if (mapped_alpha && is.null(value$fill) && is.null(private$pvt_fill)) {
           value$fill <- ggplot2::aes(fill = value)$fill
         }
-        opacity <- if (mapped_alpha && !self$is_empty()) private$voxel_alpha(private$pvt_data, value$alpha)
+        # Validate an explicit opacity mapping before replacing the current one.
+        if (!is.null(value$alpha) && !self$is_empty()) {
+          opacity <- private$voxel_alpha(private$pvt_data, value$alpha)
+        } else {
+          opacity <- NULL
+        }
         private$pvt_mapping <- value
         private$pvt_alpha_column <- if (mapped_alpha) ".ggbrain_alpha"
-        if (!self$is_empty()) private$pvt_data[[".ggbrain_alpha"]] <- opacity
         private$pvt_fill_expr <- "{new_val}"
         if (is.null(value$fill)) {
           private$pvt_fill_column <- NULL
@@ -105,7 +109,15 @@ ggbrain_layer_brain <- R6::R6Class(
           }
           private$pvt_has_fill <- TRUE
         }
-        if (!self$is_empty()) private$validate_layer()
+        if (!self$is_empty()) {
+          private$validate_layer()
+          if (mapped_alpha && is.null(value$alpha)) {
+            # Cutoff-only opacity uses the newly validated fill column.
+            private$update_voxel_alpha()
+          } else {
+            private$pvt_data[[".ggbrain_alpha"]] <- opacity
+          }
+        }
       }
     }
   ),
