@@ -407,7 +407,8 @@ get slice data for one or more slices based on their coordinates
   remove_null_space = TRUE,
   target_resolution = NULL,
   resample_interpolation = 5L,
-  categorical_images = character(0)
+  categorical_images = character(0),
+  opacity_images = character(0)
 )}\if{html}{\out{</div>}}
 }
 
@@ -434,6 +435,8 @@ will be resampled to this resolution using the specified interpolation method.}
 1=nearest, 3=linear, 5=cubic (default), 6=lanczos.}
 
 \item{\code{categorical_images}}{Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.}
+
+\item{\code{opacity_images}}{Image names whose unmasked values should be retained for opacity mappings.}
 }
 \if{html}{\out{</div>}}
 }

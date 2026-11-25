@@ -285,7 +285,9 @@ ggbrain_plot <- R6::R6Class(
               cat_col %in% names(source_data) &&
               !is.null(fill_mapping) &&
               identical(rlang::as_label(fill_mapping), "value")) {
-            l_obj$mapping <- ggplot2::aes(fill = !!rlang::sym(cat_col))
+            mapping <- l_obj$mapping
+            mapping$fill <- ggplot2::aes(fill = !!rlang::sym(cat_col))$fill
+            l_obj$mapping <- mapping
           }
         }
       }
@@ -359,6 +361,20 @@ ggbrain_plot <- R6::R6Class(
         slc_layers <- lapply(seq_along(layers), function(j) {
           l_obj <- layers[[j]]$clone(deep = TRUE)
           layer_data <- comb_data[[j]]
+
+          # Opacity can use unplotted images and named contrasts on the same display grid.
+          slice_images <- slice_df$slice_data[[i]]
+          alpha_vars <- opacity_sources(l_obj$mapping, names(slice_images))
+          for (src in setdiff(alpha_vars, names(layer_data))) {
+            image_data <- slice_images[[src]]
+            alpha_data <- image_data[c("dim1", "dim2", "value")]
+            raw_values <- attr(image_data, "opacity_values")
+            if (!is.null(raw_values)) {
+              alpha_data$value <- raw_values[cbind(alpha_data$dim1, alpha_data$dim2)]
+            }
+            names(alpha_data)[3L] <- src
+            layer_data <- dplyr::left_join(layer_data, unique(alpha_data), by = c("dim1", "dim2"))
+          }
 
           # For outline layers, ensure cluster ids are treated as categorical
           if (inherits(l_obj, "ggbrain_layer_outline")) {

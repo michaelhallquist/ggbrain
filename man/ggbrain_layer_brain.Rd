@@ -33,13 +33,13 @@ in the data, consistent with ggplot2 logic.}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ggbrain_layer_brain-new}{\code{ggbrain_layer_brain$new()}}
+\item \href{#method-ggbrain_layer_brain-add_to_gg}{\code{ggbrain_layer_brain$add_to_gg()}}
 \item \href{#method-ggbrain_layer_brain-clone}{\code{ggbrain_layer_brain$clone()}}
 }
 }
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="add_to_gg"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-add_to_gg'><code>ggbrain::ggbrain_layer$add_to_gg()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="get_data"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-get_data'><code>ggbrain::ggbrain_layer$get_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="is_empty"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-is_empty'><code>ggbrain::ggbrain_layer$is_empty()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="plot"><a href='../../ggbrain/html/ggbrain_layer.html#method-ggbrain_layer-plot'><code>ggbrain::ggbrain_layer$plot()</code></a></span></li>
@@ -74,7 +74,9 @@ create a new ggbrain_layer object
   fill_holes = NULL,
   remove_specks = NULL,
   trim_threads = NULL,
-  data = NULL
+  data = NULL,
+  alpha_cutoff = NULL,
+  alpha_power = 2
 )}\if{html}{\out{</div>}}
 }
 
@@ -99,9 +101,8 @@ to allow layers to be defined without data in advance of the plot.}
 
 \item{\code{alpha}}{a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1}
 
-\item{\code{mapping}}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
-\code{fill} (color of filled pixels). Default is \code{aes(fill=value)}, which maps the numeric value of the layer data
-to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.}
+\item{\code{mapping}}{An \code{\link[ggplot2:aes]{ggplot2::aes()}} mapping for fill and optional voxelwise alpha.
+See \code{\link[=geom_brain]{geom_brain()}} for mapping columns, images and contrasts.}
 
 \item{\code{fill}}{A character string indicating the color used to fill all non-NA pixels in this layer. This is used in
 distinction to \code{mapping=aes(fill=<variable>)}.}
@@ -120,6 +121,11 @@ smooth it. This makes the layer less jagged in appearance and is akin to antiali
 
 \item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
 and "value" as columns}
+
+\item{\code{alpha_cutoff}}{Positive statistic magnitude at which opacity reaches 1.}
+
+\item{\code{alpha_power}}{Positive, finite exponent for the fade below \code{alpha_cutoff}.
+The default is 2 (quadratic). See \code{\link[=geom_brain]{geom_brain()}} for the opacity formula.}
 }
 \if{html}{\out{</div>}}
 }
@@ -128,6 +134,23 @@ To set mapping, you must provide a ggplot2 aes() object. A geom_brain() layer re
 a \code{fill} aesthetic mapping, which controls the fill color of regions.
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ggbrain_layer_brain-add_to_gg"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_layer_brain-add_to_gg}{}}}
+\subsection{Method \code{add_to_gg()}}{
+Draw the fill and its layer-specific opacity key.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_layer_brain$add_to_gg(base_gg)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{base_gg}}{The ggplot to which the layer is added.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_layer_brain-clone"></a>}}

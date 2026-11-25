@@ -19,7 +19,9 @@ geom_brain(
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL
+  trim_threads = NULL,
+  alpha_cutoff = NULL,
+  alpha_power = 2
 )
 }
 \arguments{
@@ -33,15 +35,17 @@ the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variabl
 
 \item{fill_scale}{a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.}
 
-\item{mapping}{the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
-\code{fill} (color of filled pixels). Default is \code{aes(fill=value)}, which maps the numeric value of the layer data
-to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.}
+\item{mapping}{A \code{\link[ggplot2:aes]{ggplot2::aes()}} mapping. Fill defaults to \code{value}; a label column
+can supply categorical colors. Map \code{alpha} to a numeric expression using layer columns,
+aligned images, or named contrasts from \code{\link[=define]{define()}}. Layer columns take precedence.
+Without \code{alpha_cutoff}, mapped opacity must be between 0 and 1. Aligned images
+supply their numeric values, including zeros. Named contrasts use their computed masks.}
 
 \item{limits}{if provided, sets the upper and lower bounds on the scale}
 
 \item{breaks}{if provided, a function to draw the breaks on the fill scale}
 
-\item{show_legend}{if TRUE, show the fill scale in the plot legend. Default is TRUE, except when `name="underlay"``}
+\item{show_legend}{if TRUE, show the fill and mapped opacity keys. Defaults to FALSE for \code{definition = "underlay"} and TRUE otherwise.}
 
 \item{interpolate}{passes to geom_raster and controls whether the fill is interpolated over continuous space}
 
@@ -59,6 +63,17 @@ to be filled by nearest neighbor imputation. Default: 0.}
 to display. Specks are small clusters that may be distracting and contribute to a 'salt and pepper' appearance.}
 
 \item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
+
+\item{alpha_cutoff}{Positive statistic magnitude at which the layer is fully opaque.
+Opacity is \code{pmin(1, abs(statistic) / alpha_cutoff)^alpha_power} on every slice.
+The statistic defaults to the layer's numeric \code{value} after image cleanup. Use
+\code{aes(alpha = z)} to supply a separate statistic. Missing values are transparent. The opacity key
+shows statistic magnitudes and is displayed when \code{show_legend = TRUE}.}
+
+\item{alpha_power}{Positive, finite exponent for the fade below \code{alpha_cutoff}.
+The default of 2 gives quadratic fading. Use 1 for linear fading or a larger
+exponent to make weak statistics more transparent. At half the cutoff, powers
+of 1, 2 and 3 give 50\%, 25\% and 12.5\% opacity, respectively.}
 }
 \value{
 a ggb object populated with the relevant geom_brain and the action of 'add_layers'

@@ -114,7 +114,7 @@ to allow layers to be defined without data in advance of the plot.}
 
 \item{\code{unify_scales}}{if TRUE, when this layer is reused across panels, unify the scales to match}
 
-\item{\code{alpha}}{fixed alpha transparency of this layer (use \code{mapping} for alpha mapping`)}
+\item{\code{alpha}}{fixed opacity of this layer, between 0 and 1}
 
 \item{\code{blur_edge}}{the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
 smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.}
