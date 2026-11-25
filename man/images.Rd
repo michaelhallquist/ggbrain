@@ -13,9 +13,12 @@ images(images = NULL, volumes = NULL, labels = NULL, filter = NULL)
 be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
 be displayed.}
 
-\item{labels}{a data.frame or named list of data.frame objects corresponding to images that should be labeled.
-You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
-the \code{labels} list are used to align the labels with a given matching image.}
+\item{labels}{a data.frame or named list of data.frame objects corresponding to integer-valued/atlas
+images. Each data.frame must contain a \code{value} column matching integer codes in the image and
+may include categorical label columns (character/factor) as well as numeric parcel-level columns
+(e.g., ROI statistics) for continuous fill, opacity, or contrast expressions. You can only provide a
+data.frame if there is a single image being added. If multiple images are added, the names of the
+\code{labels} list are used to align each table with its matching image.}
 
 \item{filter}{a named list or character string specifying an expression of values to retain in the image,
 or a numeric vector of values to retain. Calls ggbrain_images$filter_image()}

@@ -238,6 +238,89 @@ abspe_gg <- ggbrain(bg_color = "gray90", text_color = "black",
 render(abspe_gg) + plot_layout(nrow = 1, ncol = 2)
 ```
 
+# Mapping numeric ROI statistics onto an atlas
+
+Often, an analysis yields one summary statistic per brain parcel or region of interest (ROI)—for example, parcel-level regression slopes, cortical thickness estimates, or regional *t*-statistics stored in a `data.frame`. Rather than converting that table into a new NIfTI file on disk, you can attach numeric columns directly to an integer atlas image through the `labels` argument of `images()` and map them onto volumetric slices with `aes(fill = <column>)`.
+
+To illustrate, we summarize the packaged feedback-onset statistical map (`feedback_onset_2mm.nii.gz`) within each of the 200 Schaefer parcels to produce two numeric parcel-level variables: the parcel mean *z*-statistic (`mean_z`) and the percentage of voxels in the parcel exceeding `|z| > 2` (`pct_gt2`).
+
+```{r parcel_stats_prep}
+feedback_img <- readNifti(system.file("extdata", "feedback_onset_2mm.nii.gz", package = "ggbrain"))
+
+parcel_stats <- data.frame(
+  value = as.integer(schaefer_img),
+  z = as.numeric(feedback_img)
+) %>%
+  filter(value > 0) %>%
+  group_by(value) %>%
+  summarize(
+    mean_z = mean(z),
+    pct_gt2 = 100 * mean(abs(z) > 2),
+    .groups = "drop"
+  )
+
+schaefer_with_stats <- schaefer200_atlas_labels %>%
+  left_join(parcel_stats, by = "value")
+```
+
+## Continuous parcel fills with unified scales
+
+When a numeric table column is mapped to `fill`, `ggbrain` computes unified color scale limits and chooses an appropriate default scale (including bisided positive/negative scales when the mapped column contains both signs) from that column rather than from the integer parcel IDs in `value`. Lookup tables containing only `value` and numeric columns (with no text label columns) are also supported.
+
+```{r parcel_stats_bisided, fig.height=3.5, fig.width=8}
+roi_base <- ggbrain(bg_color = "gray95", text_color = "black", base_size = 12) +
+  images(c(underlay = underlay_file)) +
+  images(c(atlas = schaefer200_atlas_file), labels = schaefer_with_stats) +
+  slices(c("x = -36", "z = 12", "z = 44")) +
+  geom_brain("underlay")
+
+p_roi_bisided <- roi_base +
+  geom_brain("atlas", name = "Mean z", mapping = aes(fill = mean_z)) +
+  annotate_coordinates(placement = "caption")
+
+plot(p_roi_bisided)
+```
+
+## Thresholding and outlining parcels using numeric table columns
+
+Numeric columns attached to an atlas are also available inside `define()` and layer contrast expressions via `<image>.<column>` syntax. Missing values in joined table columns remain `NA` during subsetting (they are not coerced to `0`), so predicates such as `atlas.p_fdr < 0.05` or `abs(atlas.mean_z) > 3` cleanly exclude unmeasured or non-significant parcels.
+
+Here, we display the full unthresholded parcel map on a diverging color scale and outline only the strongest parcels (`|mean_z| > 3`) in black, or restrict the fill layer directly to those parcels:
+
+```{r parcel_stats_threshold, fig.height=3.5, fig.width=8}
+p_roi_thr <- roi_base +
+  geom_brain(
+    "atlas[abs(atlas.mean_z) > 3]",
+    name = "Mean z\n(|z| > 3)",
+    mapping = aes(fill = mean_z),
+    fill_scale = scale_fill_gradient2(low = "#2166AC", mid = "#F7F7F7", high = "#B2182B", midpoint = 0)
+  ) +
+  geom_outline("atlas[abs(atlas.mean_z) > 3]", outline = "gray15", size = 1) +
+  annotate_coordinates(placement = "caption")
+
+plot(p_roi_thr)
+```
+
+## Combining parcel effect size with opacity and contours
+
+Numeric ROI columns can also drive voxelwise opacity via `aes(alpha = ...)` and `alpha_cutoff`. This pairs naturally with the "highlight, don't hide" approach for parcellated data: every parcel's effect direction and magnitude is encoded by `fill`, its spatial consistency (`pct_gt2`) controls opacity, and a contour highlights parcels meeting a stricter criterion.
+
+```{r parcel_stats_opacity, fig.height=3.5, fig.width=8}
+p_roi_alpha <- roi_base +
+  geom_brain(
+    "atlas",
+    name = "Mean z",
+    mapping = aes(fill = mean_z, alpha = pct_gt2),
+    fill_scale = scale_fill_gradient2(low = "#2166AC", mid = "#F7F7F7", high = "#B2182B", midpoint = 0),
+    alpha_cutoff = 75,
+    alpha_power = 2
+  ) +
+  geom_outline("atlas[abs(atlas.mean_z) > 3]", outline = "black", size = 1) +
+  annotate_coordinates(placement = "caption")
+
+plot(p_roi_alpha)
+```
+
 # Adding annotations
 
 In addition to plotting categorical images, we often wish to annotate our plots with custom text in the margin or labels overlaid on certain areas. ggbrain provides the `annotate_slice` function, which allows you to add a custom annotation to one panel. This function attaches to `ggplot2::annotate` such that any of its settings apply to `annotate_slice` as well. Relative to typical annotations in ggplot2, with `ggbrain`, we must also provide x and y positions on the panel, as well the slice to which the annotation should be added.

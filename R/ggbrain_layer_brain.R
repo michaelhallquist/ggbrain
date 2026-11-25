@@ -17,7 +17,16 @@ ggbrain_layer_brain <- R6::R6Class(
       pmin(1, abs(statistic) / private$alpha_cutoff)^private$alpha_power
     },
     voxel_alpha = function(data, expr) {
-      statistic <- if (is.null(expr)) data$value else rlang::eval_tidy(expr, data)
+      if (is.null(expr)) {
+        fcol <- private$pvt_fill_column
+        statistic <- if (!is.null(fcol) && fcol %in% names(data) && is.numeric(data[[fcol]])) {
+          data[[fcol]]
+        } else {
+          data$value
+        }
+      } else {
+        statistic <- rlang::eval_tidy(expr, data)
+      }
       checkmate::assert_numeric(statistic, any.missing = TRUE)
       if (!length(statistic) %in% c(1L, nrow(data))) {
         stop("Mapped alpha must have one value per pixel or one constant value")
@@ -170,7 +179,14 @@ ggbrain_layer_brain <- R6::R6Class(
       title <- "Opacity"
       if (!is.null(cutoff)) {
         expr <- private$pvt_mapping$alpha
-        source <- if (is.null(expr)) self$definition else rlang::as_label(expr)
+        fcol <- private$pvt_fill_column
+        source <- if (!is.null(expr)) {
+          rlang::as_label(expr)
+        } else if (!is.null(fcol) && !identical(fcol, "value") && !isTRUE(private$pvt_categorical_fill)) {
+          fcol
+        } else {
+          self$definition
+        }
         title <- paste0("|", source, "| (power ", format(private$alpha_power), ")")
         magnitudes <- c(0, cutoff / 2, cutoff)
         labels <- c("0", format(magnitudes[2L]), paste0("\u2265", format(cutoff)))

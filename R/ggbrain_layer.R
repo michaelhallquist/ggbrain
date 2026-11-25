@@ -123,8 +123,10 @@ ggbrain_layer <- R6::R6Class(
     refine_image = function() {
       d <- private$pvt_data
       label_columns <- attr(d, "label_columns")
+      table_columns <- attr(d, "table_columns")
+      lookup_columns <- union(label_columns, table_columns)
       dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
-      is_categorical <- isTRUE(private$pvt_categorical_fill) || !is.null(label_columns)
+      is_categorical <- isTRUE(private$pvt_categorical_fill) || length(lookup_columns) > 0L
 
       # always fill in holes first so that neighbor counts are more sensible
       if (private$pvt_fill_holes > 0L) {
@@ -136,21 +138,23 @@ ggbrain_layer <- R6::R6Class(
         )
         d <- mat2df(dmat, na_zeros = TRUE) # convert back to modified data frame
         attr(d, "label_columns") <- label_columns
+        attr(d, "table_columns") <- table_columns
 
         # Keep other pixel columns, including sources used by opacity mappings.
-        pixel_columns <- setdiff(names(private$pvt_data), c("value", label_columns))
+        lookup_columns <- intersect(lookup_columns, names(private$pvt_data))
+        pixel_columns <- setdiff(names(private$pvt_data), c("value", lookup_columns))
         if (length(pixel_columns) > 2L) {
           d <- dplyr::left_join(d, private$pvt_data[pixel_columns], by = c("dim1", "dim2"))
         }
 
-        # Lookup labels for the imputed value.
-        if (!is.null(label_columns)) {
+        # Lookup label and numeric table columns for the imputed value.
+        if (length(lookup_columns) > 0L) {
           lab_df <- private$pvt_data %>%
             dplyr::group_by(value) %>%
             dplyr::filter(dplyr::row_number() == 1L & !is.na(value)) %>%
-            dplyr::select(value, !!label_columns)
+            dplyr::select(tidyselect::all_of(c("value", lookup_columns)))
 
-          d <- d %>% left_join(lab_df, by="value")
+          d <- d %>% left_join(lab_df, by = "value")
         }
       }
 
@@ -460,25 +464,31 @@ ggbrain_layer <- R6::R6Class(
       if (private$pvt_definition == "underlay") {
         self$fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
       } else {
-        has_pos <- any(private$pvt_data$value > 0, na.rm = TRUE)
-        has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)
-        all_na <- all(is.na(private$pvt_data$value))
+        vals <- if (!is.null(private$pvt_fill_column) && private$pvt_fill_column %in% names(private$pvt_data)) {
+          private$pvt_data[[private$pvt_fill_column]]
+        } else {
+          private$pvt_data$value
+        }
+
         if (isTRUE(private$pvt_categorical_fill)) {
           self$fill_scale <- ggplot2::scale_fill_brewer(palette = "Set3")
-        } else if (has_pos && has_neg) {
-          #self$fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
-          self$fill_scale <- scale_fill_bisided(
-            neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
-            pos_scale = scale_fill_distiller(palette = "Reds")
-          ) # internal scale stack
-        } else if (has_neg) {
-          self$fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
-        } else if (has_pos) {
-          self$fill_scale <- scale_fill_distiller(palette = "Reds")
-        } else if (all_na) {
-          self$fill_scale <- scale_fill_distiller(palette = "Reds")
         } else {
-          warning("Could not set default scale for layer")
+          has_pos <- any(vals > 0, na.rm = TRUE)
+          has_neg <- any(vals < 0, na.rm = TRUE)
+          all_na <- all(is.na(vals))
+          if (has_pos && has_neg) {
+            #self$fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
+            self$fill_scale <- scale_fill_bisided(
+              neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
+              pos_scale = scale_fill_distiller(palette = "Reds")
+            ) # internal scale stack
+          } else if (has_neg) {
+            self$fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
+          } else if (has_pos || all_na || all(vals == 0, na.rm = TRUE)) {
+            self$fill_scale <- scale_fill_distiller(palette = "Reds")
+          } else {
+            warning("Could not set default scale for layer")
+          }
         }
         if (is.null(self$show_legend)) self$show_legend <- TRUE
       }

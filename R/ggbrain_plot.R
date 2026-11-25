@@ -326,18 +326,44 @@ ggbrain_plot <- R6::R6Class(
       img_ranges <- private$pvt_slices$get_ranges(slice_indices)
       img_uvals <- private$pvt_slices$get_uvals(slice_indices, add_labels = ll)
 
-      # When scales are unified and the overall data contain both positive and negative values,
-      # default to a bisided scale even if individual slices are one-sided.
+      # cache column-specific ranges for continuous layers mapping non-"value" columns (e.g., ROI statistics)
+      col_range_cache <- list()
+      get_layer_range <- function(l_obj) {
+        f_col <- if (is.null(l_obj$fill_column)) "value" else l_obj$fill_column
+        if (identical(f_col, "value")) {
+          return(img_ranges %>% dplyr::filter(layer == !!l_obj$source))
+        }
+        cache_key <- paste(l_obj$source, f_col, sep = "::")
+        if (is.null(col_range_cache[[cache_key]])) {
+          col_range_cache[[cache_key]] <<- private$pvt_slices$get_column_range(
+            layer = l_obj$source,
+            column = f_col,
+            slice_indices = slice_indices
+          )
+        }
+        col_range_cache[[cache_key]]
+      }
+
+      # When scales are unified and the overall data contain both positive and negative values
+      # (or strictly negative values), set a consistent default scale across slices.
       if (nrow(img_ranges) > 0L) {
+        first_slice <- if (nrow(slice_df) > 0L) slice_df$slice_data[[1L]] else NULL
         for (li in seq_along(layers)) {
           l_obj <- layers[[li]]
+          f_col <- l_obj$fill_column
+          src_df <- if (!is.null(first_slice)) first_slice[[l_obj$source]] else NULL
+          is_cat <- isTRUE(l_obj$categorical_fill) ||
+            (!is.null(f_col) && !is.null(src_df) && f_col %in% names(src_df) &&
+              inherits(src_df[[f_col]], c("character", "factor", "ordered")))
+
           if (isTRUE(l_obj$unify_scales) &&
-              !isTRUE(l_obj$categorical_fill) &&
+              !is_cat &&
+              !is.null(f_col) &&
               !identical(l_obj$source, "underlay") &&
               !identical(l_obj$definition, "underlay") &&
               is.null(l_obj$fill_scale)) {
 
-            rng <- img_ranges %>% dplyr::filter(layer == !!l_obj$source)
+            rng <- get_layer_range(l_obj)
             has_pos <- any(!is.na(rng$high_pos))
             has_neg <- any(!is.na(rng$high_neg))
 
@@ -346,6 +372,8 @@ ggbrain_plot <- R6::R6Class(
                 neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
                 pos_scale = scale_fill_distiller(palette = "Reds")
               )
+            } else if (isTRUE(has_neg) && !isTRUE(has_pos)) {
+              l_obj$fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
             }
           }
         }
@@ -440,28 +468,26 @@ ggbrain_plot <- R6::R6Class(
           if (isTRUE(l_obj$unify_scales)) {
             if (isTRUE(l_obj$categorical_fill)) {
               l_obj$fill_scale$drop <- FALSE # don't drop unused levels (would break unified legend)
-              } else {
-                if (isTRUE(l_obj$bisided)) {
-                  pos_lims <- img_ranges %>%
-                    filter(layer == !!l_obj$source) %>%
-                    select(low_pos, high_pos) %>%
-                    unlist()
-                  if (length(pos_lims) == 2L) l_obj$set_pos_limits(pos_lims)
+            } else if (!is.null(l_obj$fill_column) && !is.null(l_obj$fill_scale)) {
+              rng <- get_layer_range(l_obj)
+              if (isTRUE(l_obj$bisided)) {
+                pos_lims <- rng %>%
+                  select(low_pos, high_pos) %>%
+                  unlist()
+                if (length(pos_lims) == 2L && all(is.finite(pos_lims))) l_obj$set_pos_limits(pos_lims)
 
-                  neg_lims <- img_ranges %>%
-                    filter(layer == !!l_obj$source) %>%
-                    select(low_neg, high_neg) %>%
-                    unlist()
-                  if (length(neg_lims) == 2L) l_obj$set_neg_limits(neg_lims)
-                } else {
-                  lims <- img_ranges %>%
-                    filter(layer == !!l_obj$source) %>%
-                    select(low, high) %>%
-                    unlist()
-                  if (length(lims) == 2L) l_obj$set_limits(lims)
-                }
+                neg_lims <- rng %>%
+                  select(low_neg, high_neg) %>%
+                  unlist()
+                if (length(neg_lims) == 2L && all(is.finite(neg_lims))) l_obj$set_neg_limits(neg_lims)
+              } else {
+                lims <- rng %>%
+                  select(low, high) %>%
+                  unlist()
+                if (length(lims) == 2L && all(is.finite(lims))) l_obj$set_limits(lims)
               }
             }
+          }
 
           return(l_obj)
         })

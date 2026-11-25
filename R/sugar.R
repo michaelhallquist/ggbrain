@@ -43,9 +43,12 @@ add_labels <- function(...) {
 #' @param volumes a number indicating the volume within the \code{images} to display. At present, this must
 #'   be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
 #'   be displayed.
-#' @param labels a data.frame or named list of data.frame objects corresponding to images that should be labeled.
-#'   You can only provide a data.frame if there is a single image being added. If multiple images are added, the names of
-#'   the \code{labels} list are used to align the labels with a given matching image.
+#' @param labels a data.frame or named list of data.frame objects corresponding to integer-valued/atlas
+#'   images. Each data.frame must contain a \code{value} column matching integer codes in the image and
+#'   may include categorical label columns (character/factor) as well as numeric parcel-level columns
+#'   (e.g., ROI statistics) for continuous fill, opacity, or contrast expressions. You can only provide a
+#'   data.frame if there is a single image being added. If multiple images are added, the names of the
+#'   \code{labels} list are used to align each table with its matching image.
 #' @param filter a named list or character string specifying an expression of values to retain in the image,
 #'   or a numeric vector of values to retain. Calls ggbrain_images$filter_image()
 #' @return a `ggb` object with the relevant images and an action of 'add_images'
@@ -291,15 +294,16 @@ define <- function(contrasts = NULL) {
 #' @param fill A character string indicating the color used to fill all non-NA pixels in this layer. This is used to set
 #'   the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variable>)}.
 #' @param fill_scale a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.
-#' @param mapping A [ggplot2::aes()] mapping. Fill defaults to `value`; a label column
-#'   can supply categorical colors. Map `alpha` to a numeric expression using layer columns,
+#' @param mapping A [ggplot2::aes()] mapping. Fill defaults to `value`; columns joined via
+#'   `images(..., labels = ...)` can supply either categorical labels (character/factor) or
+#'   continuous parcel-level statistics (numeric). Map `alpha` to a numeric expression using layer columns,
 #'   aligned images, or named contrasts from [define()]. Layer columns take precedence.
 #'   Without `alpha_cutoff`, mapped opacity must be between 0 and 1. Aligned images
 #'   supply their numeric values, including zeros. Named contrasts use their computed masks.
 #' @param alpha_cutoff Positive statistic magnitude at which the layer is fully opaque.
 #'   Opacity is `pmin(1, abs(statistic) / alpha_cutoff)^alpha_power` on every slice.
-#'   The statistic defaults to the layer's numeric `value` after image cleanup. Use
-#'   `aes(alpha = z)` to supply a separate statistic. Missing values are transparent. The opacity key
+#'   The statistic defaults to the layer's mapped numeric fill column (typically `value`) after image cleanup.
+#'   Use `aes(alpha = z)` to supply a separate statistic. Missing values are transparent. The opacity key
 #'   shows statistic magnitudes and is displayed when `show_legend = TRUE`.
 #' @param alpha_power Positive, finite exponent for the fade below `alpha_cutoff`.
 #'   The default of 2 gives quadratic fading. Use 1 for linear fading or a larger

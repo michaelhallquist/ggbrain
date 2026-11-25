@@ -35,8 +35,9 @@ the fill color, in distinction to color mapping: \code{mapping=aes(fill=<variabl
 
 \item{fill_scale}{a ggplot scale_fill_* object used for mapping the fill column to the color of pixels in this layer.}
 
-\item{mapping}{A \code{\link[ggplot2:aes]{ggplot2::aes()}} mapping. Fill defaults to \code{value}; a label column
-can supply categorical colors. Map \code{alpha} to a numeric expression using layer columns,
+\item{mapping}{A \code{\link[ggplot2:aes]{ggplot2::aes()}} mapping. Fill defaults to \code{value}; columns joined via
+\code{images(..., labels = ...)} can supply either categorical labels (character/factor) or
+continuous parcel-level statistics (numeric). Map \code{alpha} to a numeric expression using layer columns,
 aligned images, or named contrasts from \code{\link[=define]{define()}}. Layer columns take precedence.
 Without \code{alpha_cutoff}, mapped opacity must be between 0 and 1. Aligned images
 supply their numeric values, including zeros. Named contrasts use their computed masks.}
@@ -66,8 +67,8 @@ to display. Specks are small clusters that may be distracting and contribute to 
 
 \item{alpha_cutoff}{Positive statistic magnitude at which the layer is fully opaque.
 Opacity is \code{pmin(1, abs(statistic) / alpha_cutoff)^alpha_power} on every slice.
-The statistic defaults to the layer's numeric \code{value} after image cleanup. Use
-\code{aes(alpha = z)} to supply a separate statistic. Missing values are transparent. The opacity key
+The statistic defaults to the layer's mapped numeric fill column (typically \code{value}) after image cleanup.
+Use \code{aes(alpha = z)} to supply a separate statistic. Missing values are transparent. The opacity key
 shows statistic magnitudes and is displayed when \code{show_legend = TRUE}.}
 
 \item{alpha_power}{Positive, finite exponent for the fade below \code{alpha_cutoff}.

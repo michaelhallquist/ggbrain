@@ -7,398 +7,418 @@
 a \code{ggbrain_images} R6 class containing fields related to a set of NIfTI images imported into R
 }
 \description{
-R6 class for compiling images to render in ggplot
-
-R6 class for compiling images to render in ggplot
-}
-\details{
 Note that this class is exported only for power users and rarely needs to be called directly
 in typical use of the package. Instead, look at images().
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{zero_tol}}{the (positive) numeric value that should be treated as indistinguishable from zero.
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{zero_tol}}{the (positive) numeric value that should be treated as indistinguishable from zero.
 This value is used to set small values in the images to exactly zero for proper masking. Default 1e-6}
 
-\item{\code{slices}}{a character vector of cached slice specifications to be used in $get_slices()}
+    \item{\code{slices}}{a character vector of cached slice specifications to be used in $get_slices()}
 
-\item{\code{contrasts}}{a character vector of cached contrast specifications to be used in $get_slices()}
-}
-\if{html}{\out{</div>}}
+    \item{\code{contrasts}}{a character vector of cached contrast specifications to be used in $get_slices()}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ggbrain_images-new}{\code{ggbrain_images$new()}}
-\item \href{#method-ggbrain_images-add}{\code{ggbrain_images$add()}}
-\item \href{#method-ggbrain_images-add_labels}{\code{ggbrain_images$add_labels()}}
-\item \href{#method-ggbrain_images-add_images}{\code{ggbrain_images$add_images()}}
-\item \href{#method-ggbrain_images-add_array_as_image}{\code{ggbrain_images$add_array_as_image()}}
-\item \href{#method-ggbrain_images-filter_images}{\code{ggbrain_images$filter_images()}}
-\item \href{#method-ggbrain_images-dim}{\code{ggbrain_images$dim()}}
-\item \href{#method-ggbrain_images-get_image_names}{\code{ggbrain_images$get_image_names()}}
-\item \href{#method-ggbrain_images-get_images}{\code{ggbrain_images$get_images()}}
-\item \href{#method-ggbrain_images-get_headers}{\code{ggbrain_images$get_headers()}}
-\item \href{#method-ggbrain_images-remove_images}{\code{ggbrain_images$remove_images()}}
-\item \href{#method-ggbrain_images-winsorize_images}{\code{ggbrain_images$winsorize_images()}}
-\item \href{#method-ggbrain_images-na_images}{\code{ggbrain_images$na_images()}}
-\item \href{#method-ggbrain_images-summary}{\code{ggbrain_images$summary()}}
-\item \href{#method-ggbrain_images-get_nz_indices}{\code{ggbrain_images$get_nz_indices()}}
-\item \href{#method-ggbrain_images-add_slices}{\code{ggbrain_images$add_slices()}}
-\item \href{#method-ggbrain_images-add_contrasts}{\code{ggbrain_images$add_contrasts()}}
-\item \href{#method-ggbrain_images-reset_slices}{\code{ggbrain_images$reset_slices()}}
-\item \href{#method-ggbrain_images-get_slices}{\code{ggbrain_images$get_slices()}}
-\item \href{#method-ggbrain_images-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
-\item \href{#method-ggbrain_images-get_labels}{\code{ggbrain_images$get_labels()}}
-\item \href{#method-ggbrain_images-get_orientation_labels}{\code{ggbrain_images$get_orientation_labels()}}
-\item \href{#method-ggbrain_images-lookup_slices}{\code{ggbrain_images$lookup_slices()}}
-\item \href{#method-ggbrain_images-clone}{\code{ggbrain_images$clone()}}
-}
+  \itemize{
+    \item \href{#method-ggbrain_images-initialize}{\code{ggbrain_images$new()}}
+    \item \href{#method-ggbrain_images-add}{\code{ggbrain_images$add()}}
+    \item \href{#method-ggbrain_images-add_labels}{\code{ggbrain_images$add_labels()}}
+    \item \href{#method-ggbrain_images-add_images}{\code{ggbrain_images$add_images()}}
+    \item \href{#method-ggbrain_images-add_array_as_image}{\code{ggbrain_images$add_array_as_image()}}
+    \item \href{#method-ggbrain_images-filter_images}{\code{ggbrain_images$filter_images()}}
+    \item \href{#method-ggbrain_images-dim}{\code{ggbrain_images$dim()}}
+    \item \href{#method-ggbrain_images-get_image_names}{\code{ggbrain_images$get_image_names()}}
+    \item \href{#method-ggbrain_images-get_images}{\code{ggbrain_images$get_images()}}
+    \item \href{#method-ggbrain_images-get_headers}{\code{ggbrain_images$get_headers()}}
+    \item \href{#method-ggbrain_images-remove_images}{\code{ggbrain_images$remove_images()}}
+    \item \href{#method-ggbrain_images-winsorize_images}{\code{ggbrain_images$winsorize_images()}}
+    \item \href{#method-ggbrain_images-na_images}{\code{ggbrain_images$na_images()}}
+    \item \href{#method-ggbrain_images-summary}{\code{ggbrain_images$summary()}}
+    \item \href{#method-ggbrain_images-get_nz_indices}{\code{ggbrain_images$get_nz_indices()}}
+    \item \href{#method-ggbrain_images-add_slices}{\code{ggbrain_images$add_slices()}}
+    \item \href{#method-ggbrain_images-add_contrasts}{\code{ggbrain_images$add_contrasts()}}
+    \item \href{#method-ggbrain_images-reset_slices}{\code{ggbrain_images$reset_slices()}}
+    \item \href{#method-ggbrain_images-get_slices}{\code{ggbrain_images$get_slices()}}
+    \item \href{#method-ggbrain_images-get_slices_inplane}{\code{ggbrain_images$get_slices_inplane()}}
+    \item \href{#method-ggbrain_images-get_labels}{\code{ggbrain_images$get_labels()}}
+    \item \href{#method-ggbrain_images-get_orientation_labels}{\code{ggbrain_images$get_orientation_labels()}}
+    \item \href{#method-ggbrain_images-lookup_slices}{\code{ggbrain_images$lookup_slices()}}
+    \item \href{#method-ggbrain_images-clone}{\code{ggbrain_images$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ggbrain_images-new"></a>}}
-\if{latex}{\out{\hypertarget{method-ggbrain_images-new}{}}}
-\subsection{Method \code{new()}}{
-create ggbrain_images object consisting of one or more NIfTI images
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$new(images = NULL, volumes = NULL, labels = NULL, filter = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{images}}{a character vector of file names containing NIfTI images to read}
-
-\item{\code{volumes}}{the volumes to be read from each element of \code{images}. By default, this is 1, in which case the first volume is
+\if{html}{\out{<a id="method-ggbrain_images-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-ggbrain_images-initialize}{}}}
+\subsection{\code{ggbrain_images$new()}}{
+  create ggbrain_images object consisting of one or more NIfTI images
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$new(images = NULL, volumes = NULL, labels = NULL, filter = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+      \item{\code{volumes}}{the volumes to be read from each element of \code{images}. By default, this is 1, in which case the first volume is
 used, which is appropriate for all 3-D images. For 4-D images, \code{volumes} gives you more flexibility over the volume to display.}
-
-\item{\code{labels}}{A named list of data.frames with labels that map to values in the integer-valued/atlas elements of \code{images}. If
-a single data.frame is passed, it will be accepted if only a single image is passed, too. These are then assumed to correspond}
-
-\item{\code{filter}}{A named list of filter expressions to be applied to particular images. The names of the list correspond to the names
+      \item{\code{labels}}{A named list of data.frames mapping integer values in atlas/mask elements of \code{images}
+to categorical labels and/or numeric parcel-level columns. Each data.frame must include a \code{value}
+column. A single data.frame is accepted when only one image is passed.}
+      \item{\code{filter}}{A named list of filter expressions to be applied to particular images. The names of the list correspond to the names
 of the \code{images} provided. Each element of the list can either be a character vector denoting a filtering expression
 (e.g., \code{'value < 100'}) or a numeric vector denoting values of the image that should be retained (e.g., \code{c(5, 10, 12)}).}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-add"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-add}{}}}
-\subsection{Method \code{add()}}{
-method to add another ggbrain_images object to this one
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add(obj)}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$add()}}{
+  method to add another ggbrain_images object to this one
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$add(obj)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{obj}}{the ggbrain_images object to combine with this one}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{obj}}{the ggbrain_images object to combine with this one}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-add_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-add_labels}{}}}
-\subsection{Method \code{add_labels()}}{
-add a labels data.frame that connects an integer-valued image with a set of labels
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_labels(...)}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$add_labels()}}{
+  add a lookup table data.frame that connects an integer-valued image with categorical labels and/or numeric ROI data
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$add_labels(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{named arguments containing data.frame objects for each image to be annotated. The argument name should
+match the image name and each data.frame must contain a \code{value} column matching integer codes in the image,
+alongside any categorical label columns (character/factor) or numeric parcel-level columns.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    As a result of $add_labels, the $get_slices method joins the supplied table onto each slice by \code{value},
+making both categorical labels and numeric ROI columns available for aesthetic mapping and contrast expressions.
+In addition, \code{slice_labels} records region centers of mass joined with the lookup table for each slice.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{named arguments containing data.frame objects for each image to be labeled. The argument name should
-match the image name to be labeled and the value should be a data.frame containing \code{value} and \code{label}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-As a result of $add_labels, the $get_slices method will always remap the numeric values for label images to the corresponding
-text-based labels in the label data. In addition, a new attribute will be returned called "slice_labels" that contains
-a row for each region represented in each slice.
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-add_images"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-add_images}{}}}
-\subsection{Method \code{add_images()}}{
-add one or more images to this ggbrain_images object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_images(images = NULL, volumes = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{images}}{a character vector of file names containing NIfTI images to read}
-
-\item{\code{volumes}}{a number indicating the volume within the \code{images} to read. At present, this must
+\subsection{\code{ggbrain_images$add_images()}}{
+  add one or more images to this ggbrain_images object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$add_images(images = NULL, volumes = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{images}}{a character vector of file names containing NIfTI images to read}
+      \item{\code{volumes}}{a number indicating the volume within the \code{images} to read. At present, this must
 be a single number -- perhaps in the future, it could be a vector so that many timepoints in a 4-D image could
 be displayed.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-add_array_as_image"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-add_array_as_image}{}}}
-\subsection{Method \code{add_array_as_image()}}{
-add an in-memory array as a new image
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_array_as_image(arr, name, reference = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{arr}}{A 3D array to add as an image}
-
-\item{\code{name}}{The name for this image}
-
-\item{\code{reference}}{Optional reference NIfTI image for header information. If NULL, uses the first
+\subsection{\code{ggbrain_images$add_array_as_image()}}{
+  add an in-memory array as a new image
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$add_array_as_image(arr, name, reference = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{arr}}{A 3D array to add as an image}
+      \item{\code{name}}{The name for this image}
+      \item{\code{reference}}{Optional reference NIfTI image for header information. If NULL, uses the first
 existing image in the object as reference.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-This is useful for adding computed/derived images (like cluster masks) without writing
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    This is useful for adding computed/derived images (like cluster masks) without writing
 to disk. The array dimensions must match existing images.
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-filter_images"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-filter_images}{}}}
-\subsection{Method \code{filter_images()}}{
-filters an image based on an expression such as a subsetting operation
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$filter_images(filter = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{filter}}{a character string or numeric vector of the filter to apply}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-if expr is a numeric vector, only values in this set will be retained. If a character
+\subsection{\code{ggbrain_images$filter_images()}}{
+  filters an image based on an expression such as a subsetting operation
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$filter_images(filter = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{filter}}{a character string or numeric vector of the filter to apply}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    if expr is a numeric vector, only values in this set will be retained. If a character
 string expression is used, it should use the variable name \code{'value'} to refer to the numeric
 values to be filtered, such as \code{'value > 10'}.
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-dim"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-dim}{}}}
-\subsection{Method \code{dim()}}{
-return the 3D dimensions of the images contained in this object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$dim()}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$dim()}}{
+  return the 3D dimensions of the images contained in this object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$dim()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_image_names"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_image_names}{}}}
-\subsection{Method \code{get_image_names()}}{
-return the names of the images contained in this object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_image_names()}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$get_image_names()}}{
+  return the names of the images contained in this object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_image_names()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_images"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_images}{}}}
-\subsection{Method \code{get_images()}}{
-return the RNifti objects of one or more images contained in this object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_images(img_names = NULL, drop = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{img_names}}{The names of images to return. Use \code{$get_image_names()} if you're uncertain
+\subsection{\code{ggbrain_images$get_images()}}{
+  return the RNifti objects of one or more images contained in this object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_images(img_names = NULL, drop = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{img_names}}{The names of images to return. Use \code{$get_image_names()} if you're uncertain
 about what is available.}
-
-\item{\code{drop}}{If TRUE, a single image is returned as an RNifti object, rather than a single-element list
+      \item{\code{drop}}{If TRUE, a single image is returned as an RNifti object, rather than a single-element list
 containing that object.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_headers"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_headers}{}}}
-\subsection{Method \code{get_headers()}}{
-return the NIfTI headers for one or more images contained in this object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_headers(img_names = NULL, drop = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{img_names}}{The names of images whose header are returned. Use \code{$get_image_names()} if you're uncertain
+\subsection{\code{ggbrain_images$get_headers()}}{
+  return the NIfTI headers for one or more images contained in this object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_headers(img_names = NULL, drop = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{img_names}}{The names of images whose header are returned. Use \code{$get_image_names()} if you're uncertain
 about what is available.}
-
-\item{\code{drop}}{If TRUE, a single header is returned as an niftiHeader object, rather than a single-element list
+      \item{\code{drop}}{If TRUE, a single header is returned as an niftiHeader object, rather than a single-element list
 containing that object.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-remove_images"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-remove_images}{}}}
-\subsection{Method \code{remove_images()}}{
-method for removing one or more images from the ggbrain_images object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$remove_images(img_names)}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$remove_images()}}{
+  method for removing one or more images from the ggbrain_images object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$remove_images(img_names)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{img_names}}{names of images to remove from object}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{img_names}}{names of images to remove from object}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-winsorize_images"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-winsorize_images}{}}}
-\subsection{Method \code{winsorize_images()}}{
-winsorize the tails of a set of images to pull in extreme values
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$winsorize_images(img_names, quantiles = c(0.001, 0.999))}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$winsorize_images()}}{
+  winsorize the tails of a set of images to pull in extreme values
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$winsorize_images(img_names, quantiles = c(0.001, 0.999))}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{img_names}}{The names of images in the ggbrain_images object to be winsorized}
+      \item{\code{quantiles}}{The lower and upper quantiles used to define the thresholds for winsorizing.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{img_names}}{The names of images in the ggbrain_images object to be winsorized}
-
-\item{\code{quantiles}}{The lower and upper quantiles used to define the thresholds for winsorizing.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-na_images"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-na_images}{}}}
-\subsection{Method \code{na_images()}}{
-method to set values less than \code{threshold} to NA
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$na_images(img_names, threshold = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{img_names}}{The names of images in the ggbrain_images object whose values should be set to NA}
-
-\item{\code{threshold}}{The threshold value whose absolute value used to determine which voxels to set to NA.
+\subsection{\code{ggbrain_images$na_images()}}{
+  method to set values less than \code{threshold} to NA
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$na_images(img_names, threshold = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{img_names}}{The names of images in the ggbrain_images object whose values should be set to NA}
+      \item{\code{threshold}}{The threshold value whose absolute value used to determine which voxels to set to NA.
 If \code{NULL}, use the pvt_zero_tol field (default 1e-6).}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-summary"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-summary}{}}}
-\subsection{Method \code{summary()}}{
-print a summary of the ggbrain_images object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$summary()}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$summary()}}{
+  print a summary of the ggbrain_images object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$summary()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_nz_indices"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_nz_indices}{}}}
-\subsection{Method \code{get_nz_indices()}}{
-return the indices of non-zero voxels
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_nz_indices(img_names = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$get_nz_indices()}}{
+  return the indices of non-zero voxels
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_nz_indices(img_names = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{img_names}}{The names of images in the ggbrain_images object whose non-zero indices should be looked up}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    Note that this function looks for non-zero voxels in any of the images specified by \code{img_names}.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{img_names}}{The names of images in the ggbrain_images object whose non-zero indices should be looked up}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-Note that this function looks for non-zero voxels in any of the images specified by \code{img_names}.
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-add_slices"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-add_slices}{}}}
-\subsection{Method \code{add_slices()}}{
-adds one or more slices to the cached slices that will be retrieved by
+\subsection{\code{ggbrain_images$add_slices()}}{
+  adds one or more slices to the cached slices that will be retrieved by
 $get_slices() when no \code{slices} argument is passed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_slices(slices = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$add_slices(slices = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{slices}}{a character vector containing one or more slices to be extracted by \code{$get_slices}.
+Uses the syntax \code{"<xyz>=<number>"}. Example: \code{c("x=10", "y=50\%")}}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{slices}}{a character vector containing one or more slices to be extracted by \code{$get_slices}.
-Uses the syntax \code{"<xyz>=<number>"}. Example: \code{c("x=10", "y=50\%")}}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-add_contrasts"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-add_contrasts}{}}}
-\subsection{Method \code{add_contrasts()}}{
-adds one or more contrasts to the cached contrasts that will be retrieved by
+\subsection{\code{ggbrain_images$add_contrasts()}}{
+  adds one or more contrasts to the cached contrasts that will be retrieved by
 $get_slices() when no \code{contrasts} argument is passed.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$add_contrasts(contrasts = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$add_contrasts(contrasts = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{contrasts}}{a character vector containing one or more contrasts to be extracted by \code{$get_slices}.
+Uses the syntax \code{"<img_name>[subset_expression] + <img_name>"}.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{contrasts}}{a character vector containing one or more contrasts to be extracted by \code{$get_slices}.
-Uses the syntax \code{"<img_name>[subset_expression] + <img_name>"}.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-reset_slices"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-reset_slices}{}}}
-\subsection{Method \code{reset_slices()}}{
-remove all cached slice settings
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$reset_slices()}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$reset_slices()}}{
+  remove all cached slice settings
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$reset_slices()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_slices"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_slices}{}}}
-\subsection{Method \code{get_slices()}}{
-get slice data for one or more slices based on their coordinates
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_slices(
+\subsection{\code{ggbrain_images$get_slices()}}{
+  get slice data for one or more slices based on their coordinates
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_slices(
   slices = NULL,
   img_names = NULL,
   contrasts = NULL,
@@ -409,140 +429,136 @@ get slice data for one or more slices based on their coordinates
   resample_interpolation = 5L,
   categorical_images = character(0),
   opacity_images = character(0)
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{slices}}{a vector of slice positions}
-
-\item{\code{img_names}}{a character vector of images contained in the ggbrain_images object to be sliced}
-
-\item{\code{contrasts}}{a named character vector of contrasts to be calculated for each slice}
-
-\item{\code{fill_labels}}{if TRUE, the numeric value of the image will be used for any value that does not
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{slices}}{a vector of slice positions}
+      \item{\code{img_names}}{a character vector of images contained in the ggbrain_images object to be sliced}
+      \item{\code{contrasts}}{a named character vector of contrasts to be calculated for each slice}
+      \item{\code{fill_labels}}{if TRUE, the numeric value of the image will be used for any value that does not
 have a corresponding label in the labels data.frame. Default: FALSE}
-
-\item{\code{make_square}}{If TRUE, center all slices on a common grid using the maximum height and width.}
-
-\item{\code{remove_null_space}}{If TRUE, trim empty outer rows and columns to the bounding box of the visible data.}
-
-\item{\code{target_resolution}}{Optional target voxel size in mm for resampling slices. If provided, slices
+      \item{\code{make_square}}{If TRUE, center all slices on a common grid using the maximum height and width.}
+      \item{\code{remove_null_space}}{If TRUE, trim empty outer rows and columns to the bounding box of the visible data.}
+      \item{\code{target_resolution}}{Optional target voxel size in mm for resampling slices. If provided, slices
 will be resampled to this resolution using the specified interpolation method.}
-
-\item{\code{resample_interpolation}}{Integer specifying the interpolation method for imager::resize.
+      \item{\code{resample_interpolation}}{Integer specifying the interpolation method for imager::resize.
 1=nearest, 3=linear, 5=cubic (default), 6=lanczos.}
-
-\item{\code{categorical_images}}{Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.}
-
-\item{\code{opacity_images}}{Image names whose unmasked values should be retained for opacity mappings.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-This function always returns a data.frame where each row represents a slice requested
+      \item{\code{categorical_images}}{Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.}
+      \item{\code{opacity_images}}{Image names whose unmasked values should be retained for opacity mappings.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    This function always returns a data.frame where each row represents a slice requested
 by the user. The $slice_data element is a list-column where each element is itself a list
 of slice data for a given layer/image (e.g., underlay or overlay) . The $slice_matrix
 is a list-column where each element is a list of 2-D matrices, one per layer/image.
 @return a ggbrain_slices object containing the requested slices and contrasts
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_slices_inplane"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_slices_inplane}{}}}
-\subsection{Method \code{get_slices_inplane()}}{
-get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_slices_inplane(
+\subsection{\code{ggbrain_images$get_slices_inplane()}}{
+  get_slices_inplane is mostly an internal funciton for getting one or more slices from a given plane
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_slices_inplane(
   imgs = NULL,
   slice_numbers,
   plane,
   drop = FALSE
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{imgs}}{The names of images to slice}
+      \item{\code{slice_numbers}}{The numbers of slices in the specified plant to grab}
+      \item{\code{plane}}{The image plane to slice. Must be "coronal", "sagittal", or "axial"}
+      \item{\code{drop}}{if TRUE, a single slice is returned as a 2D matrix instead of a 3D matrix with a singleton first dimension}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A 3D matrix of slices x dim1 x dim2
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{imgs}}{The names of images to slice}
-
-\item{\code{slice_numbers}}{The numbers of slices in the specified plant to grab}
-
-\item{\code{plane}}{The image plane to slice. Must be "coronal", "sagittal", or "axial"}
-
-\item{\code{drop}}{if TRUE, a single slice is returned as a 2D matrix instead of a 3D matrix with a singleton first dimension}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A 3D matrix of slices x dim1 x dim2
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_labels}{}}}
-\subsection{Method \code{get_labels()}}{
-return a list of data.frames containing labels for a given image
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_labels()}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$get_labels()}}{
+  return a list of data.frames containing labels for a given image
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_labels()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    the names of the list correspond directly with the names of the images
+  }
 }
 
-\subsection{Details}{
-the names of the list correspond directly with the names of the images
-}
-
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-get_orientation_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-get_orientation_labels}{}}}
-\subsection{Method \code{get_orientation_labels()}}{
-internal helper to determine anatomical orientation labels for the first image
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$get_orientation_labels()}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$get_orientation_labels()}}{
+  internal helper to determine anatomical orientation labels for the first image
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$get_orientation_labels()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    a list with elements x, y, z giving the orientation codes (e.g., c(\"L\", \"R\"))
+  }
 }
 
-\subsection{Returns}{
-a list with elements x, y, z giving the orientation codes (e.g., c(\"L\", \"R\"))
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-lookup_slices"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-lookup_slices}{}}}
-\subsection{Method \code{lookup_slices()}}{
-internal function to lookup which slices to display along each axis based on their quantile,
+\subsection{\code{ggbrain_images$lookup_slices()}}{
+  internal function to lookup which slices to display along each axis based on their quantile,
 xyz coordinate, or ijk coordinate
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$lookup_slices(slices, ignore_null_space = TRUE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{slices}}{A character vector of coordinates for slices to display}
-
-\item{\code{ignore_null_space}}{If TRUE, any coordinates specified as quantiles (e.g., x = 50\%)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$lookup_slices(slices, ignore_null_space = TRUE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{slices}}{A character vector of coordinates for slices to display}
+      \item{\code{ignore_null_space}}{If TRUE, any coordinates specified as quantiles (e.g., x = 50\%)
 use the quantiles of only the non-zero slices (ignoring blank sliaces)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ggbrain_images-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ggbrain_images-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_images$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ggbrain_images$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ggbrain_images$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
