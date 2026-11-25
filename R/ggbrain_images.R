@@ -627,6 +627,7 @@ ggbrain_images <- R6::R6Class(
     #' @param target_resolution Optional target voxel size in mm for resampling slices. If provided, slices
     #'   will be resampled to this resolution using the specified interpolation method.
     #' @param categorical_images Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.
+    #' @param opacity_images Image names whose unmasked values should be retained for opacity mappings.
     #' @param resample_interpolation Integer specifying the interpolation method for imager::resize.
     #'   1=nearest, 3=linear, 5=cubic (default), 6=lanczos.
     #' @details This function always returns a data.frame where each row represents a slice requested
@@ -636,7 +637,7 @@ ggbrain_images <- R6::R6Class(
     #'  @return a ggbrain_slices object containing the requested slices and contrasts
     get_slices = function(slices = NULL, img_names = NULL, contrasts = NULL, fill_labels = FALSE,
       make_square = TRUE, remove_null_space = TRUE, target_resolution = NULL, resample_interpolation = 5L,
-      categorical_images = character(0)) {
+      categorical_images = character(0), opacity_images = character(0)) {
 
       if (is.null(slices)) {
         if (!is.null(private$pvt_slices)) {
@@ -664,6 +665,7 @@ ggbrain_images <- R6::R6Class(
       checkmate::assert_integerish(resample_interpolation, lower = 1L, upper = 6L, len = 1L)
 
       checkmate::assert_subset(categorical_images, all_img_names)
+      checkmate::assert_subset(opacity_images, all_img_names)
 
       # which images contain integer-valued data that should be labeled?
       label_imgs <- img_names[img_names %in% names(private$pvt_img_labels)]
@@ -708,6 +710,9 @@ ggbrain_images <- R6::R6Class(
         }
       }
 
+      # Opacity images use the same display grid and retain valid zero values.
+      opacity_slices <- lapply(slc, `[`, intersect(opacity_images, img_names))
+
       # Resample slices to target resolution if requested (both upsampling and downsampling supported)
       if (!is.null(target_resolution)) {
         discrete_images <- union(label_imgs, categorical_images)
@@ -723,60 +728,47 @@ ggbrain_images <- R6::R6Class(
           slice_maps[[si]]$row_idx <- seq(smap$row_idx[1L], smap$row_idx[source_dims[1L]], length.out = target_x)
           slice_maps[[si]]$col_idx <- seq(smap$col_idx[1L], smap$col_idx[source_dims[2L]], length.out = target_y)
 
-          ilist <- slc[[si]]
-          slc[[si]] <- lapply(names(ilist), function(img_name) {
-            mat <- ilist[[img_name]]
-            is_labeled <- img_name %in% discrete_images
-            interp_method <- if (is_labeled) 1L else resample_interpolation
+          resize_matrix <- function(mat, method) {
+            # Explicit dimensions ensure imager uses the requested interpolation method.
+            resized <- imager::resize(imager::as.cimg(mat), size_x = target_x,
+                                      size_y = target_y, interpolation_type = method)
+            matrix(resized, nrow = target_x, ncol = target_y)
+          }
 
-            # Convert to cimg for resizing
-            cimg_obj <- imager::as.cimg(mat)
+          resize_slice <- function(mat, method, preserve_zeros = FALSE) {
+            if (method == 1L) return(resize_matrix(mat, method))
 
-            # NB: We use imager::resize() directly instead of imager::imresize() because imresize
-            # has a bug where it ignores the interpolation parameter when the scale factor is a
-            # power of 2 (e.g., 2x, 4x). In those cases, imresize uses fast doubling functions
-            # (resize_doubleXY) that only do nearest-neighbor interpolation, regardless of the
-            # interpolation argument. Using resize() with explicit target dimensions ensures the
-            # interpolation_type is always respected.
+            finite <- is.finite(mat)
+            valid <- finite & (preserve_zeros | abs(mat) > private$pvt_zero_tol)
+            mat[!finite] <- 0
+            result <- resize_matrix(mat, method)
+            if (!all(valid)) {
+              inside <- resize_matrix(1 * valid, 3L) >= 0.5
+              if (!preserve_zeros) {
+                result[!inside] <- 0
+                return(result)
+              }
 
-            # For non-labeled images with interpolation methods other than nearest-neighbor, use
-            # mask-aware interpolation to avoid artifacts at edges where the image transitions
-            # from valid data to zero (masked regions). This is common with thresholded
-            # statistical maps. For cubic/lanczos, this prevents ringing. For linear, this
-            # prevents edge darkening where values blend toward zero.
-            use_mask_interpolation <- !is_labeled && interp_method > 1L # linear (3), cubic (5), or lanczos (6)
-
-            if (use_mask_interpolation) {
-              # Create a binary mask: 1 where data is valid (non-zero), 0 elsewhere
-              # Use floating-point tolerance instead of exact != 0 comparison
-              mask_mat <- ifelse(is.finite(mat) & abs(mat) > private$pvt_zero_tol, 1, 0)
-              cimg_obj[!is.finite(cimg_obj)] <- 0
-              mask_cimg <- imager::as.cimg(mask_mat)
-
-              # Interpolate the data using the requested method
-              resized_data <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
-                                             interpolation_type = interp_method)
-
-              # Interpolate the mask using linear interpolation (sufficient for edge detection)
-              resized_mask <- imager::resize(mask_cimg, size_x = target_x, size_y = target_y,
-                                             interpolation_type = 3L) # linear
-
-              # Convert back to matrices
-              result <- matrix(resized_data, nrow = target_x, ncol = target_y)
-              mask_result <- matrix(resized_mask, nrow = target_x, ncol = target_y)
-
-              # Apply mask: set pixels to 0 where interpolated mask < 0.5
-              # This creates clean edges without blending artifacts
-              result[mask_result < 0.5] <- 0
-            } else {
-              # Standard interpolation for labeled images or nearest-neighbor method
-              resized <- imager::resize(cimg_obj, size_x = target_x, size_y = target_y,
-                                        interpolation_type = interp_method)
-              result <- matrix(resized, nrow = target_x, ncol = target_y)
+              # Normalize by the interpolated support so missing inputs do not pull values toward zero.
+              weights <- resize_matrix(1 * valid, method)
+              inside <- inside & weights > sqrt(.Machine$double.eps)
+              result[inside] <- result[inside] / weights[inside]
+              result[!inside] <- NA_real_
             }
 
-            return(result)
-          }) %>% setNames(names(ilist))
+            # Higher-order interpolation can overshoot bounds on a [0, 1] opacity image.
+            if (preserve_zeros && any(valid)) {
+              bounds <- range(mat[valid])
+              result[] <- pmin(bounds[2L], pmax(bounds[1L], result))
+            }
+            result
+          }
+
+          ilist <- slc[[si]]
+          methods <- setNames(ifelse(names(ilist) %in% discrete_images, 1L, resample_interpolation), names(ilist))
+          slc[[si]] <- Map(resize_slice, ilist, methods)
+          opacity_slices[[si]] <- Map(resize_slice, opacity_slices[[si]], methods[names(opacity_slices[[si]])],
+                                     MoreArgs = list(preserve_zeros = TRUE))
         }
       }
 
@@ -795,8 +787,9 @@ ggbrain_images <- R6::R6Class(
 
         # for each slice and image within slice, center the matrix in the target output dims
         for (si in seq_along(slc)) {
-          slc[[si]] <- lapply(slc[[si]], function(mat) {
-            center_matrix(square_dims, mat, drop_zeros = FALSE) # at present, drop_zeros = TRUE will lead to offsets across images...
+          slc[[si]] <- lapply(slc[[si]], function(mat) center_matrix(square_dims, mat, drop_zeros = FALSE))
+          opacity_slices[[si]] <- lapply(opacity_slices[[si]], function(mat) {
+            center_matrix(square_dims, mat, drop_zeros = FALSE)
           })
 
           slice_maps[[si]]$row_idx <- pad_to_square(slice_maps[[si]]$row_idx, square_dims[1])
@@ -913,6 +906,12 @@ ggbrain_images <- R6::R6Class(
             slc_nestlist[[ii]][[label_name]] <- this_img
             com_stats[[ii]][[label_name]] <- this_com # update com stats
           }
+        }
+      }
+
+      for (si in seq_along(opacity_slices)) {
+        for (image_name in names(opacity_slices[[si]])) {
+          attr(slc_nestlist[[si]][[image_name]], "opacity_values") <- opacity_slices[[si]][[image_name]]
         }
       }
 

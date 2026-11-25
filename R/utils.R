@@ -34,3 +34,10 @@ infer_text_color_from_bg <- function(bg_color, light = "gray90", dark = "gray10"
   if (is.na(luminance)) return(dark)
   if (luminance > threshold) dark else light
 }
+
+
+# Find possible image sources, including dynamically indexed .data references.
+opacity_sources <- function(mapping, sources) {
+  variables <- all.vars(mapping$alpha)
+  if (".data" %in% variables) sources else intersect(variables, sources)
+}

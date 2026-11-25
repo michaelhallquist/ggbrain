@@ -117,13 +117,13 @@ ggbrain_layer <- R6::R6Class(
       return(speck_img) # return logical matrix with positions of specs
     },
 
+    update_voxel_alpha = function() NULL, # filled layers can map opacity after cleanup
+
     # modify layer data to remove specks, fill holes, and trim threads
     refine_image = function() {
       d <- private$pvt_data
       label_columns <- attr(d, "label_columns")
       dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
-      na_rows <- rep(FALSE, nrow(d))
-      vcols <- grep("dim1|dim2", names(d), value = TRUE, invert = TRUE)
       is_categorical <- isTRUE(private$pvt_categorical_fill) || !is.null(label_columns)
 
       # always fill in holes first so that neighbor counts are more sensible
@@ -137,7 +137,13 @@ ggbrain_layer <- R6::R6Class(
         d <- mat2df(dmat, na_zeros = TRUE) # convert back to modified data frame
         attr(d, "label_columns") <- label_columns
 
-        # need to fill any ancillary columns with imputed values, too!
+        # Keep other pixel columns, including sources used by opacity mappings.
+        pixel_columns <- setdiff(names(private$pvt_data), c("value", label_columns))
+        if (length(pixel_columns) > 2L) {
+          d <- dplyr::left_join(d, private$pvt_data[pixel_columns], by = c("dim1", "dim2"))
+        }
+
+        # Lookup labels for the imputed value.
         if (!is.null(label_columns)) {
           lab_df <- private$pvt_data %>%
             dplyr::group_by(value) %>%
@@ -147,6 +153,9 @@ ggbrain_layer <- R6::R6Class(
           d <- d %>% left_join(lab_df, by="value")
         }
       }
+
+      na_rows <- rep(FALSE, nrow(d))
+      vcols <- setdiff(names(d), c("dim1", "dim2"))
 
       # dim1.dim2 string used for matching rows to drop/NA
       dind <- paste(d$dim1, d$dim2, sep = ".")
@@ -213,8 +222,16 @@ ggbrain_layer <- R6::R6Class(
 
       use_tile <- inherits(self, "ggbrain_layer_outline") # outlines use geom_tile to avoid sparse-raster warnings
       
-      # When alpha is < 1, na.value="transparent" doesn't work as expected. Need to use na.omit()
-      if (!is.null(private$pvt_alpha_column) || (!is.null(private$pvt_alpha) && private$pvt_alpha < 1)) {
+      voxel_alpha <- !use_tile && !is.null(private$pvt_alpha_column)
+      if (voxel_alpha) {
+        # Keep missing pixels in the raster grid with zero opacity.
+        alpha_col <- private$pvt_alpha_column
+        df[[alpha_col]][is.na(df[[value_col]]) | is.na(df[[alpha_col]])] <- 0
+        if (!is.null(fill_scale)) {
+          fill_scale <- fill_scale$clone()
+          fill_scale$na.value <- NA_character_
+        }
+      } else if (!is.null(private$pvt_alpha_column) || (!is.null(private$pvt_alpha) && private$pvt_alpha < 1)) {
         df <- df %>% dplyr::filter(!is.na(!!rlang::sym(value_col)))
       }
 
@@ -244,7 +261,7 @@ ggbrain_layer <- R6::R6Class(
       } else {
         # fixed fill layer -- always need to drop NAs from data because when fill is *set* (not mapped), any row in the
         # data.frame will be filled with the specified color.
-        raster_args$data <- subset(df, !is.na(value))
+        raster_args$data <- if (voxel_alpha) df else subset(df, !is.na(value))
         alpha_quo <- if (!is.null(private$pvt_alpha_column)) rlang::sym(private$pvt_alpha_column) else NULL
         mapping_args <- list(
           x = rlang::sym("dim1"),
@@ -304,7 +321,7 @@ ggbrain_layer <- R6::R6Class(
         df_pos <- private$pvt_data %>%
           dplyr::mutate(!!vcol := if_else(!!sym(vcol) > 0, !!sym(vcol), NA_real_))
 
-        private$symmetrize_limits(df, df_pos)
+        private$symmetrize_limits(df_neg[[vcol]], df_pos[[vcol]])
 
         fill_scale <- NULL
         fill_scale_neg <- private$pvt_fill_scale$neg_scale
@@ -411,7 +428,7 @@ ggbrain_layer <- R6::R6Class(
     },
 
     # helper function to make positive and negative scales symmetric
-    symmetrize_limits = function(df_neg, df_pos) {
+    symmetrize_limits = function(negative, positive) {
       # if positive and negative limits are already set, then respect these
       # (most commonly, this is due to unify_scales)
 
@@ -421,19 +438,15 @@ ggbrain_layer <- R6::R6Class(
       neg_lims <- private$pvt_fill_scale$neg_scale$limits
       pos_lims <- private$pvt_fill_scale$pos_scale$limits
 
-      if (is.null(neg_lims)) {
-        neg_lims <- c(min(df_neg$value, na.rm = TRUE), max(df_neg$value, na.rm = TRUE))
-      }
+      if (is.null(neg_lims)) neg_lims <- negative[is.finite(negative)]
+      if (is.null(pos_lims)) pos_lims <- positive[is.finite(positive)]
+      magnitudes <- c(abs(neg_lims), abs(pos_lims))
+      magnitudes <- magnitudes[is.finite(magnitudes)]
+      if (!length(magnitudes)) return(invisible(NULL))
 
-      if (is.null(pos_lims)) {
-        pos_lims <- c(min(df_pos$value, na.rm = TRUE), max(df_pos$value, na.rm = TRUE))
-      }
-
-      biggest <- max(abs(neg_lims[1]), pos_lims[2], na.rm=TRUE)
-      smallest <- min(abs(neg_lims[2]), pos_lims[1], na.rm=TRUE)
-
-      private$pvt_fill_scale$neg_scale$limits <- -1 * c(biggest, smallest)
-      private$pvt_fill_scale$pos_scale$limits <- c(smallest, biggest)
+      pos_lims <- range(magnitudes)
+      private$pvt_fill_scale$neg_scale$limits <- -rev(pos_lims)
+      private$pvt_fill_scale$pos_scale$limits <- pos_lims
     },
 
     # private method to set default fill scale when not provided
@@ -540,6 +553,7 @@ ggbrain_layer <- R6::R6Class(
           private$validate_layer() # always validate the layer based on the data (identifies the form of fill mapping)
           private$set_default_scale() # add default scale, if needed, after modifying data
           private$refine_image() # trim threads, remove specks, fill holes
+          private$update_voxel_alpha()
 
           # ensure that numeric breaks are not used with a categorical scale
           # (note that this doesn't allow custom breaks in categorical layers yet... so, it's a hack)
@@ -688,7 +702,7 @@ ggbrain_layer <- R6::R6Class(
     #' @param show_legend if TRUE, show the scale on the plot legend
     #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
-    #' @param alpha fixed alpha transparency of this layer (use `mapping` for alpha mapping`)
+    #' @param alpha fixed opacity of this layer, between 0 and 1
     #' @param blur_edge the standard deviation (sigma) of a Gaussian kernel applied to the edge of this layer to
     #'   smooth it. This makes the layer less jagged in appearance and is akin to antialiasing.
     #' @param fill_holes the size of holes (in pixels) inside clusters to be filled by nearest neighbor imputation prior to display

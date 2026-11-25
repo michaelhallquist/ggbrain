@@ -204,15 +204,17 @@ ggb <- R6::R6Class(
     },
 
     # Retrieve slices with target resolution settings, if present
-    get_slices_for_render = function(img, categorical_images) {
-      if (!is.null(self$ggb_target_resolution)) {
-        return(img$get_slices(
-          target_resolution = self$ggb_target_resolution$voxel_size,
-          resample_interpolation = self$ggb_target_resolution$interpolation_value,
-          categorical_images = categorical_images
-        ))
-      }
-      img$get_slices()
+    get_slices_for_render = function(img, categorical_images, layers) {
+      resolution <- self$ggb_target_resolution
+      opacity_images <- unique(unlist(lapply(layers, function(layer) {
+        opacity_sources(layer$mapping, img$get_image_names())
+      }), use.names = FALSE))
+      img$get_slices(
+        target_resolution = resolution$voxel_size,
+        resample_interpolation = resolution$interpolation_value %||% 5L,
+        categorical_images = categorical_images,
+        opacity_images = as.character(opacity_images)
+      )
     },
 
     # Compute layer sources and inline contrasts from layer definitions
@@ -555,7 +557,7 @@ ggb <- R6::R6Class(
       if (length(self$ggb_cluster_slices) && !length(img$slices) && !length(render_slices)) {
         stop("No slices to render. Add slices() with explicit coordinates or adjust the cluster selection.")
       }
-      slc <- private$get_slices_for_render(img, cluster_images)
+      slc <- private$get_slices_for_render(img, cluster_images, render_layers)
 
       # compute any defined contrasts before looking at inline contrasts
       slc$compute_contrasts(self$ggb_contrasts)

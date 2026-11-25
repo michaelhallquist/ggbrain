@@ -1,5 +1,6 @@
 # ggbrain 1.0 (7Dec2025)
 
+* `geom_brain()` supports voxelwise opacity using a numeric layer column, aligned image, or named contrast. Set `alpha_cutoff` for transparent thresholding with a shared opacity key across slices.
 * Fixed-color outlines of signed maps now trace both positive and negative regions.
 * Corrected orientation labels for reversed voxel axes and preserved gaps between regions when trimming slice margins.
 * Display resampling now uses the voxel spacing of each in-plane axis and preserves generated cluster IDs.

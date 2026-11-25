@@ -11,10 +11,26 @@ ggbrain_layer_brain <- R6::R6Class(
   classname = "ggbrain_layer_brain",
   inherit = ggbrain_layer,
   private = list(
-    # for a brain layer, we just get the underlying data
-    get_plot_data = function() {
-      data_list <- super$get_plot_data() # general data
-      return(data_list)
+    alpha_cutoff = NULL,
+    voxel_alpha = function(data, expr) {
+      statistic <- if (is.null(expr)) data$value else rlang::eval_tidy(expr, data)
+      checkmate::assert_numeric(statistic, any.missing = TRUE)
+      if (!length(statistic) %in% c(1L, nrow(data))) {
+        stop("Mapped alpha must have one value per pixel or one constant value")
+      }
+      statistic <- rep_len(statistic, nrow(data))
+      if (!is.null(private$alpha_cutoff)) {
+        return(pmin(1, abs(statistic) / private$alpha_cutoff)^2)
+      }
+      if (any(statistic < 0 | statistic > 1, na.rm = TRUE)) {
+        stop("Mapped alpha must be between 0 and 1, or supply alpha_cutoff for a statistic")
+      }
+      statistic
+    },
+    update_voxel_alpha = function() {
+      if (!is.null(private$pvt_alpha_column)) {
+        private$pvt_data[[private$pvt_alpha_column]] <- private$voxel_alpha(private$pvt_data, private$pvt_mapping$alpha)
+      }
     }
   ),
   active = list(
@@ -40,7 +56,19 @@ ggbrain_layer_brain <- R6::R6Class(
         private$pvt_mapping
       } else {
         checkmate::assert_class(value, "uneval")
+        if (!is.null(value$outline)) {
+          stop("geom_brain() supports fill and alpha mappings. Use geom_outline() for outlines.")
+        }
+        mapped_alpha <- !is.null(value$alpha) || !is.null(private$alpha_cutoff)
+        if (mapped_alpha && !is.null(private$pvt_alpha)) stop("Choose fixed alpha or voxelwise opacity")
+        if (mapped_alpha && is.null(value$fill) && is.null(private$pvt_fill)) {
+          value$fill <- ggplot2::aes(fill = value)$fill
+        }
+        opacity <- if (mapped_alpha && !self$is_empty()) private$voxel_alpha(private$pvt_data, value$alpha)
         private$pvt_mapping <- value
+        private$pvt_alpha_column <- if (mapped_alpha) ".ggbrain_alpha"
+        if (!self$is_empty()) private$pvt_data[[".ggbrain_alpha"]] <- opacity
+        private$pvt_fill_expr <- "{new_val}"
         if (is.null(value$fill)) {
           private$pvt_fill_column <- NULL
           private$pvt_has_fill <- FALSE
@@ -64,9 +92,7 @@ ggbrain_layer_brain <- R6::R6Class(
           }
           private$pvt_has_fill <- TRUE
         }
-        if (!is.null(value$outline)) {
-          stop("geom_brain() objects only support a fill aesthetic mapping: aes(fill=<value>)")
-        }
+        if (!self$is_empty()) private$validate_layer()
       }
     }
   ),
@@ -82,9 +108,10 @@ ggbrain_layer_brain <- R6::R6Class(
     #' @param interpolate passes to geom_raster and controls whether the fill is interpolated over continuous space
     #' @param unify_scales if TRUE, when this layer is reused across panels, unify the scales to match
     #' @param alpha a number between 0 and 1 that sets the alpha transparency of this layer. Default: 1
-    #' @param mapping the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
-    #'   `fill` (color of filled pixels). Default is `aes(fill=value)`, which maps the numeric value of the layer data
-    #'   to the fill color of the squares at each spatial position. For labeled data, you might use \code{aes(fill=<label_col_name>)}.
+    #' @param mapping An [ggplot2::aes()] mapping for fill and optional voxelwise alpha.
+    #'   See [geom_brain()] for mapping columns, images and contrasts.
+    #' @param alpha_cutoff A positive statistic magnitude at which opacity reaches 1.
+    #'   Below the cutoff, opacity is the squared ratio of magnitude to cutoff.
     #' @param fill A character string indicating the color used to fill all non-NA pixels in this layer. This is used in
     #'   distinction to \code{mapping=aes(fill=<variable>)}.
     #' @param fill_scale a ggplot scale object used for mapping the value column as the fill color for the
@@ -99,19 +126,48 @@ ggbrain_layer_brain <- R6::R6Class(
     initialize = function(name = NULL, definition = NULL, 
       limits = NULL, breaks = integer_breaks(), show_legend = TRUE, interpolate = NULL, unify_scales=TRUE, alpha = NULL,
       mapping = ggplot2::aes(fill=value), fill = NULL, fill_scale = NULL, blur_edge = NULL,
-      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, data = NULL) {
+      fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, data = NULL, alpha_cutoff = NULL) {
+      checkmate::assert_number(alpha_cutoff, finite = TRUE, lower = 0, null.ok = TRUE)
+      if (!is.null(alpha_cutoff) && alpha_cutoff == 0) stop("alpha_cutoff must be positive")
+      private$alpha_cutoff <- alpha_cutoff
 
       # common initialization steps
       super$initialize(
         name, definition, limits, breaks, show_legend, interpolate, unify_scales,
-        alpha, blur_edge, fill_holes, remove_specks, trim_threads, data
+        alpha, blur_edge, fill_holes, remove_specks, trim_threads, data = NULL
       )
 
       # fill-specific initialization steps
       if (!is.null(fill)) self$fill <- fill # fixed fill
       self$fill_scale <- fill_scale
 
-      if (!is.null(mapping)) self$mapping <- mapping # aesthetic mapping
+      if (is.null(mapping) && !is.null(alpha_cutoff)) mapping <- ggplot2::aes(fill = value)
+      if (!is.null(mapping)) self$mapping <- mapping
+      if (!is.null(data)) self$data <- data
+    },
+
+    #' @description Draw the fill and its layer-specific opacity key.
+    #' @param base_gg The ggplot to which the layer is added.
+    add_to_gg = function(base_gg) {
+      if (is.null(private$pvt_alpha_column)) return(super$add_to_gg(base_gg))
+      if (!is.null(base_gg$scales$get_scales("alpha"))) {
+        base_gg <- base_gg + ggnewscale::new_scale("alpha")
+      }
+      gg <- super$add_to_gg(base_gg)
+      cutoff <- private$alpha_cutoff
+      breaks <- c(0, 0.5, 1)
+      labels <- breaks
+      title <- "Opacity"
+      if (!is.null(cutoff)) {
+        expr <- private$pvt_mapping$alpha
+        source <- if (is.null(expr)) self$definition else rlang::as_label(expr)
+        title <- paste0("|", source, "|")
+        labels <- c("0", format(cutoff / 2), paste0("\u2265", format(cutoff)))
+        breaks <- breaks^2
+      }
+      guide <- if (self$show_legend) ggplot2::guide_legend(override.aes = list(fill = "grey35")) else "none"
+      gg + ggplot2::scale_alpha_identity(name = title, limits = c(0, 1), breaks = breaks,
+                                         labels = labels, guide = guide)
     }
   )
 )
