@@ -2,6 +2,13 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+  supports voxelwise opacity using a numeric layer column, aligned
+  image, or named contrast. Set `alpha_cutoff` for transparent
+  thresholding with a shared opacity key across slices. The default fade
+  is quadratic. Set `alpha_power = 1` for a linear fade or choose
+  another positive exponent.
+
 - Fixed-color outlines of signed maps now trace both positive and
   negative regions.
 

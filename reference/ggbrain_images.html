@@ -460,7 +460,8 @@ Uses the syntax <code>"&lt;img_name&gt;[subset_expression] + &lt;img_name&gt;"</
 <span>  remove_null_space <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  target_resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  resample_interpolation <span class="op">=</span> <span class="fl">5L</span>,</span>
-<span>  categorical_images <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span>  categorical_images <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  opacity_images <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -503,6 +504,10 @@ will be resampled to this resolution using the specified interpolation method.</
 
 <dt><code>categorical_images</code></dt>
 <dd><p>Additional image names to resample with nearest-neighbor interpolation, such as cluster IDs.</p></dd>
+
+
+<dt><code>opacity_images</code></dt>
+<dd><p>Image names whose unmasked values should be retained for opacity mappings.</p></dd>
 
 
 </dl><p></p></div>

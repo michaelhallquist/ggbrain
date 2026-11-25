@@ -87,9 +87,9 @@ in the data, consistent with ggplot2 logic.</p></dd>
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
 <ul><li><p><a href="#method-ggbrain_layer_brain-new"><code>ggbrain_layer_brain$new()</code></a></p></li>
+<li><p><a href="#method-ggbrain_layer_brain-add_to_gg"><code>ggbrain_layer_brain$add_to_gg()</code></a></p></li>
 <li><p><a href="#method-ggbrain_layer_brain-clone"><code>ggbrain_layer_brain$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="add_to_gg"><a href="ggbrain_layer.html#method-add_to_gg"><code>ggbrain::ggbrain_layer$add_to_gg()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="get_data"><a href="ggbrain_layer.html#method-get_data"><code>ggbrain::ggbrain_layer$get_data()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="get_data"><a href="ggbrain_layer.html#method-get_data"><code>ggbrain::ggbrain_layer$get_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="is_empty"><a href="ggbrain_layer.html#method-is_empty"><code>ggbrain::ggbrain_layer$is_empty()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="plot"><a href="ggbrain_layer.html#method-plot"><code>ggbrain::ggbrain_layer$plot()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="ggbrain" data-topic="ggbrain_layer" data-id="set_breaks"><a href="ggbrain_layer.html#method-set_breaks"><code>ggbrain::ggbrain_layer$set_breaks()</code></a></span></li>
@@ -118,7 +118,9 @@ in the data, consistent with ggplot2 logic.</p></dd>
 <span>  fill_holes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_specks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  data <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha_power <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -159,9 +161,8 @@ to allow layers to be defined without data in advance of the plot.</p></dd>
 
 
 <dt><code>mapping</code></dt>
-<dd><p>the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
-<code>fill</code> (color of filled pixels). Default is <code>aes(fill=value)</code>, which maps the numeric value of the layer data
-to the fill color of the squares at each spatial position. For labeled data, you might use <code>aes(fill=&lt;label_col_name&gt;)</code>.</p></dd>
+<dd><p>An <code><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">ggplot2::aes()</a></code> mapping for fill and optional voxelwise alpha.
+See <code><a href="geom_brain.html">geom_brain()</a></code> for mapping columns, images and contrasts.</p></dd>
 
 
 <dt><code>fill</code></dt>
@@ -196,6 +197,15 @@ smooth it. This makes the layer less jagged in appearance and is akin to antiali
 and "value" as columns</p></dd>
 
 
+<dt><code>alpha_cutoff</code></dt>
+<dd><p>Positive statistic magnitude at which opacity reaches 1.</p></dd>
+
+
+<dt><code>alpha_power</code></dt>
+<dd><p>Positive, finite exponent for the fade below <code>alpha_cutoff</code>.
+The default is 2 (quadratic). See <code><a href="geom_brain.html">geom_brain()</a></code> for the opacity formula.</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
@@ -205,15 +215,31 @@ a <code>fill</code> aesthetic mapping, which controls the fill color of regions.
 </div>
 
 
-</div><p></p><hr><a id="method-ggbrain_layer_brain-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
-<p>The objects of this class are cloneable with this method.</p><div class="section">
+</div><p></p><hr><a id="method-ggbrain_layer_brain-add_to_gg"></a><div class="section">
+<h3 id="method-add-to-gg-">Method <code>add_to_gg()</code><a class="anchor" aria-label="anchor" href="#method-add-to-gg-"></a></h3>
+<p>Draw the fill and its layer-specific opacity key.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_layer_brain</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_layer_brain</span><span class="op">$</span><span class="fu">add_to_gg</span><span class="op">(</span><span class="va">base_gg</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>base_gg</code></dt>
+<dd><p>The ggplot to which the layer is added.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+
+</div><p></p><hr><a id="method-ggbrain_layer_brain-clone"></a><div class="section">
+<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+<p>The objects of this class are cloneable with this method.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ggbrain_layer_brain</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

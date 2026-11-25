@@ -551,6 +551,89 @@ plot(gg_obj)
 
 ![](ggbrain_introduction_files/figure-html/unnamed-chunk-22-1.png)
 
+#### Transparent thresholding
+
+An unthresholded map lets the reader see whether a cluster sits in a
+broader pattern of positive or negative responses. Here the
+feedback-onset z statistic controls both color and opacity. At
+`|z| = 1.5` the overlay is 25% opaque. At `|z| >= 3` it is fully opaque.
+The black outline marks this illustrative voxelwise cutoff. The same
+opacity rule applies across slices. Start with the full statistic image
+because a thresholded file has already lost the values needed for the
+fade. [Taylor et al. (2026)](https://doi.org/10.1038/s41592-026-03206-7)
+
+``` r
+
+onset_plot <- ggbrain(bg_color = "white") +
+  images(c(underlay = underlay_2mm, z = feedback_onset_2mm)) +
+  slices(c("z = 15", "z = 35")) +
+  geom_brain("underlay") +
+  geom_brain("z", alpha_cutoff = 3, fill_scale = scale_fill_gradient2("z")) +
+  geom_outline("z[abs(z) >= 3]", outline = "black", size = 1)
+plot(onset_plot)
+```
+
+![](ggbrain_introduction_files/figure-html/transparent-onset-1.png)
+
+Set `alpha_power = 1` in the same layer for a linear fade. At half the
+cutoff, the voxel is then 50% opaque, compared with 25% for the
+quadratic default (`alpha_power = 2`) and 12.5% for a steeper fade
+(`alpha_power = 3`). Choose one cutoff and power for panels you intend
+to compare, and report both in the caption. The cutoff sets the display
+opacity. To indicate which voxels pass a statistical correction, draw
+the outline from the corresponding analysis mask.
+
+An effect estimate and its uncertainty can also vary independently. The
+next example constructs two illustrative regions with equal peak effect
+magnitudes in percent BOLD signal change. The standard errors are larger
+on the right. We calculate a two-sided z statistic and a separate
+Benjamini–Hochberg false discovery rate (FDR) mask across the synthetic
+volume.
+
+``` r
+
+dims <- c(41, 41, 7)
+grid <- expand.grid(x = seq(-2, 2, length.out = dims[1]),
+                    y = seq(-2, 2, length.out = dims[2]),
+                    z = seq(-1, 1, length.out = dims[3]))
+effect <- with(grid, 0.8 * (exp(-((x + 0.9)^2 + y^2 + z^2) / 0.45) -
+                            exp(-((x - 0.9)^2 + y^2 + z^2) / 0.45)))
+z_stat <- effect / ifelse(grid$x < 0, 0.16, 0.32)
+q <- p.adjust(2 * pnorm(-abs(z_stat)), method = "BH")
+as_image <- function(x) RNifti::asNifti(array(as.numeric(x), dims))
+maps <- list(effect = as_image(effect), z = as_image(z_stat), fdr = as_image(q <= 0.05))
+```
+
+For a study, supply your aligned effect image, unthresholded statistic,
+and corrected mask under the corresponding names. The color bar carries
+the effect units, the opacity key gives the statistic magnitude, and the
+mask determines which regions receive an outline. A named contrast
+created by
+[`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md)
+can also supply the alpha mapping.
+
+``` r
+
+effect_plot <- ggbrain(bg_color = "white") +
+  images(maps) + slices("k = 4") +
+  geom_brain("effect", mapping = aes(fill = value, alpha = z), alpha_cutoff = 3, alpha_power = 2,
+             fill_scale = scale_fill_gradient2("BOLD change (%)"),
+             breaks = function(...) c(-0.75, -0.5, 0, 0.5, 0.75)) +
+  geom_outline("fdr[fdr > 0]", outline = "black", size = 1)
+plot(effect_plot)
+```
+
+![Color shows synthetic effect estimates in percent BOLD signal change.
+Opacity increases quadratically (power 2) up to \|z\| = 3 and stays at 1
+above it. Black outlines mark voxels surviving two-sided BH FDR
+correction at q ≤ 0.05 across the
+volume.](ggbrain_introduction_files/figure-html/transparent-effect-1.png)
+
+Color shows synthetic effect estimates in percent BOLD signal change.
+Opacity increases quadratically (power 2) up to \|z\| = 3 and stays at 1
+above it. Black outlines mark voxels surviving two-sided BH FDR
+correction at q ≤ 0.05 across the volume.
+
 #### Defining a contrast layer
 
 The `ggbrain` package also supports full contrasts in which images can

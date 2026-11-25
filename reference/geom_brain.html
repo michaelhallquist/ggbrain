@@ -66,7 +66,9 @@
 <span>  blur_edge <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_holes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_specks <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  trim_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha_power <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -93,9 +95,11 @@ the fill color, in distinction to color mapping: <code>mapping=aes(fill=&lt;vari
 
 
 <dt id="arg-mapping">mapping<a class="anchor" aria-label="anchor" href="#arg-mapping"></a></dt>
-<dd><p>the aesthetic mapping of the layer data to the display. Should be an aes() object and supports
-<code>fill</code> (color of filled pixels). Default is <code>aes(fill=value)</code>, which maps the numeric value of the layer data
-to the fill color of the squares at each spatial position. For labeled data, you might use <code>aes(fill=&lt;label_col_name&gt;)</code>.</p></dd>
+<dd><p>A <code><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">ggplot2::aes()</a></code> mapping. Fill defaults to <code>value</code>; a label column
+can supply categorical colors. Map <code>alpha</code> to a numeric expression using layer columns,
+aligned images, or named contrasts from <code><a href="define.html">define()</a></code>. Layer columns take precedence.
+Without <code>alpha_cutoff</code>, mapped opacity must be between 0 and 1. Aligned images
+supply their numeric values, including zeros. Named contrasts use their computed masks.</p></dd>
 
 
 <dt id="arg-limits">limits<a class="anchor" aria-label="anchor" href="#arg-limits"></a></dt>
@@ -107,7 +111,7 @@ to the fill color of the squares at each spatial position. For labeled data, you
 
 
 <dt id="arg-show-legend">show_legend<a class="anchor" aria-label="anchor" href="#arg-show-legend"></a></dt>
-<dd><p>if TRUE, show the fill scale in the plot legend. Default is TRUE, except when `name="underlay"“</p></dd>
+<dd><p>if TRUE, show the fill and mapped opacity keys. Defaults to FALSE for <code>definition = "underlay"</code> and TRUE otherwise.</p></dd>
 
 
 <dt id="arg-interpolate">interpolate<a class="anchor" aria-label="anchor" href="#arg-interpolate"></a></dt>
@@ -139,6 +143,21 @@ to display. Specks are small clusters that may be distracting and contribute to 
 
 <dt id="arg-trim-threads">trim_threads<a class="anchor" aria-label="anchor" href="#arg-trim-threads"></a></dt>
 <dd><p>the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.</p></dd>
+
+
+<dt id="arg-alpha-cutoff">alpha_cutoff<a class="anchor" aria-label="anchor" href="#arg-alpha-cutoff"></a></dt>
+<dd><p>Positive statistic magnitude at which the layer is fully opaque.
+Opacity is <code>pmin(1, abs(statistic) / alpha_cutoff)^alpha_power</code> on every slice.
+The statistic defaults to the layer's numeric <code>value</code> after image cleanup. Use
+<code>aes(alpha = z)</code> to supply a separate statistic. Missing values are transparent. The opacity key
+shows statistic magnitudes and is displayed when <code>show_legend = TRUE</code>.</p></dd>
+
+
+<dt id="arg-alpha-power">alpha_power<a class="anchor" aria-label="anchor" href="#arg-alpha-power"></a></dt>
+<dd><p>Positive, finite exponent for the fade below <code>alpha_cutoff</code>.
+The default of 2 gives quadratic fading. Use 1 for linear fading or a larger
+exponent to make weak statistics more transparent. At half the cutoff, powers
+of 1, 2 and 3 give 50%, 25% and 12.5% opacity, respectively.</p></dd>
 
 </dl></div>
     <div class="section level2">

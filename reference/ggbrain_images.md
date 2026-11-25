@@ -465,7 +465,8 @@ get slice data for one or more slices based on their coordinates
       remove_null_space = TRUE,
       target_resolution = NULL,
       resample_interpolation = 5L,
-      categorical_images = character(0)
+      categorical_images = character(0),
+      opacity_images = character(0)
     )
 
 #### Arguments
@@ -514,6 +515,11 @@ get slice data for one or more slices based on their coordinates
 
   Additional image names to resample with nearest-neighbor
   interpolation, such as cluster IDs.
+
+- `opacity_images`:
+
+  Image names whose unmasked values should be retained for opacity
+  mappings.
 
 #### Details
 

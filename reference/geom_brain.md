@@ -21,7 +21,9 @@ geom_brain(
   blur_edge = NULL,
   fill_holes = NULL,
   remove_specks = NULL,
-  trim_threads = NULL
+  trim_threads = NULL,
+  alpha_cutoff = NULL,
+  alpha_power = 2
 )
 ```
 
@@ -51,11 +53,14 @@ geom_brain(
 
 - mapping:
 
-  the aesthetic mapping of the layer data to the display. Should be an
-  aes() object and supports `fill` (color of filled pixels). Default is
-  `aes(fill=value)`, which maps the numeric value of the layer data to
-  the fill color of the squares at each spatial position. For labeled
-  data, you might use `aes(fill=<label_col_name>)`.
+  A [`ggplot2::aes()`](https://ggplot2.tidyverse.org/reference/aes.html)
+  mapping. Fill defaults to `value`; a label column can supply
+  categorical colors. Map `alpha` to a numeric expression using layer
+  columns, aligned images, or named contrasts from
+  [`define()`](https://michaelhallquist.github.io/ggbrain/reference/define.md).
+  Layer columns take precedence. Without `alpha_cutoff`, mapped opacity
+  must be between 0 and 1. Aligned images supply their numeric values,
+  including zeros. Named contrasts use their computed masks.
 
 - limits:
 
@@ -67,8 +72,8 @@ geom_brain(
 
 - show_legend:
 
-  if TRUE, show the fill scale in the plot legend. Default is TRUE,
-  except when \`name="underlay"“
+  if TRUE, show the fill and mapped opacity keys. Defaults to FALSE for
+  `definition = "underlay"` and TRUE otherwise.
 
 - interpolate:
 
@@ -108,6 +113,23 @@ geom_brain(
 
   the minimum number of neighboring pixels (including diagonals) that
   must be present to keep a pixel.
+
+- alpha_cutoff:
+
+  Positive statistic magnitude at which the layer is fully opaque.
+  Opacity is `pmin(1, abs(statistic) / alpha_cutoff)^alpha_power` on
+  every slice. The statistic defaults to the layer's numeric `value`
+  after image cleanup. Use `aes(alpha = z)` to supply a separate
+  statistic. Missing values are transparent. The opacity key shows
+  statistic magnitudes and is displayed when `show_legend = TRUE`.
+
+- alpha_power:
+
+  Positive, finite exponent for the fade below `alpha_cutoff`. The
+  default of 2 gives quadratic fading. Use 1 for linear fading or a
+  larger exponent to make weak statistics more transparent. At half the
+  cutoff, powers of 1, 2 and 3 give 50%, 25% and 12.5% opacity,
+  respectively.
 
 ## Value
 

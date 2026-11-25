@@ -39,11 +39,12 @@ to be called directly in typical use of the package. Instead, look at
 
 - [`ggbrain_layer_brain$new()`](#method-ggbrain_layer_brain-new)
 
+- [`ggbrain_layer_brain$add_to_gg()`](#method-ggbrain_layer_brain-add_to_gg)
+
 - [`ggbrain_layer_brain$clone()`](#method-ggbrain_layer_brain-clone)
 
 Inherited methods
 
-- [`ggbrain::ggbrain_layer$add_to_gg()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer.html#method-add_to_gg)
 - [`ggbrain::ggbrain_layer$get_data()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer.html#method-get_data)
 - [`ggbrain::ggbrain_layer$is_empty()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer.html#method-is_empty)
 - [`ggbrain::ggbrain_layer$plot()`](https://michaelhallquist.github.io/ggbrain/reference/ggbrain_layer.html#method-plot)
@@ -78,7 +79,9 @@ create a new ggbrain_layer object
       fill_holes = NULL,
       remove_specks = NULL,
       trim_threads = NULL,
-      data = NULL
+      data = NULL,
+      alpha_cutoff = NULL,
+      alpha_power = 2
     )
 
 #### Arguments
@@ -124,11 +127,11 @@ create a new ggbrain_layer object
 
 - `mapping`:
 
-  the aesthetic mapping of the layer data to the display. Should be an
-  aes() object and supports `fill` (color of filled pixels). Default is
-  `aes(fill=value)`, which maps the numeric value of the layer data to
-  the fill color of the squares at each spatial position. For labeled
-  data, you might use `aes(fill=<label_col_name>)`.
+  An
+  [`ggplot2::aes()`](https://ggplot2.tidyverse.org/reference/aes.html)
+  mapping for fill and optional voxelwise alpha. See
+  [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+  for mapping columns, images and contrasts.
 
 - `fill`:
 
@@ -167,11 +170,38 @@ create a new ggbrain_layer object
   the data.frame containing image data for this layer. Must contain
   "dim1", "dim2", and "value" as columns
 
+- `alpha_cutoff`:
+
+  Positive statistic magnitude at which opacity reaches 1.
+
+- `alpha_power`:
+
+  Positive, finite exponent for the fade below `alpha_cutoff`. The
+  default is 2 (quadratic). See
+  [`geom_brain()`](https://michaelhallquist.github.io/ggbrain/reference/geom_brain.md)
+  for the opacity formula.
+
 #### Details
 
 To set mapping, you must provide a ggplot2 aes() object. A geom_brain()
 layer requires a `fill` aesthetic mapping, which controls the fill color
 of regions.
+
+------------------------------------------------------------------------
+
+### Method `add_to_gg()`
+
+Draw the fill and its layer-specific opacity key.
+
+#### Usage
+
+    ggbrain_layer_brain$add_to_gg(base_gg)
+
+#### Arguments
+
+- `base_gg`:
+
+  The ggplot to which the layer is added.
 
 ------------------------------------------------------------------------
 

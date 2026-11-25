@@ -181,8 +181,7 @@ create a new ggbrain_layer object
 
 - `alpha`:
 
-  fixed alpha transparency of this layer (use `mapping` for alpha
-  mapping\`)
+  fixed opacity of this layer, between 0 and 1
 
 - `blur_edge`:
 
