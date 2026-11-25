@@ -2,6 +2,9 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- Fixed-color outlines of signed maps now trace both positive and
+  negative regions.
+
 - Corrected orientation labels for reversed voxel axes and preserved
   gaps between regions when trimming slice margins.
 
