@@ -20,7 +20,8 @@ geom_brain(
   fill_holes = NULL,
   remove_specks = NULL,
   trim_threads = NULL,
-  alpha_cutoff = NULL
+  alpha_cutoff = NULL,
+  alpha_power = 2
 )
 }
 \arguments{
@@ -64,10 +65,15 @@ to display. Specks are small clusters that may be distracting and contribute to 
 \item{trim_threads}{the minimum number of neighboring pixels (including diagonals) that must be present to keep a pixel.}
 
 \item{alpha_cutoff}{Positive statistic magnitude at which the layer is fully opaque.
-Opacity is \code{pmin(1, abs(statistic) / alpha_cutoff)^2} on every slice.
+Opacity is \code{pmin(1, abs(statistic) / alpha_cutoff)^alpha_power} on every slice.
 The statistic defaults to the layer's numeric \code{value} after image cleanup. Use
 \code{aes(alpha = z)} to supply a separate statistic. Missing values are transparent. The opacity key
 shows statistic magnitudes and is displayed when \code{show_legend = TRUE}.}
+
+\item{alpha_power}{Positive, finite exponent for the fade below \code{alpha_cutoff}.
+The default of 2 gives quadratic fading. Use 1 for linear fading or a larger
+exponent to make weak statistics more transparent. At half the cutoff, powers
+of 1, 2 and 3 give 50\%, 25\% and 12.5\% opacity, respectively.}
 }
 \value{
 a ggb object populated with the relevant geom_brain and the action of 'add_layers'

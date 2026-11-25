@@ -65,6 +65,59 @@ test_that("aligned opacity images distinguish zero and missing pixels on the dis
   expect_true(all(cubic >= 0 & cubic <= 1))
 })
 
+test_that("the falloff power controls both rendered voxels and the statistic key", {
+  z <- array(rep(c(-6, -4, -2, 0, 2, 4, 6, NA_real_), 4), c(8, 2, 2))
+  z[, , 2] <- z[, , 2] / 2
+  base <- ggbrain() + images(list(effect = RNifti::asNifti(array(1, dim(z))),
+                                  z = RNifti::asNifti(z))) + slices(c("k=1", "k=2"))
+  for (power in c(0.5, 1, 3)) {
+    panels <- render(base + geom_brain("effect", mapping = ggplot2::aes(alpha = z),
+                                       alpha_cutoff = 4, alpha_power = power))
+    for (i in 1:2) {
+      pixels <- ggplot2::ggplot_build(panels[[i]])$data[[1L]]
+      magnitude <- abs(z[cbind(pixels$x, pixels$y, i)])
+      expected <- ifelse(is.na(magnitude), 0, pmin(magnitude / 4, 1)^power)
+      expect_equal(pixels$alpha, expected)
+      key <- panels[[i]]$scales$get_scales("alpha")
+      expect_equal(key$get_breaks(), c(0, 0.5^power, 1))
+      expect_equal(key$get_labels(), c("0", "2", "\u22654"))
+    }
+  }
+})
+
+test_that("custom falloff requires a cutoff and a positive finite exponent", {
+  for (bad in list(0, -1, Inf, NA_real_, c(1, 2))) {
+    expect_error(geom_brain("effect", alpha_cutoff = 3, alpha_power = bad), "alpha_power")
+  }
+  expect_error(geom_brain("effect", mapping = ggplot2::aes(alpha = weight), alpha_power = 3),
+               "alpha_cutoff")
+})
+
+test_that("bisided and repeated layers draw one swatch per opacity legend entry", {
+  d <- expand.grid(dim1 = 1:2, dim2 = 1:2)
+  d$value <- c(-4, -2, 2, 4)
+  layer <- ggbrain_layer_brain$new(definition = "z", data = d, fill_scale = scale_fill_bisided(),
+                                   alpha_cutoff = 4, alpha_power = 3)
+  p <- layer$add_to_gg(layer$add_to_gg(ggplot2::ggplot())) +
+    ggplot2::theme(legend.key = ggplot2::element_blank())
+  expect_no_warning(plot_table <- ggplot2::ggplotGrob(p))
+  box <- plot_table$grobs[[which(plot_table$layout$name == "guide-box-right")]]
+  guides <- box$grobs[box$layout$name == "guides"]
+  # Only the opacity guides draw discrete keys. Each layer gets its own guide.
+  alpha_guides <- Filter(function(g) any(startsWith(g$layout$name, "key-")), guides)
+  expect_length(alpha_guides, 2L)
+  for (guide in alpha_guides) {
+    keys <- guide$grobs[startsWith(guide$layout$name, "key-")]
+    expect_length(keys, 3L)
+    for (i in seq_along(keys)) {
+      swatches <- Filter(function(child) inherits(child, "rect"), keys[[i]]$children)
+      expect_length(swatches, 1L)
+      alpha <- grDevices::col2rgb(swatches[[1L]]$gp$fill, alpha = TRUE)[4L, 1L]
+      expect_equal(unname(alpha), round(255 * c(0, 0.5^3, 1)[i]))
+    }
+  }
+})
+
 test_that("opacity uses the imputed fill value or the separate statistic after hole filling", {
   dims <- c(5, 5, 2)
   effect <- array(2, dims)

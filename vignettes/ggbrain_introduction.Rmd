@@ -351,6 +351,13 @@ onset_plot <- ggbrain(bg_color = "white") +
 plot(onset_plot)
 ```
 
+Set `alpha_power = 1` in the same layer for a linear fade. At half the cutoff,
+the voxel is then 50% opaque, compared with 25% for the quadratic default
+(`alpha_power = 2`) and 12.5% for a steeper fade (`alpha_power = 3`).
+Choose one cutoff and power for panels you intend to compare, and report both in the caption.
+The cutoff sets the display opacity. To indicate which voxels pass a statistical
+correction, draw the outline from the corresponding analysis mask.
+
 An effect estimate and its uncertainty can also vary independently. The next example constructs two illustrative regions with equal peak effect magnitudes in percent BOLD signal change. The standard errors are larger on the right. We calculate a two-sided z statistic and a separate Benjamini–Hochberg false discovery rate (FDR) mask across the synthetic volume.
 
 ```{r transparent-example-data}
@@ -368,10 +375,10 @@ maps <- list(effect = as_image(effect), z = as_image(z_stat), fdr = as_image(q <
 
 For a study, supply your aligned effect image, unthresholded statistic, and corrected mask under the corresponding names. The color bar carries the effect units, the opacity key gives the statistic magnitude, and the mask determines which regions receive an outline. A named contrast created by `define()` can also supply the alpha mapping.
 
-```{r transparent-effect, fig.width=6, fig.height=3.8, fig.cap="Synthetic effect estimates in percent BOLD signal change. Opacity reaches 1 at |z| = 3. Black outlines mark voxels surviving two-sided BH FDR correction at q ≤ 0.05 across the volume."}
+```{r transparent-effect, fig.width=6, fig.height=3.8, fig.cap="Color shows synthetic effect estimates in percent BOLD signal change. Opacity increases quadratically (power 2) up to |z| = 3 and stays at 1 above it. Black outlines mark voxels surviving two-sided BH FDR correction at q ≤ 0.05 across the volume."}
 effect_plot <- ggbrain(bg_color = "white") +
   images(maps) + slices("k = 4") +
-  geom_brain("effect", mapping = aes(fill = value, alpha = z), alpha_cutoff = 3,
+  geom_brain("effect", mapping = aes(fill = value, alpha = z), alpha_cutoff = 3, alpha_power = 2,
              fill_scale = scale_fill_gradient2("BOLD change (%)"),
              breaks = function(...) c(-0.75, -0.5, 0, 0.5, 0.75)) +
   geom_outline("fdr[fdr > 0]", outline = "black", size = 1)

@@ -75,7 +75,8 @@ create a new ggbrain_layer object
   remove_specks = NULL,
   trim_threads = NULL,
   data = NULL,
-  alpha_cutoff = NULL
+  alpha_cutoff = NULL,
+  alpha_power = 2
 )}\if{html}{\out{</div>}}
 }
 
@@ -121,8 +122,10 @@ smooth it. This makes the layer less jagged in appearance and is akin to antiali
 \item{\code{data}}{the data.frame containing image data for this layer. Must contain "dim1", "dim2",
 and "value" as columns}
 
-\item{\code{alpha_cutoff}}{A positive statistic magnitude at which opacity reaches 1.
-Below the cutoff, opacity is the squared ratio of magnitude to cutoff.}
+\item{\code{alpha_cutoff}}{Positive statistic magnitude at which opacity reaches 1.}
+
+\item{\code{alpha_power}}{Positive, finite exponent for the fade below \code{alpha_cutoff}.
+The default is 2 (quadratic). See \code{\link[=geom_brain]{geom_brain()}} for the opacity formula.}
 }
 \if{html}{\out{</div>}}
 }

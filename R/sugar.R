@@ -297,10 +297,14 @@ define <- function(contrasts = NULL) {
 #'   Without `alpha_cutoff`, mapped opacity must be between 0 and 1. Aligned images
 #'   supply their numeric values, including zeros. Named contrasts use their computed masks.
 #' @param alpha_cutoff Positive statistic magnitude at which the layer is fully opaque.
-#'   Opacity is `pmin(1, abs(statistic) / alpha_cutoff)^2` on every slice.
+#'   Opacity is `pmin(1, abs(statistic) / alpha_cutoff)^alpha_power` on every slice.
 #'   The statistic defaults to the layer's numeric `value` after image cleanup. Use
 #'   `aes(alpha = z)` to supply a separate statistic. Missing values are transparent. The opacity key
 #'   shows statistic magnitudes and is displayed when `show_legend = TRUE`.
+#' @param alpha_power Positive, finite exponent for the fade below `alpha_cutoff`.
+#'   The default of 2 gives quadratic fading. Use 1 for linear fading or a larger
+#'   exponent to make weak statistics more transparent. At half the cutoff, powers
+#'   of 1, 2 and 3 give 50%, 25% and 12.5% opacity, respectively.
 #' @param limits if provided, sets the upper and lower bounds on the scale
 #' @param breaks if provided, a function to draw the breaks on the fill scale
 #' @param show_legend if TRUE, show the fill and mapped opacity keys. Defaults to FALSE for `definition = "underlay"` and TRUE otherwise.
@@ -335,13 +339,15 @@ define <- function(contrasts = NULL) {
 #' @export
 geom_brain <- function(definition = NULL, name = NULL, fill = NULL, fill_scale = NULL, mapping = NULL,
       limits = NULL, breaks = NULL, show_legend = TRUE, interpolate = FALSE, unify_scales=TRUE, alpha = NULL,
-      blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL, alpha_cutoff = NULL) {
+      blur_edge = NULL, fill_holes = NULL, remove_specks = NULL, trim_threads = NULL,
+      alpha_cutoff = NULL, alpha_power = 2) {
 
   # if this is the underlay layer and the user did not specify whether they want to show the legend, default to FALSE
   if (!is.null(definition) && is.character(definition) && definition == "underlay" && missing(show_legend)) show_legend <- FALSE
 
   arglist <- named_list(definition, name, limits, breaks, show_legend, interpolate, unify_scales,
-                  alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads, alpha_cutoff)
+                  alpha, mapping, fill, fill_scale, blur_edge, fill_holes, remove_specks, trim_threads,
+                  alpha_cutoff, alpha_power)
 
   # only pass through non-NULLs so that default arguments of layer are used when no input is provided
   arglist <- arglist[!sapply(arglist, is.null)]

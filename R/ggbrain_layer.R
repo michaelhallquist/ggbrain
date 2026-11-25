@@ -848,7 +848,12 @@ ggbrain_layer <- R6::R6Class(
       # only add fills if a fill setting/mapping exists
       if (isTRUE(private$pvt_map_fill)) {
         if (has_df) {
-          ret <- private$add_raster(ret, df, pdata$vcol, n_layers, raster_args, fill_scale)
+          first_args <- raster_args
+          if (has_pos_df && !is.null(private$pvt_alpha_column)) {
+            # Both sign rasters map the same opacity. Draw its legend swatch only once.
+            first_args$key_glyph <- ggplot2::draw_key_blank
+          }
+          ret <- private$add_raster(ret, df, pdata$vcol, n_layers, first_args, fill_scale)
           n_layers <- n_layers + 1
         }
 
