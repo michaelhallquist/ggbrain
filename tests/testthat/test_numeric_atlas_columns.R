@@ -405,3 +405,32 @@ test_that("continuous scales draw measured zeros and use mapped values for sign 
   }
   expect_false(pixel_fill(p[[1]], 2, 2) %in% c(NA, "transparent"))
 })
+
+test_that("bisided fills hide NIfTI background zeros and display measured atlas zeros", {
+  # Both maps have -1 and +1 around the same center voxel. Only the source
+  # of the center zero differs: image intensity versus a parcel measurement.
+  parcels <- array(1L, dim = c(3, 3, 3))
+  parcels[3, , ] <- 3L
+  parcels[2, 2, ] <- 2L
+  stats <- data.frame(value = 1:3, beta = c(-1, 0, 1))
+  overlay <- ggbrain() + images(list(z = RNifti::asNifti(parcels - 2L))) +
+    slices("k=2") + geom_brain("z", fill_scale = scale_fill_bisided())
+  atlas <- ggbrain() + images(list(atlas = RNifti::asNifti(parcels)), labels = stats) +
+    slices("k=2") + geom_brain("atlas", mapping = ggplot2::aes(fill = beta),
+                               fill_scale = scale_fill_bisided())
+
+  center_alpha <- function(plot) {
+    panel <- render(plot)[[1L]]
+    expect_length(panel$layers, 2L)
+    vapply(seq_along(panel$layers), function(i) {
+      pixels <- ggplot2::layer_grob(panel, i)[[1L]]$raster
+      expect_equal(dim(pixels), c(3L, 3L))
+      # Each sign raster must actually draw its nonzero control voxels.
+      expect_true(any(grDevices::col2rgb(pixels, alpha = TRUE)[4L, ] > 0L))
+      unname(grDevices::col2rgb(pixels[2L, 2L], alpha = TRUE)[4L, 1L])
+    }, integer(1))
+  }
+
+  expect_equal(center_alpha(overlay), c(0L, 0L))
+  expect_equal(sum(center_alpha(atlas) > 0L), 1L)
+})
