@@ -1,3 +1,31 @@
+# Use the original quosure so sign selection, scale training and drawing agree
+# even for expressions such as abs(beta) or a function in the caller's scope.
+mapped_fill_values <- function(layer, data) {
+  mapping <- layer$mapping
+  expr <- mapping$fill %||% mapping$outline
+  if (is.null(expr)) return(data$value)
+  rlang::eval_tidy(expr, data)
+}
+
+continuous_fill_limits <- function(scale, values) {
+  if (!is.null(scale)) values <- scale$transform(values)
+  values <- values[is.finite(values)]
+  if (length(values)) range(values)
+}
+
+default_statistic_scale <- function(values) {
+  values <- values[is.finite(values)]
+  has_neg <- any(values < 0)
+  has_pos <- any(values > 0)
+  if (has_neg && has_pos) {
+    scale_fill_bisided()
+  } else if (has_neg) {
+    ggplot2::scale_fill_distiller(palette = "Blues", direction = 1)
+  } else {
+    ggplot2::scale_fill_distiller(palette = "Reds")
+  }
+}
+
 #' R6 class for a single layer of a ggbrain panel
 #' @details
 #'   Note that this class is exported only for power users and rarely needs to be called directly
@@ -45,8 +73,9 @@ ggbrain_layer <- R6::R6Class(
     # private function to fill holes of a certain size
     # uses a flood fill algorithm from the corners to find pixels that cannot be reached
     # these are then filled by nearest neighbor imputation
-    fill_img_holes = function(img, size = 10, neighbors=10, categorical = FALSE) {
-      filled_img <- fill_from_edge(img, nedges = 4) # flood fills TRUE from four corners to find holes
+    fill_img_holes = function(img, size = 10, neighbors=10, categorical = FALSE, measured = FALSE) {
+      occupied <- if (measured) !is.na(img) else img != 0
+      filled_img <- fill_from_edge(occupied, nedges = 4) # flood fills TRUE from four corners to find holes
       holes <- !as.cimg(filled_img) # becomes TRUE where there is a hole
 
       # use a component labeler to find holes (assuming there are any)
@@ -57,14 +86,16 @@ ggbrain_layer <- R6::R6Class(
 
         if (length(hh) > 0L) {
           # use logical or to combine all holes, assign NA for all hole pixels
-          img[as.matrix(Reduce("|", objs[hh]))] <- NA
+          to_fill <- as.matrix(Reduce("|", objs[hh]))
+          img[to_fill] <- NA
 
           # fill NAs by nearest neighbor imputation
           # keep radius within image bounds to avoid imputation errors on tiny slices
           rr <- max(6, ceiling(sqrt(size)))
           rr <- min(rr, max(dim(img)))
           aggfun <- ifelse(isTRUE(categorical), "mode", "mean")
-          img <- nn_impute(img, neighbors = neighbors, radius = rr, aggfun = aggfun, ignore_zeros = TRUE)
+          imputed <- nn_impute(img, neighbors = neighbors, radius = rr, aggfun = aggfun, ignore_zeros = !measured)
+          img[to_fill] <- imputed[to_fill]
         }
       }
       return(img)
@@ -123,8 +154,11 @@ ggbrain_layer <- R6::R6Class(
     refine_image = function() {
       d <- private$pvt_data
       label_columns <- attr(d, "label_columns")
-      dmat <- df2mat(d, replace_na = 0) # convert NAs to zero prior to image processing
-      is_categorical <- isTRUE(private$pvt_categorical_fill) || !is.null(label_columns)
+      table_columns <- attr(d, "table_columns")
+      lookup_columns <- union(label_columns, table_columns)
+      measured <- isTRUE(attr(d, "measured_statistic"))
+      dmat <- df2mat(d, replace_na = if (measured) NULL else 0)
+      is_categorical <- isTRUE(private$pvt_categorical_fill) || length(lookup_columns) > 0L
 
       # always fill in holes first so that neighbor counts are more sensible
       if (private$pvt_fill_holes > 0L) {
@@ -132,28 +166,33 @@ ggbrain_layer <- R6::R6Class(
           dmat,
           size = private$pvt_fill_holes,
           neighbors = 10,
-          categorical = is_categorical
+          categorical = is_categorical, measured = measured
         )
-        d <- mat2df(dmat, na_zeros = TRUE) # convert back to modified data frame
+        d <- mat2df(dmat, na_zeros = !measured)
+        if (measured) attr(d, "measured_statistic") <- TRUE
         attr(d, "label_columns") <- label_columns
+        attr(d, "table_columns") <- table_columns
 
         # Keep other pixel columns, including sources used by opacity mappings.
-        pixel_columns <- setdiff(names(private$pvt_data), c("value", label_columns))
+        lookup_columns <- intersect(lookup_columns, names(private$pvt_data))
+        pixel_columns <- setdiff(names(private$pvt_data), c("value", lookup_columns))
         if (length(pixel_columns) > 2L) {
           d <- dplyr::left_join(d, private$pvt_data[pixel_columns], by = c("dim1", "dim2"))
         }
 
-        # Lookup labels for the imputed value.
-        if (!is.null(label_columns)) {
+        # Lookup label and numeric table columns for the imputed value.
+        if (length(lookup_columns) > 0L) {
           lab_df <- private$pvt_data %>%
             dplyr::group_by(value) %>%
             dplyr::filter(dplyr::row_number() == 1L & !is.na(value)) %>%
-            dplyr::select(value, !!label_columns)
+            dplyr::select(tidyselect::all_of(c("value", lookup_columns)))
 
-          d <- d %>% left_join(lab_df, by="value")
+          d <- d %>% left_join(lab_df, by = "value")
         }
       }
 
+      # Thread and speck detection operate on occupied pixels.
+      if (measured) dmat <- 1L * !is.na(dmat)
       na_rows <- rep(FALSE, nrow(d))
       vcols <- setdiff(names(d), c("dim1", "dim2"))
 
@@ -245,7 +284,11 @@ ggbrain_layer <- R6::R6Class(
         }
 
         # evaluate fill expression and pass forward to aes as character
-        fill_expr <- sub("{new_val}", new_val, private$pvt_fill_expr, fixed=TRUE)
+        fill_expr <- if (private$pvt_categorical_fill) {
+          sub("{new_val}", new_val, private$pvt_fill_expr, fixed = TRUE)
+        } else {
+          new_val
+        }
 
         raster_args$data <- df
         fill_quo <- rlang::parse_expr(fill_expr)
@@ -307,6 +350,11 @@ ggbrain_layer <- R6::R6Class(
         vcol <- "value" # we have a fill layer, but it is not mapped -- this occurs for outline layers built from continuous images
       }
 
+      plot_data <- private$pvt_data
+      if (isTRUE(private$pvt_map_fill) && !private$pvt_categorical_fill) {
+        plot_data[[vcol]] <- mapped_fill_values(self, plot_data)
+      }
+
       # Handle bisided situation
       # Note that geom_raster does best when there is a value at every square. Otherwise, it throws:
       # "Raster pixels are placed at uneven vertical intervals and will be shifted"
@@ -315,11 +363,11 @@ ggbrain_layer <- R6::R6Class(
       bisided <- isTRUE(private$pvt_map_fill) && isTRUE(private$pvt_bisided) && !private$pvt_categorical_fill
       if (bisided) {
         df <- NULL
-        df_neg <- private$pvt_data %>%
+        df_neg <- plot_data %>%
           dplyr::mutate(!!vcol := if_else(!!sym(vcol) < 0, !!sym(vcol), NA_real_))
 
-        df_pos <- private$pvt_data %>%
-          dplyr::mutate(!!vcol := if_else(!!sym(vcol) > 0, !!sym(vcol), NA_real_))
+        df_pos <- plot_data %>%
+          dplyr::mutate(!!vcol := if_else(!!sym(vcol) >= 0, !!sym(vcol), NA_real_))
 
         private$symmetrize_limits(df_neg[[vcol]], df_pos[[vcol]])
 
@@ -327,7 +375,7 @@ ggbrain_layer <- R6::R6Class(
         fill_scale_neg <- private$pvt_fill_scale$neg_scale
         fill_scale_pos <- private$pvt_fill_scale$pos_scale
       } else {
-        df <- private$pvt_data
+        df <- plot_data
         df_pos <- df_neg <- NULL
         fill_scale <- private$pvt_fill_scale
         fill_scale_pos <- fill_scale_neg <- NULL
@@ -435,18 +483,18 @@ ggbrain_layer <- R6::R6Class(
       # don't symmetrize if not requested
       if (!private$pvt_fill_scale$symmetric) return(invisible(NULL))
 
-      neg_lims <- private$pvt_fill_scale$neg_scale$limits
-      pos_lims <- private$pvt_fill_scale$pos_scale$limits
-
-      if (is.null(neg_lims)) neg_lims <- negative[is.finite(negative)]
-      if (is.null(pos_lims)) pos_lims <- positive[is.finite(positive)]
-      magnitudes <- c(abs(neg_lims), abs(pos_lims))
+      neg_scale <- private$pvt_fill_scale$neg_scale
+      pos_scale <- private$pvt_fill_scale$pos_scale
+      # ggplot stores limits in transformed space. Symmetry is defined in
+      # statistic units, even when the two scales use different transforms.
+      if (!is.null(neg_scale$limits)) negative <- neg_scale$trans$inverse(neg_scale$limits)
+      if (!is.null(pos_scale$limits)) positive <- pos_scale$trans$inverse(pos_scale$limits)
+      magnitudes <- abs(c(negative, positive))
       magnitudes <- magnitudes[is.finite(magnitudes)]
       if (!length(magnitudes)) return(invisible(NULL))
 
-      pos_lims <- range(magnitudes)
-      private$pvt_fill_scale$neg_scale$limits <- -rev(pos_lims)
-      private$pvt_fill_scale$pos_scale$limits <- pos_lims
+      neg_scale$limits <- continuous_fill_limits(neg_scale, -magnitudes)
+      pos_scale$limits <- continuous_fill_limits(pos_scale, magnitudes)
     },
 
     # private method to set default fill scale when not provided
@@ -460,25 +508,10 @@ ggbrain_layer <- R6::R6Class(
       if (private$pvt_definition == "underlay") {
         self$fill_scale <- scale_fill_gradient(low = "grey8", high = "grey92")
       } else {
-        has_pos <- any(private$pvt_data$value > 0, na.rm = TRUE)
-        has_neg <- any(private$pvt_data$value < 0, na.rm = TRUE)
-        all_na <- all(is.na(private$pvt_data$value))
         if (isTRUE(private$pvt_categorical_fill)) {
           self$fill_scale <- ggplot2::scale_fill_brewer(palette = "Set3")
-        } else if (has_pos && has_neg) {
-          #self$fill_scale <- scale_fill_distiller(palette = "RdBu") # red-blue diverging
-          self$fill_scale <- scale_fill_bisided(
-            neg_scale = scale_fill_distiller(palette = "Blues", direction = 1),
-            pos_scale = scale_fill_distiller(palette = "Reds")
-          ) # internal scale stack
-        } else if (has_neg) {
-          self$fill_scale <- scale_fill_distiller(palette = "Blues", direction = 1)
-        } else if (has_pos) {
-          self$fill_scale <- scale_fill_distiller(palette = "Reds")
-        } else if (all_na) {
-          self$fill_scale <- scale_fill_distiller(palette = "Reds")
         } else {
-          warning("Could not set default scale for layer")
+          self$fill_scale <- default_statistic_scale(mapped_fill_values(self, private$pvt_data))
         }
         if (is.null(self$show_legend)) self$show_legend <- TRUE
       }

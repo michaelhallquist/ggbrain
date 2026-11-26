@@ -16,7 +16,7 @@ scale_fill_bisided(
 
 \item{neg_scale}{a scale_fill_* object used for negative values}
 
-\item{pos_scale}{a scale_fill_* object used for positive values}
+\item{pos_scale}{a scale_fill_* object used for positive values and measured zeros}
 
 \item{symmetric}{if TRUE, the limits of the positive scale will equal the inverse limits of
 the negative scale. Said differently, this makes the positive and negative scales symmetric}
