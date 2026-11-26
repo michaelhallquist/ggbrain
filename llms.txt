@@ -202,6 +202,9 @@ Open the installed guides with `browseVignettes("ggbrain")`.
   : breaks function for including min + max with labels, and a few
   unlabeled ticks in between
 
+- [`read_lut()`](https://michaelhallquist.github.io/ggbrain/reference/read_lut.md)
+  : Read a neuroimaging color lookup table (LUT)
+
 - [`render()`](https://michaelhallquist.github.io/ggbrain/reference/render.md)
   :
 
@@ -213,6 +216,9 @@ Open the installed guides with `browseVignettes("ggbrain")`.
 - [`scale_fill_bisided()`](https://michaelhallquist.github.io/ggbrain/reference/scale_fill_bisided.md)
   : scale for plotting separate color gradients for positive and
   negative values
+
+- [`scale_fill_lut()`](https://michaelhallquist.github.io/ggbrain/reference/scale_fill_lut.md)
+  : Build a manual ggplot2 fill scale from a color lookup table (LUT)
 
 - [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
   : Adds slices to the ggbrain plot, including additional panel

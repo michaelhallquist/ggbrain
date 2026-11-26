@@ -242,21 +242,46 @@ defaults to [ColorBrewer’s
 
 What if we wanted to use the same coloration as in the original Yeo et
 al. 2011 paper? These colors are provided in the
-Yeo2011_7Networks_ColorLUT.txt file from
-[Freesurfer](https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation_Yeo2011).
+`Yeo2011_7Networks_ColorLUT.txt` file from
+[FreeSurfer](https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation_Yeo2011).
+
+`ggbrain` provides
+[`read_lut()`](https://michaelhallquist.github.io/ggbrain/reference/read_lut.md)
+to parse standard FreeSurfer, ITK-SNAP, and FSL/FSLeyes color lookup
+tables directly into a tidy `tibble` (`value`, `label`, `r`, `g`, `b`,
+`color`)—automatically dropping background `value == 0` entries by
+default—and
+[`scale_fill_lut()`](https://michaelhallquist.github.io/ggbrain/reference/scale_fill_lut.md)
+to turn that table into a named discrete fill or outline scale. When an
+atlas NIfTI uses the same integer codes as the LUT, you can pass the
+returned `tibble` straight to `images(..., labels = lut)` and use
+`scale_fill_lut(lut)`. Here, we attach the short network names used in
+our Schaefer lookup table (`network`) and pass `by = "network"` to
+[`scale_fill_lut()`](https://michaelhallquist.github.io/ggbrain/reference/scale_fill_lut.md):
 
 ``` r
 
-yeo_colors <- read.table(system.file("extdata", "Yeo2011_7Networks_ColorLUT.txt", package = "ggbrain")) %>%
-  setNames(c("index", "name", "r", "g", "b", "zero")) %>% slice(-1)
+yeo_lut <- read_lut(system.file("extdata", "Yeo2011_7Networks_ColorLUT.txt", package = "ggbrain"))
+yeo_lut$network <- c("Vis", "SomMot", "DorsAttn", "SalVentAttn", "Limbic", "Cont", "Default")
+yeo_lut
+```
 
-# Convert RGB to hex. Also, using a named set of colors with scale_fill_manual ensures accurate value -> color mapping
-yeo7 <- as.character(glue::glue_data(yeo_colors, "{sprintf('#%.2x%.2x%.2x', r, g, b)}")) %>%
-  setNames(c("Vis", "SomMot", "DorsAttn", "SalVentAttn", "Limbic", "Cont", "Default"))
+    ## # A tibble: 7 × 7
+    ##   value label           r     g     b color   network    
+    ##   <int> <chr>       <int> <int> <int> <chr>   <chr>      
+    ## 1     1 7Networks_1   120    18   134 #781286 Vis        
+    ## 2     2 7Networks_2    70   130   180 #4682B4 SomMot     
+    ## 3     3 7Networks_3     0   118    14 #00760E DorsAttn   
+    ## 4     4 7Networks_4   196    58   250 #C43AFA SalVentAttn
+    ## 5     5 7Networks_5   220   248   164 #DCF8A4 Limbic     
+    ## 6     6 7Networks_6   230   148    34 #E69422 Cont       
+    ## 7     7 7Networks_7   205    62    78 #CD3E4E Default
+
+``` r
 
 gg_obj <- gg_base +
   geom_brain(definition = "atlas", name = "Yeo 7 Assignment", 
-             mapping = aes(fill = network), fill_scale = scale_fill_manual(values=yeo7))
+             mapping = aes(fill = network), fill_scale = scale_fill_lut(yeo_lut, by = "network"))
 
 plot(gg_obj)
 ```
@@ -280,7 +305,7 @@ gg_obj <- gg_base +
 
   geom_outline(definition = "atlas", name = "Yeo 7 Assignment",
                mapping = aes(outline = network), 
-               outline_scale = scale_fill_manual(values=yeo7), show_legend = TRUE)
+               outline_scale = scale_fill_lut(yeo_lut, by = "network"), show_legend = TRUE)
   
 plot(gg_obj)
 ```

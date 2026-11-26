@@ -2,6 +2,14 @@
 
 ## ggbrain 1.0 (7Dec2025)
 
+- Added
+  [`read_lut()`](https://michaelhallquist.github.io/ggbrain/reference/read_lut.md)
+  and
+  [`scale_fill_lut()`](https://michaelhallquist.github.io/ggbrain/reference/scale_fill_lut.md)
+  to parse FreeSurfer, ITK-SNAP, and FSL/FSLeyes color lookup tables
+  directly into tidy label tables (`value`, `label`, `r`, `g`, `b`,
+  `color`) and build matching discrete `ggplot2` fill/outline scales.
+
 - Atlas lookup tables supplied to `images(..., labels = ...)` now fully
   support numeric parcel/ROI columns (e.g., region-level effect sizes,
   *t*-statistics, or *p*-values) in addition to categorical labels.
