@@ -244,12 +244,13 @@ ggbrain_plot <- R6::R6Class(
     #'   slice_data object. If NULL, all layers in the slices object will be plotted. If only
     #'   a character string is passed, then those layers will be plotted with default scales.
     #' @param slice_indices An optional subset of slice indices to display from the stored slice data
+    #' @param peak_voxels Voxel coordinates of selected cluster peaks for crosshair annotations
     #' @details In addition to \code{name}, the elements of a layer can include
     #'   \code{fill_scale} a ggplot2 scale object for coloring the layer. Should be a scale_fill_* object.
     #'   \code{limits} the numeric limits to use for the color scale of this layer
     #'   \code{breaks} the scale breaks to use for the color scale of this layer
     #'   \code{show_legend} if FALSE, the color scale will not appear in the legend
-    generate_plot = function(layers=NULL, slice_indices=NULL) {
+    generate_plot = function(layers=NULL, slice_indices=NULL, peak_voxels=NULL) {
       possible_layer_names <- names(private$pvt_layers)
       if (is.null(layers)) {
         if (!is.null(private$pvt_layers)) {
@@ -484,7 +485,8 @@ ggbrain_plot <- R6::R6Class(
         if (is.null(pan_i$base_size)) pan_i$base_size <- private$pvt_base_size
 
         # add crosshair and orientation annotations if requested
-        annotations <- lapply(all_annotations[[i]]$annotate_settings, function(ann_list) {
+        slice_index <- slice_df$slice_index[i]
+        annotations <- lapply(all_annotations[[slice_index]]$annotate_settings, function(ann_list) {
           if ("crosshair_params" %in% names(ann_list)) {
             has_ch <- which(!vapply(ann_list$crosshair_params, is.null, logical(1)))
             ch_ann <- NULL
@@ -494,21 +496,17 @@ ggbrain_plot <- R6::R6Class(
                 if (length(params) == 1L && is.null(names(params)) && is.list(params[[1]])) {
                   params <- params[[1]]
                 }
-                do.call(
-                  crosshair_annotations_for_slice,
-                  c(
-                    list(
-                      slices_obj = private$pvt_slices,
-                      slice_index = i,
-                      xyz = params$xyz,
-                      color = params$color,
-                      linewidth = params$linewidth,
-                      alpha = params$alpha,
-                      linetype = params$linetype,
-                      tol = params$tol
-                    ),
-                    params$extra
-                  )
+                crosshair_annotations_for_slice(
+                  slices_obj = private$pvt_slices,
+                  slice_index = slice_index,
+                  xyz = params$xyz,
+                  color = params$color,
+                  linewidth = params$linewidth,
+                  alpha = params$alpha,
+                  linetype = params$linetype,
+                  tol = params$tol,
+                  extra = params$extra,
+                  ijk = if (identical(params$at, "cluster_peaks")) peak_voxels
                 )
               }))
             }
@@ -531,7 +529,7 @@ ggbrain_plot <- R6::R6Class(
                 }
                 args <- c(
                   list(
-                    panel_index = i,
+                    panel_index = slice_index,
                     slices_obj = private$pvt_slices,
                     size = params$size %||% 3,
                     color = params$color %||% pan_i$text_color,

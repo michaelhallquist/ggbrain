@@ -115,7 +115,11 @@ removes all existing layers from this ggbrain_plot object
 \subsection{Method \code{generate_plot()}}{
 generate the plot
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$generate_plot(layers = NULL, slice_indices = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ggbrain_plot$generate_plot(
+  layers = NULL,
+  slice_indices = NULL,
+  peak_voxels = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -129,6 +133,8 @@ slice_data object. If NULL, all layers in the slices object will be plotted. If 
 a character string is passed, then those layers will be plotted with default scales.}
 
 \item{\code{slice_indices}}{An optional subset of slice indices to display from the stored slice data}
+
+\item{\code{peak_voxels}}{Voxel coordinates of selected cluster peaks for crosshair annotations}
 }
 \if{html}{\out{</div>}}
 }

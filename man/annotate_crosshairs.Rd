@@ -2,16 +2,17 @@
 % Please edit documentation in R/annotate_crosshairs.R
 \name{annotate_crosshairs}
 \alias{annotate_crosshairs}
-\title{Annotate crosshairs at user-specified world (xyz) coordinates}
+\title{Annotate crosshairs at world coordinates or cluster peaks}
 \usage{
 annotate_crosshairs(
-  xyz,
+  xyz = NULL,
   color = "white",
   linewidth = 0.4,
   alpha = 0.7,
   linetype = "dashed",
   tol = 1,
-  ...
+  ...,
+  at = NULL
 )
 }
 \arguments{
@@ -27,15 +28,18 @@ giving world-space coordinates (in mm) at which to draw crosshairs.}
 \item{linetype}{Line type (e.g., "dashed"). Default: "dashed".}
 
 \item{tol}{Tolerance (in mm) for matching a coordinate to a displayed slice along its
-slicing axis. Default: 1.}
+slicing axis when using \code{xyz}. Default: 1.}
 
 \item{...}{Additional arguments passed to \code{ggplot2::annotate} for the crosshair segments.}
+
+\item{at}{Set to \code{"cluster_peaks"} to mark peaks from
+\code{slices(cluster_slices(..., slice_at = "peak"))}. Supply either \code{xyz} or \code{at}.}
 }
 \value{
 A \code{ggb} object with action "add_annotations"
 }
 \description{
-Annotate crosshairs at user-specified world (xyz) coordinates
+Annotate crosshairs at world coordinates or cluster peaks
 }
 \details{
 Crosshairs are drawn on slices whose slicing axis (e.g., z for axial) falls within
@@ -44,6 +48,11 @@ the crosshair is shown on all slices along that axis where the remaining two axe
 For example, \verb{x=0, y=0, z=NA} will show a crosshair on every axial slice at x/y=0 (within
 the nearest in-plane voxel). Coordinates are provided in world space to match the
 \code{slices()} API.
+
+With \code{at = "cluster_peaks"}, each peak is marked on every displayed slice
+that passes through its voxel. The slice match uses the exact voxel index.
+If several peaks lie on a slice, each gets a crosshair. When no peaks are
+selected, this annotation draws nothing.
 }
 \examples{
 \dontrun{

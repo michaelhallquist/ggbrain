@@ -17,7 +17,8 @@ compute_cluster_slices(
   outline_scale = NULL,
   outline_show_legend = NULL,
   sided = c("bisided", "two_sided"),
-  contrasts = NULL
+  contrasts = NULL,
+  slice_at = "center_of_mass"
 )
 }
 \arguments{
@@ -51,6 +52,12 @@ cluster outline colors. Mutually exclusive with \code{outline_color}.}
 \item{sided}{Sidedness for clustering thresholded images. See \code{cluster_slices()}.}
 
 \item{contrasts}{Optional named character strings containing numeric/logical contrast expressions.}
+
+\item{slice_at}{Location within each cluster used to select a slice.
+\code{"center_of_mass"} (default) uses the cluster's center of mass.
+\code{"peak"} uses the voxel with the largest absolute value in the clustering
+image or contrast. \code{"nearest"} uses the cluster voxel closest to the
+center of mass by Euclidean distance in world coordinates.}
 }
 \value{
 A list with elements: coordinates (character vector of slice coords) and

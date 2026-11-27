@@ -391,6 +391,8 @@ ggb <- R6::R6Class(
     #'   The returned data.frame contains columns: cluster_id, size (in voxels), com_i, com_j, com_k
     #'   (center of mass in voxel coordinates), com_x, com_y, com_z (center of mass in world/mm coordinates),
     #'   and slice_coord (the slice coordinate string used for plotting).
+    #'   With `cluster_slices(slice_at = "peak")` or `cluster_slices(slice_at = "nearest")`,
+    #'   the selected voxel is reported in slice_i, slice_j, and slice_k, with its statistic in slice_value.
     #' @return A data.frame with cluster information, or NULL if no cluster_slices were used or render() hasn't been called
     get_cluster_data = function() {
       if (is.null(self$ggb_cluster_data) || length(self$ggb_cluster_data) == 0L) {
@@ -593,7 +595,11 @@ ggb <- R6::R6Class(
       self$ggb_plot$panel_settings <- panel_settings
       self$ggb_plot$annotations <- self$ggb_annotations # pass through annotations
       self$ggb_plot$region_labels <- self$ggb_region_labels # pass through region labels
-      self$ggb_plot$generate_plot()
+      peak_specs <- vapply(self$ggb_cluster_slices, function(spec) {
+        identical(spec$slice_at, "peak") && !identical(spec$action, "clusterized")
+      }, logical(1L))
+      peak_voxels <- lapply(res$cluster_data[peak_specs], `[`, c("slice_i", "slice_j", "slice_k"))
+      self$ggb_plot$generate_plot(peak_voxels = unique(dplyr::bind_rows(peak_voxels)))
       
       # call the ggbrain_plot $plot method to convert to a patchwork object
       g <- self$ggb_plot$plot(guides)
