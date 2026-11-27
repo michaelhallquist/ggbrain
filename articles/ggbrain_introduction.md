@@ -259,14 +259,17 @@ gg_obj <- gg_obj + slices(montage("sagittal", 5, min_coord = -10, max_coord = 10
 
 #### Automatically locating clusters and outlines
 
-When you have a statistical overlay,
-[`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
-can pick informative slice locations based on the centers of mass of the
-largest 3D clusters. Use
+Use
 [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
 within
 [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
-in place of manual coordinates.
+to select locations from the largest 3D clusters in a statistical
+overlay. The default, `slice_at = "center_of_mass"`, places the slice at
+the cluster’s center of mass. Use `slice_at = "peak"` to show the voxel
+with the strongest absolute statistic, or `slice_at = "nearest"` to show
+the cluster voxel nearest its center of mass in millimeters. The
+nearest-voxel option is useful when the center of an irregular cluster
+lies in the surrounding background.
 
 There are two supported ways to supply a contrast to
 [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md):
@@ -367,16 +370,16 @@ result contains both a table and a character vector of coordinates.
 
 selected <- cluster_slices(
   images = c(overlay = pe_overlay_2mm), definition = "overlay[abs(overlay) > 3]",
-  nclusters = 4, min_clust_size = 40
+  nclusters = 4, min_clust_size = 40, slice_at = "peak"
 )
-selected$cluster_data[, c("size", "side", "com_x", "com_y", "com_z")]
+selected$cluster_data[, c("size", "side", "slice_coord", "slice_value")]
 ```
 
-    ##    size     side      com_x       com_y     com_z
-    ## 1 41494 positive  -2.385791  -36.776064  9.646937
-    ## 2   779 positive  42.451861   38.613607 15.057766
-    ## 3   667 positive  47.910045    9.862069 26.437781
-    ## 4    44 negative -13.045455 -100.500000 15.181818
+    ##    size     side slice_coord slice_value
+    ## 1 41494 positive      k = 37   12.994832
+    ## 2   779 positive      k = 50    7.056568
+    ## 3   667 positive      k = 53    9.541517
+    ## 4    44 negative      k = 48   -6.201405
 
 Use `slices(selected$coordinates)` to reuse those locations. For
 automatic outlines, use the deferred form

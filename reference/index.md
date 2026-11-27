@@ -7,7 +7,7 @@
   the slice along the slicing axis (e.g., z = 15)
 
 - [`annotate_crosshairs()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_crosshairs.md)
-  : Annotate crosshairs at user-specified world (xyz) coordinates
+  : Annotate crosshairs at world coordinates or cluster peaks
 
 - [`annotate_orientation()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_orientation.md)
   : Annotate orientation labels (L/R/A/P/S/I) on each panel using NIfTI
@@ -17,8 +17,7 @@
   : Adds custom annotations to a single panel on the ggbrain plot
 
 - [`cluster_slices()`](https://michaelhallquist.github.io/ggbrain/reference/cluster_slices.md)
-  : Find slice locations based on cluster centers of mass in a 3D brain
-  image
+  : Select slices through clusters in a 3D brain image
 
 - [`count_neighbors`](https://michaelhallquist.github.io/ggbrain/reference/count_neighbors.md)
   : This function counts the number of neighboring/touching pixels in a

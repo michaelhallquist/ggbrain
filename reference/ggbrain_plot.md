@@ -149,7 +149,11 @@ generate the plot
 
 #### Usage
 
-    ggbrain_plot$generate_plot(layers = NULL, slice_indices = NULL)
+    ggbrain_plot$generate_plot(
+      layers = NULL,
+      slice_indices = NULL,
+      peak_voxels = NULL
+    )
 
 #### Arguments
 
@@ -168,6 +172,10 @@ generate the plot
 
   An optional subset of slice indices to display from the stored slice
   data
+
+- `peak_voxels`:
+
+  Voxel coordinates of selected cluster peaks for crosshair annotations
 
 #### Details
 

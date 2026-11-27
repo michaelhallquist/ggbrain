@@ -18,7 +18,8 @@ compute_cluster_slices(
   outline_scale = NULL,
   outline_show_legend = NULL,
   sided = c("bisided", "two_sided"),
-  contrasts = NULL
+  contrasts = NULL,
+  slice_at = "center_of_mass"
 )
 ```
 
@@ -84,6 +85,15 @@ compute_cluster_slices(
 
   Optional named character strings containing numeric/logical contrast
   expressions.
+
+- slice_at:
+
+  Location within each cluster used to select a slice.
+  `"center_of_mass"` (default) uses the cluster's center of mass.
+  `"peak"` uses the voxel with the largest absolute value in the
+  clustering image or contrast. `"nearest"` uses the cluster voxel
+  closest to the center of mass by Euclidean distance in world
+  coordinates.
 
 ## Value
 

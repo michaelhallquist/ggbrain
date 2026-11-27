@@ -40,6 +40,13 @@
   Extending a rendered figure refreshes the data returned by slice
   inspection.
 
+- `cluster_slices(slice_at = "peak")` selects the strongest absolute
+  statistic in each cluster. `slice_at = "nearest"` selects the cluster
+  voxel closest to its center of mass in millimeters.
+
+- `annotate_crosshairs(at = "cluster_peaks")` marks the selected cluster
+  peaks on every displayed slice that passes through them.
+
 - [`annotate_coordinates()`](https://michaelhallquist.github.io/ggbrain/reference/annotate_coordinates.md)
   can put slice labels in per-panel captions. In-panel text gets edge
   padding and inward alignment at the default corner.

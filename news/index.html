@@ -53,6 +53,8 @@
 <li><p>Corrected orientation labels for reversed voxel axes and preserved gaps between regions when trimming slice margins.</p></li>
 <li><p>Display resampling now uses the voxel spacing of each in-plane axis and preserves generated cluster IDs.</p></li>
 <li><p>Cluster reports handle empty selections and mixed outline settings. Extending a rendered figure refreshes the data returned by slice inspection.</p></li>
+<li><p><code>cluster_slices(slice_at = "peak")</code> selects the strongest absolute statistic in each cluster. <code>slice_at = "nearest"</code> selects the cluster voxel closest to its center of mass in millimeters.</p></li>
+<li><p><code>annotate_crosshairs(at = "cluster_peaks")</code> marks the selected cluster peaks on every displayed slice that passes through them.</p></li>
 <li><p><code><a href="../reference/annotate_coordinates.html">annotate_coordinates()</a></code> can put slice labels in per-panel captions. In-panel text gets edge padding and inward alignment at the default corner.</p></li>
 <li><p>Annotation position <code>"middle"</code> uses the midpoint of the slice grid, so overlays with unevenly distributed rows do not shift it.</p></li>
 <li><p>Annotation position <code>"q1"</code> now means the 1st percentile. Use <code>"q1.0"</code> or <code>"q100"</code> for the 100th percentile.</p></li>

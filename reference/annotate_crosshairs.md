@@ -1,18 +1,19 @@
-# Annotate crosshairs at user-specified world (xyz) coordinates
+# Annotate crosshairs at world coordinates or cluster peaks
 
-Annotate crosshairs at user-specified world (xyz) coordinates
+Annotate crosshairs at world coordinates or cluster peaks
 
 ## Usage
 
 ``` r
 annotate_crosshairs(
-  xyz,
+  xyz = NULL,
   color = "white",
   linewidth = 0.4,
   alpha = 0.7,
   linetype = "dashed",
   tol = 1,
-  ...
+  ...,
+  at = NULL
 )
 ```
 
@@ -44,13 +45,19 @@ annotate_crosshairs(
 - tol:
 
   Tolerance (in mm) for matching a coordinate to a displayed slice along
-  its slicing axis. Default: 1.
+  its slicing axis when using `xyz`. Default: 1.
 
 - ...:
 
   Additional arguments passed to
   [`ggplot2::annotate`](https://ggplot2.tidyverse.org/reference/annotate.html)
   for the crosshair segments.
+
+- at:
+
+  Set to `"cluster_peaks"` to mark peaks from
+  `slices(cluster_slices(..., slice_at = "peak"))`. Supply either `xyz`
+  or `at`.
 
 ## Value
 
@@ -67,6 +74,11 @@ that axis where the remaining two axes match. For example,
 space to match the
 [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
 API.
+
+With `at = "cluster_peaks"`, each peak is marked on every displayed
+slice that passes through its voxel. The slice match uses the exact
+voxel index. If several peaks lie on a slice, each gets a crosshair.
+When no peaks are selected, this annotation draws nothing.
 
 ## Examples
 

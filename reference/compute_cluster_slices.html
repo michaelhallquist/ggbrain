@@ -64,7 +64,8 @@
 <span>  outline_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outline_show_legend <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sided <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bisided"</span>, <span class="st">"two_sided"</span><span class="op">)</span>,</span>
-<span>  contrasts <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  contrasts <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  slice_at <span class="op">=</span> <span class="st">"center_of_mass"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -127,6 +128,14 @@ cluster outline colors. Mutually exclusive with <code>outline_color</code>.</p><
 
 <dt id="arg-contrasts">contrasts<a class="anchor" aria-label="anchor" href="#arg-contrasts"></a></dt>
 <dd><p>Optional named character strings containing numeric/logical contrast expressions.</p></dd>
+
+
+<dt id="arg-slice-at">slice_at<a class="anchor" aria-label="anchor" href="#arg-slice-at"></a></dt>
+<dd><p>Location within each cluster used to select a slice.
+<code>"center_of_mass"</code> (default) uses the cluster's center of mass.
+<code>"peak"</code> uses the voxel with the largest absolute value in the clustering
+image or contrast. <code>"nearest"</code> uses the cluster voxel closest to the
+center of mass by Euclidean distance in world coordinates.</p></dd>
 
 </dl></div>
     <div class="section level2">

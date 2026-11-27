@@ -1,10 +1,9 @@
-# Find slice locations based on cluster centers of mass in a 3D brain image
+# Select slices through clusters in a 3D brain image
 
 This function identifies connected clusters in a brain image (after
 applying an optional definition/contrast) and returns slice coordinates
-corresponding to the center of mass of each cluster. This is useful for
-automatically selecting slices that display the most relevant activation
-clusters.
+for the largest clusters. Slices can pass through the center of mass,
+the peak, or the voxel nearest the center of mass within each cluster.
 
 ## Usage
 
@@ -22,7 +21,8 @@ cluster_slices(
   outline_size = 1L,
   outline_scale = NULL,
   outline_show_legend = NULL,
-  sided = c("bisided", "two_sided")
+  sided = c("bisided", "two_sided"),
+  slice_at = c("center_of_mass", "peak", "nearest")
 )
 ```
 
@@ -113,24 +113,39 @@ cluster_slices(
   AFNI's `3dClusterize -bisided` behavior. `"two_sided"` allows all
   surviving voxels to connect regardless of sign.
 
+- slice_at:
+
+  Location within each cluster used to select a slice.
+  `"center_of_mass"` (default) uses the cluster's center of mass.
+  `"peak"` uses the voxel with the largest absolute value in the
+  clustering image or contrast. `"nearest"` uses the cluster voxel
+  closest to the center of mass by Euclidean distance in world
+  coordinates.
+
 ## Value
 
 If `images` is provided along with `definition`, returns a list. Pass
 its `$coordinates` character vector to
 [`slices()`](https://michaelhallquist.github.io/ggbrain/reference/slices.md)
-and use `$cluster_data` to inspect cluster sizes and centers. When
-outlines are requested, `$labeled_volume` contains the selected cluster
-IDs. If `layer` is specified or `images` is omitted, returns a deferred
-specification object (class `"cluster_slices_spec"`) that will be
-resolved during the ggbrain rendering pipeline.
+and use `$cluster_data` to inspect cluster sizes and centers. For
+`"peak"` and `"nearest"`, the table also reports the selected voxel
+indices (`slice_i`, `slice_j`, `slice_k`) and its signed `slice_value`.
+When outlines are requested, `$labeled_volume` contains the selected
+cluster IDs. If `layer` is specified or `images` is omitted, returns a
+deferred specification object (class `"cluster_slices_spec"`) that is
+resolved during rendering.
 
 ## Details
 
 The function performs 3D connected component labeling on the
-thresholded/masked image to identify distinct clusters. For each cluster
-meeting the minimum size criterion, the center of mass is computed.
-Slices are then selected at the center of mass coordinates along the
-specified plane.
+thresholded/masked image to identify distinct clusters. Clusters are
+ranked by size for all slice locations. The `"peak"` and `"nearest"`
+options always select a voxel inside the cluster and return its slice in
+voxel coordinates. For a negative cluster, `"peak"` selects the most
+negative voxel. Ties use the first voxel in array order (`i` varies
+fastest). For a logical definition, all included voxels have value 1.
+Use a masked numeric definition such as `"overlay[abs(overlay) > 3]"` to
+select peaks by statistic magnitude.
 
 Contrast definitions can be supplied in two ways:
 

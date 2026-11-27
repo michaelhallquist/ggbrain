@@ -298,10 +298,15 @@ percentiles.</p>
 <div class="section level4">
 <h4 id="automatically-locating-clusters-and-outlines">Automatically locating clusters and outlines<a class="anchor" aria-label="anchor" href="#automatically-locating-clusters-and-outlines"></a>
 </h4>
-<p>When you have a statistical overlay, <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code>
-can pick informative slice locations based on the centers of mass of the
-largest 3D clusters. Use <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> within
-<code><a href="../reference/slices.html">slices()</a></code> in place of manual coordinates.</p>
+<p>Use <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code> within <code><a href="../reference/slices.html">slices()</a></code> to
+select locations from the largest 3D clusters in a statistical overlay.
+The default, <code>slice_at = "center_of_mass"</code>, places the slice
+at the cluster’s center of mass. Use <code>slice_at = "peak"</code> to
+show the voxel with the strongest absolute statistic, or
+<code>slice_at = "nearest"</code> to show the cluster voxel nearest its
+center of mass in millimeters. The nearest-voxel option is useful when
+the center of an irregular cluster lies in the surrounding
+background.</p>
 <p>There are two supported ways to supply a contrast to
 <code><a href="../reference/cluster_slices.html">cluster_slices()</a></code>:</p>
 <ol style="list-style-type: decimal">
@@ -385,14 +390,14 @@ character vector of coordinates.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">selected</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cluster_slices.html">cluster_slices</a></span><span class="op">(</span></span>
 <span>  images <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>overlay <span class="op">=</span> <span class="va">pe_overlay_2mm</span><span class="op">)</span>, definition <span class="op">=</span> <span class="st">"overlay[abs(overlay) &gt; 3]"</span>,</span>
-<span>  nclusters <span class="op">=</span> <span class="fl">4</span>, min_clust_size <span class="op">=</span> <span class="fl">40</span></span>
+<span>  nclusters <span class="op">=</span> <span class="fl">4</span>, min_clust_size <span class="op">=</span> <span class="fl">40</span>, slice_at <span class="op">=</span> <span class="st">"peak"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">selected</span><span class="op">$</span><span class="va">cluster_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"size"</span>, <span class="st">"side"</span>, <span class="st">"com_x"</span>, <span class="st">"com_y"</span>, <span class="st">"com_z"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">##    size     side      com_x       com_y     com_z</span></span>
-<span><span class="co">## 1 41494 positive  -2.385791  -36.776064  9.646937</span></span>
-<span><span class="co">## 2   779 positive  42.451861   38.613607 15.057766</span></span>
-<span><span class="co">## 3   667 positive  47.910045    9.862069 26.437781</span></span>
-<span><span class="co">## 4    44 negative -13.045455 -100.500000 15.181818</span></span></code></pre>
+<span><span class="va">selected</span><span class="op">$</span><span class="va">cluster_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"size"</span>, <span class="st">"side"</span>, <span class="st">"slice_coord"</span>, <span class="st">"slice_value"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<pre><code><span><span class="co">##    size     side slice_coord slice_value</span></span>
+<span><span class="co">## 1 41494 positive      k = 37   12.994832</span></span>
+<span><span class="co">## 2   779 positive      k = 50    7.056568</span></span>
+<span><span class="co">## 3   667 positive      k = 53    9.541517</span></span>
+<span><span class="co">## 4    44 negative      k = 48   -6.201405</span></span></code></pre>
 <p>Use <code>slices(selected$coordinates)</code> to reuse those
 locations. For automatic outlines, use the deferred form
 <code>slices(cluster_slices(..., outline = TRUE))</code> shown

@@ -430,6 +430,28 @@ plot(gg_cross)
 
 ![](ggbrain_aesthetics_files/figure-html/crosshair_annotations-1.png)
 
+To mark the peak voxels from `cluster_slices(slice_at = "peak")`, add
+`annotate_crosshairs(at = "cluster_peaks")`. Each peak is marked on
+every displayed slice through that voxel. Multiple peaks can share a
+slice.
+
+``` r
+
+gg_peaks <- ggbrain() +
+  images(c(underlay = underlay_2mm, overlay = pe_overlay_2mm)) +
+  slices(cluster_slices(
+    definition = "overlay[abs(overlay) > 3]",
+    nclusters = 2, min_clust_size = 40, slice_at = "peak"
+  )) +
+  geom_brain("underlay") +
+  geom_brain("overlay[abs(overlay) > 3]") +
+  annotate_crosshairs(at = "cluster_peaks", color = "white", linewidth = 0.6)
+
+plot(gg_peaks)
+```
+
+![](ggbrain_aesthetics_files/figure-html/peak_crosshairs-1.png)
+
 ## Creating reusable plot components
 
 When creating multiple related plots, it’s efficient to define common
