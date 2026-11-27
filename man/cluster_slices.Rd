@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluster_slices.R
 \name{cluster_slices}
 \alias{cluster_slices}
-\title{Find slice locations based on cluster centers of mass in a 3D brain image}
+\title{Select slices through clusters in a 3D brain image}
 \usage{
 cluster_slices(
   images = NULL,
@@ -17,7 +17,8 @@ cluster_slices(
   outline_size = 1L,
   outline_scale = NULL,
   outline_show_legend = NULL,
-  sided = c("bisided", "two_sided")
+  sided = c("bisided", "two_sided"),
+  slice_at = c("center_of_mass", "peak", "nearest")
 )
 }
 \arguments{
@@ -69,26 +70,38 @@ cluster outline colors. Mutually exclusive with \code{outline_color}.}
 clusters positive and negative surviving voxels separately, matching AFNI's
 \code{3dClusterize -bisided} behavior. \code{"two_sided"} allows all surviving voxels
 to connect regardless of sign.}
+
+\item{slice_at}{Location within each cluster used to select a slice.
+\code{"center_of_mass"} (default) uses the cluster's center of mass.
+\code{"peak"} uses the voxel with the largest absolute value in the clustering
+image or contrast. \code{"nearest"} uses the cluster voxel closest to the
+center of mass by Euclidean distance in world coordinates.}
 }
 \value{
 If \code{images} is provided along with \code{definition}, returns a list.
 Pass its \code{$coordinates} character vector to \code{slices()} and use
-\code{$cluster_data} to inspect cluster sizes and centers. When outlines are requested,
-\code{$labeled_volume} contains the selected cluster IDs. If \code{layer} is specified or \code{images} is omitted, returns
-a deferred specification object (class \code{"cluster_slices_spec"}) that will be resolved
-during the ggbrain rendering pipeline.
+\code{$cluster_data} to inspect cluster sizes and centers. For \code{"peak"} and
+\code{"nearest"}, the table also reports the selected voxel indices
+(\code{slice_i}, \code{slice_j}, \code{slice_k}) and its signed \code{slice_value}.
+When outlines are requested, \code{$labeled_volume} contains the selected cluster
+IDs. If \code{layer} is specified or \code{images} is omitted, returns a deferred
+specification object (class \code{"cluster_slices_spec"}) that is resolved during rendering.
 }
 \description{
 This function identifies connected clusters in a brain image (after applying
-an optional definition/contrast) and returns slice coordinates corresponding to the
-center of mass of each cluster. This is useful for automatically selecting slices
-that display the most relevant activation clusters.
+an optional definition/contrast) and returns slice coordinates for the largest
+clusters. Slices can pass through the center of mass, the peak, or the voxel
+nearest the center of mass within each cluster.
 }
 \details{
 The function performs 3D connected component labeling on the thresholded/masked image
-to identify distinct clusters. For each cluster meeting the minimum size criterion,
-the center of mass is computed. Slices are then selected at the center of mass
-coordinates along the specified plane.
+to identify distinct clusters. Clusters are ranked by size for all slice locations.
+The \code{"peak"} and \code{"nearest"} options always select a voxel inside the
+cluster and return its slice in voxel coordinates. For a negative cluster,
+\code{"peak"} selects the most negative voxel. Ties use the
+first voxel in array order (\code{i} varies fastest). For a logical definition,
+all included voxels have value 1. Use a masked numeric definition such as
+\code{"overlay[abs(overlay) > 3]"} to select peaks by statistic magnitude.
 
 Contrast definitions can be supplied in two ways:
 \enumerate{

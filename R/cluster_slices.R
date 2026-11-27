@@ -1,9 +1,9 @@
-#' Find slice locations based on cluster centers of mass in a 3D brain image
+#' Select slices through clusters in a 3D brain image
 #'
 #' @description This function identifies connected clusters in a brain image (after applying
-#'   an optional definition/contrast) and returns slice coordinates corresponding to the
-#'   center of mass of each cluster. This is useful for automatically selecting slices
-#'   that display the most relevant activation clusters.
+#'   an optional definition/contrast) and returns slice coordinates for the largest
+#'   clusters. Slices can pass through the center of mass, the peak, or the voxel
+#'   nearest the center of mass within each cluster.
 #'
 #' @param images A ggbrain_images object or a named character vector of image file paths.
 #'   Required for computing cluster locations.
@@ -42,19 +42,30 @@
 #'   cluster outline colors. Mutually exclusive with \code{outline_color}.
 #' @param outline_show_legend Logical. Whether to show a legend for cluster outlines. If
 #'   \code{NULL} (default), a legend is shown when multiple clusters exist.
+#' @param slice_at Location within each cluster used to select a slice.
+#'   \code{"center_of_mass"} (default) uses the cluster's center of mass.
+#'   \code{"peak"} uses the voxel with the largest absolute value in the clustering
+#'   image or contrast. \code{"nearest"} uses the cluster voxel closest to the
+#'   center of mass by Euclidean distance in world coordinates.
 #'
 #' @return If \code{images} is provided along with \code{definition}, returns a list.
 #'   Pass its \code{$coordinates} character vector to \code{slices()} and use
-#'   \code{$cluster_data} to inspect cluster sizes and centers. When outlines are requested,
-#'   \code{$labeled_volume} contains the selected cluster IDs. If \code{layer} is specified or \code{images} is omitted, returns
-#'   a deferred specification object (class \code{"cluster_slices_spec"}) that will be resolved
-#'   during the ggbrain rendering pipeline.
+#'   \code{$cluster_data} to inspect cluster sizes and centers. For \code{"peak"} and
+#'   \code{"nearest"}, the table also reports the selected voxel indices
+#'   (\code{slice_i}, \code{slice_j}, \code{slice_k}) and its signed \code{slice_value}.
+#'   When outlines are requested, \code{$labeled_volume} contains the selected cluster
+#'   IDs. If \code{layer} is specified or \code{images} is omitted, returns a deferred
+#'   specification object (class \code{"cluster_slices_spec"}) that is resolved during rendering.
 #'
 #' @details
 #'   The function performs 3D connected component labeling on the thresholded/masked image
-#'   to identify distinct clusters. For each cluster meeting the minimum size criterion,
-#'   the center of mass is computed. Slices are then selected at the center of mass
-#'   coordinates along the specified plane.
+#'   to identify distinct clusters. Clusters are ranked by size for all slice locations.
+#'   The \code{"peak"} and \code{"nearest"} options always select a voxel inside the
+#'   cluster and return its slice in voxel coordinates. For a negative cluster,
+#'   \code{"peak"} selects the most negative voxel. Ties use the
+#'   first voxel in array order (\code{i} varies fastest). For a logical definition,
+#'   all included voxels have value 1. Use a masked numeric definition such as
+#'   \code{"overlay[abs(overlay) > 3]"} to select peaks by statistic magnitude.
 #'
 #'   Contrast definitions can be supplied in two ways:
 #'   \enumerate{
@@ -119,7 +130,8 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
                            nclusters = 10, min_clust_size = 1, plane = "axial", nn = 3,
                            outline = FALSE, outline_color = NULL, outline_size = 1L,
                            outline_scale = NULL, outline_show_legend = NULL,
-                           sided = c("bisided", "two_sided")) {
+                           sided = c("bisided", "two_sided"),
+                           slice_at = c("center_of_mass", "peak", "nearest")) {
   # Validate mutually exclusive arguments
   if (!is.null(layer) && !is.null(definition)) {
     stop("Specify either 'layer' or 'definition', not both.")
@@ -136,6 +148,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
   plane <- switch(plane, x = "sagittal", y = "coronal", z = "axial", plane)
   checkmate::assert_choice(nn, c(1L, 2L, 3L))
   sided <- normalize_cluster_sided(sided)
+  slice_at <- match.arg(slice_at)
   checkmate::assert_logical(outline, len = 1L)
   checkmate::assert_integerish(outline_size, lower = 1L, len = 1L)
   checkmate::assert_character(outline_color, any.missing = FALSE, null.ok = TRUE)
@@ -156,7 +169,8 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
     # We have everything needed - compute slice locations now
     ret <- compute_cluster_slices(images, definition, nclusters, min_clust_size, plane, nn,
       outline = outline, outline_color = outline_color, outline_size = outline_size,
-      outline_scale = outline_scale, outline_show_legend = outline_show_legend, sided = sided)
+      outline_scale = outline_scale, outline_show_legend = outline_show_legend, sided = sided,
+      slice_at = slice_at)
   } else {
     # Return a deferred specification to be resolved during render()
     ret <- structure(
@@ -168,6 +182,7 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
         plane = plane,
         nn = nn,
         sided = sided,
+        slice_at = slice_at,
         outline = outline,
         outline_color = outline_color,
         outline_size = outline_size,
@@ -201,8 +216,10 @@ cluster_slices <- function(images = NULL, layer = NULL, definition = NULL,
 #' @keywords internal
 compute_cluster_slices <- function(images, definition, nclusters, min_clust_size, plane, nn,
   outline = FALSE, outline_color = NULL, outline_size = 1L, outline_scale = NULL, outline_show_legend = NULL,
-  sided = c("bisided", "two_sided"), contrasts = NULL) {
+  sided = c("bisided", "two_sided"), contrasts = NULL, slice_at = "center_of_mass") {
   sided <- normalize_cluster_sided(sided)
+  select_voxel <- slice_at != "center_of_mass"
+  return_labels <- isTRUE(outline) || select_voxel
 
   # 1. Get the ggbrain_images object
   if (inherits(images, "character")) {
@@ -223,25 +240,34 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
   if (identical(sided, "bisided")) {
     cluster_info <- find_bisided_3d_clusters(
       masked_vol, contrast_values, min_size = min_clust_size, nn = nn,
-      return_labels = outline, zero_tol = img_obj$zero_tol
+      return_labels = return_labels, zero_tol = img_obj$zero_tol
     )
   } else {
-    cluster_info <- find_3d_clusters(masked_vol, min_size = min_clust_size, nn = nn, return_labels = outline)
+    cluster_info <- find_3d_clusters(masked_vol, min_size = min_clust_size, nn = nn, return_labels = return_labels)
     cluster_info$side <- rep("two_sided", nrow(cluster_info))
   }
   labeled_volume <- attr(cluster_info, "labeled_volume")
+  # Voxel-based selection needs labels internally, even when the report needs no outline.
+  if (select_voxel) attr(cluster_info, "labeled_volume") <- NULL
 
   if (nrow(cluster_info) == 0) {
     warning("No clusters found meeting the size criterion. Returning empty slice specification.")
+    cluster_data <- data.frame(
+      cluster_id = integer(0), size = integer(0), cluster_index = integer(0),
+      side = character(0),
+      com_i = numeric(0), com_j = numeric(0), com_k = numeric(0),
+      com_x = numeric(0), com_y = numeric(0), com_z = numeric(0),
+      slice_coord = character(0), outline_color = character(0), stringsAsFactors = FALSE
+    )
+    if (select_voxel) {
+      cluster_data$slice_i <- integer(0)
+      cluster_data$slice_j <- integer(0)
+      cluster_data$slice_k <- integer(0)
+      cluster_data$slice_value <- numeric(0)
+    }
     return(list(
       coordinates = character(0),
-      cluster_data = data.frame(
-        cluster_id = integer(0), size = integer(0), cluster_index = integer(0),
-        side = character(0),
-        com_i = numeric(0), com_j = numeric(0), com_k = numeric(0),
-        com_x = numeric(0), com_y = numeric(0), com_z = numeric(0),
-        slice_coord = character(0), outline_color = character(0), stringsAsFactors = FALSE
-      ),
+      cluster_data = cluster_data,
       labeled_volume = NULL,
       outline_palette = NULL,
       outline_size = outline_size,
@@ -275,21 +301,26 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
   top_clusters$com_y <- com_world[, 2]
   top_clusters$com_z <- com_world[, 3]
 
-  # 7. Extract the relevant coordinate for the requested plane
-  axis <- switch(plane, axial = "z", sagittal = "x", coronal = "y")
+  # Use voxel indices for in-cluster locations so rounding millimeters cannot move the slice.
   coord_idx <- switch(plane, sagittal = 1, coronal = 2, axial = 3)
-  coords <- com_world[, coord_idx]
-
-  # 8. Round coordinates for display and create slice strings
-  coords <- round(coords, 1)
-  slice_coords <- sprintf("%s = %s", axis, coords)
-
-  # Add slice coordinates to cluster data
+  if (select_voxel) {
+    indices <- select_cluster_voxels(
+      labeled_volume, top_clusters$cluster_id, contrast_values, com_voxels, nii_head, slice_at
+    )
+    voxels <- arrayInd(indices, dim(labeled_volume))
+    top_clusters$slice_i <- voxels[, 1L]
+    top_clusters$slice_j <- voxels[, 2L]
+    top_clusters$slice_k <- voxels[, 3L]
+    top_clusters$slice_value <- as.numeric(contrast_values[indices])
+    slice_coords <- sprintf("%s = %d", c("i", "j", "k")[coord_idx], voxels[, coord_idx])
+  } else {
+    slice_coords <- sprintf("%s = %s", c("x", "y", "z")[coord_idx], round(com_world[, coord_idx], 1))
+  }
 
   top_clusters$slice_coord <- slice_coords
 
   # If requested, build a labeled volume for the selected clusters only
-  if (!is.null(labeled_volume)) {
+  if (isTRUE(outline) && !is.null(labeled_volume)) {
     vol_dims <- dim(labeled_volume)
     keep_ids <- top_clusters$cluster_id
     if (length(keep_ids) == 0L) {
@@ -300,6 +331,8 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
       labeled_volume <- id_map[as.character(labeled_volume)]
       labeled_volume <- array(as.integer(labeled_volume), dim = vol_dims)
     }
+  } else {
+    labeled_volume <- NULL
   }
 
   outline_palette <- NULL
@@ -326,6 +359,24 @@ compute_cluster_slices <- function(images, definition, nclusters, min_clust_size
     outline_show_legend = outline_show_legend,
     reference_image = reference_image
   ))
+}
+
+
+select_cluster_voxels <- function(labels, cluster_ids, values, centers, header, slice_at) {
+  indices <- which(labels %in% cluster_ids)
+  by_cluster <- split(indices, factor(labels[indices], levels = cluster_ids))
+  if (slice_at == "peak") {
+    return(vapply(by_cluster, function(voxels) voxels[which.max(abs(values[voxels]))], numeric(1)))
+  }
+
+  # Convert voxel offsets to millimeter offsets, including anisotropy and affine shear.
+  linear_transform <- RNifti::xform(header)[1:3, 1:3, drop = FALSE]
+  vapply(seq_along(by_cluster), function(i) {
+    voxels <- by_cluster[[i]]
+    offsets <- sweep(arrayInd(voxels, dim(labels)), 2L, centers[i, ], "-")
+    distance_squared <- rowSums((offsets %*% t(linear_transform))^2)
+    voxels[which.min(distance_squared)]
+  }, numeric(1))
 }
 
 
@@ -618,6 +669,7 @@ resolve_cluster_slices <- function(spec, images, layers = NULL, contrasts = NULL
     outline_size = spec$outline_size,
     outline_scale = spec$outline_scale,
     outline_show_legend = spec$outline_show_legend,
-    contrasts = contrasts
+    contrasts = contrasts,
+    slice_at = spec$slice_at %||% "center_of_mass"
   )
 }

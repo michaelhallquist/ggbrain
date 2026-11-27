@@ -180,6 +180,8 @@ It must be called after plot() or render() has been invoked, otherwise it return
 The returned data.frame contains columns: cluster_id, size (in voxels), com_i, com_j, com_k
 (center of mass in voxel coordinates), com_x, com_y, com_z (center of mass in world/mm coordinates),
 and slice_coord (the slice coordinate string used for plotting).
+With \code{cluster_slices(slice_at = "peak")} or \code{cluster_slices(slice_at = "nearest")},
+the selected voxel is reported in slice_i, slice_j, and slice_k, with its statistic in slice_value.
 }
 
 \subsection{Returns}{
